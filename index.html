@@ -8,15 +8,15 @@
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --ink:#14181f;
+    --ink:#28394a;
     --canvas:#ffffff;
-    --paper:#f6f5f1;
-    --paper-deep:#efece3;
-    --line:#e2e1dc;
-    --denim:#1f3a5f;
-    --denim-dark:#142840;
-    --mustard:#d9a62e;
-    --thread:#c13b3b;
+    --paper:#eef5ee;
+    --paper-deep:#e2eee2;
+    --line:#d9e6de;
+    --denim:#5b8fc7;
+    --denim-dark:#3f6c9e;
+    --mustard:#8fc9a0;
+    --thread:#e08a7d;
     --radius:14px;
   }
   *{box-sizing:border-box;}
@@ -25,9 +25,10 @@
     margin:0; color:var(--ink); position:relative;
     font-family:'Inter',system-ui,sans-serif; -webkit-font-smoothing:antialiased;
     background:
-      radial-gradient(1100px 520px at 15% -8%, rgba(31,58,95,0.06), transparent 60%),
-      radial-gradient(900px 460px at 100% 8%, rgba(217,166,46,0.07), transparent 55%),
-      #fbfaf6;
+      radial-gradient(1200px 600px at 10% -10%, rgba(143,201,160,0.35), transparent 55%),
+      radial-gradient(1100px 650px at 95% 10%, rgba(91,143,199,0.30), transparent 55%),
+      radial-gradient(900px 500px at 15% 100%, rgba(143,201,160,0.30), transparent 55%),
+      linear-gradient(160deg, #eef5ee 0%, #e3edf6 45%, #dbe8f4 100%);
   }
   body::before{
     content:''; position:fixed; inset:0; pointer-events:none; z-index:1;
@@ -128,7 +129,7 @@
   }
   .hero-art::before{
     content:''; position:absolute; inset:-50px; z-index:-1;
-    background:radial-gradient(circle at 50% 42%, rgba(217,166,46,0.20), transparent 65%);
+    background:radial-gradient(circle at 50% 42%, rgba(91,143,199,0.22), transparent 65%);
     filter:blur(6px);
   }
   .hero-art svg{ width:100%; height:auto; max-width:280px; }
@@ -230,12 +231,12 @@
 
   /* ---------- How it works ---------- */
   .how{
-    background:linear-gradient(180deg,var(--denim-dark),#0e1c30);
+    background:linear-gradient(180deg,var(--denim-dark),#1e3b52);
     border-top:none; border-bottom:none; color:#fff; position:relative; overflow:hidden;
   }
   .how::before{
     content:''; position:absolute; inset:0; opacity:0.5; pointer-events:none;
-    background:radial-gradient(700px 300px at 85% 0%, rgba(217,166,46,0.14), transparent 60%);
+    background:radial-gradient(700px 300px at 85% 0%, rgba(143,201,160,0.16), transparent 60%);
   }
   .how .section-head h2{ color:#fff; }
   .how-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:0; position:relative; }
@@ -536,7 +537,7 @@ const CONFIG = {
   heroTagA: "Rs 100 OFF",
   heroTagB: "COD ✓",
   sheetWebAppUrl: "https://script.google.com/macros/s/AKfycbyCM3kmuzGTszngwN-FiG61cymzyhRKNlnJAMYuh82CaTBddJPEe51CtsKMeoAmoz9cfA/exec",
-  productsCsvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQd96p5gNA5FkuPj62x-08vIkyndn8wK5R14agatf1OJbS_-GzTTyHe_v_iKMZ3rPFWhW7ZotQZDZOt/pub?gid=0&single=true&output=csv"
+  productsCsvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSkMEBcxvLNqFY3G2Ivm9W6nUyHnP7l8mGQvLMM-f0NeMO6OI4tWvU64iZcoS-_wc9xpvpQE91loK5W/pub?output=csv"
 };
 
 const SAMPLE_PRODUCTS = [
