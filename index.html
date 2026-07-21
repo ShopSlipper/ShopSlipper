@@ -11,6 +11,7 @@
     --ink:#14181f;
     --canvas:#ffffff;
     --paper:#f6f5f1;
+    --paper-deep:#efece3;
     --line:#e2e1dc;
     --denim:#1f3a5f;
     --denim-dark:#142840;
@@ -21,8 +22,18 @@
   *{box-sizing:border-box;}
   html{scroll-behavior:smooth;}
   body{
-    margin:0; background:var(--canvas); color:var(--ink);
+    margin:0; color:var(--ink); position:relative;
     font-family:'Inter',system-ui,sans-serif; -webkit-font-smoothing:antialiased;
+    background:
+      radial-gradient(1100px 520px at 15% -8%, rgba(31,58,95,0.06), transparent 60%),
+      radial-gradient(900px 460px at 100% 8%, rgba(217,166,46,0.07), transparent 55%),
+      #fbfaf6;
+  }
+  body::before{
+    content:''; position:fixed; inset:0; pointer-events:none; z-index:1;
+    opacity:0.035; mix-blend-mode:multiply;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size:160px 160px;
   }
   .mono{ font-family:'JetBrains Mono', ui-monospace, monospace; }
   .display{ font-family:'Anton', sans-serif; letter-spacing:0.5px; text-transform:uppercase; }
@@ -32,8 +43,12 @@
 
   /* ---------- Top bar ---------- */
   .topbar{
-    position:sticky; top:0; z-index:40; background:var(--canvas);
-    border-bottom:2px solid var(--ink);
+    position:sticky; top:0; z-index:40;
+    background:rgba(251,250,246,0.78);
+    backdrop-filter:blur(12px) saturate(160%);
+    -webkit-backdrop-filter:blur(12px) saturate(160%);
+    border-bottom:1px solid rgba(20,24,31,0.08);
+    box-shadow:0 1px 0 rgba(20,24,31,0.03);
   }
   .topbar-inner{
     max-width:1180px; margin:0 auto; padding:16px 24px;
@@ -41,11 +56,16 @@
   }
   .logo{ display:flex; align-items:center; gap:10px; }
   .logo .mark{
-    width:34px; height:34px; border-radius:50%; background:var(--denim);
+    width:52px; height:52px; border-radius:50%; background:var(--denim);
     display:flex; align-items:center; justify-content:center;
-    color:#fff; font-family:'Anton',sans-serif; font-size:16px; overflow:hidden;
+    color:#fff; font-family:'Anton',sans-serif; font-size:22px; overflow:hidden; flex-shrink:0;
+    padding:0;
   }
-  .logo .mark img{ width:100%; height:100%; object-fit:cover; }
+  .logo .mark img{
+    width:100%; height:100%;
+    object-fit:cover;
+    object-position:center;
+  }
   .logo .name{ font-family:'Anton',sans-serif; font-size:20px; letter-spacing:0.5px; }
   .logo .tag{ font-size:10px; color:#6b7280; margin-top:-2px; letter-spacing:1.5px; text-transform:uppercase; }
 
@@ -73,6 +93,12 @@
     font-weight:700; letter-spacing:1px; transform:rotate(-11deg); margin-bottom:22px;
     line-height:1.5;
   }
+  .kicker{
+    display:inline-flex; align-items:center; gap:9px; font-family:'JetBrains Mono',monospace;
+    font-size:11.5px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase;
+    color:var(--denim); margin-bottom:16px;
+  }
+  .kicker::before{ content:''; width:24px; height:2px; background:var(--mustard); display:inline-block; }
   .hero h1{
     font-size:clamp(38px,5.4vw,64px); line-height:0.98; margin:0 0 18px;
   }
@@ -81,9 +107,10 @@
   .hero-ctas{ display:flex; gap:12px; flex-wrap:wrap; }
   .btn-primary{
     background:var(--denim); color:#fff; border:none; padding:14px 26px; border-radius:999px;
-    font-weight:700; font-size:14.5px; cursor:pointer; transition:background .15s ease;
+    font-weight:700; font-size:14.5px; cursor:pointer; transition:background .15s ease, transform .15s ease;
+    box-shadow:0 14px 26px -12px rgba(31,58,95,0.55);
   }
-  .btn-primary:hover{ background:var(--denim-dark); }
+  .btn-primary:hover{ background:var(--denim-dark); transform:translateY(-1px); }
   .btn-ghost{
     background:transparent; border:2px solid var(--ink); color:var(--ink);
     padding:12px 24px; border-radius:999px; font-weight:700; font-size:14.5px; cursor:pointer;
@@ -97,8 +124,15 @@
     background:var(--paper); border:2px solid var(--ink); border-radius:20px;
     padding:26px; position:relative; min-height:340px;
     display:flex; align-items:center; justify-content:center;
+    box-shadow:0 46px 80px -36px rgba(20,24,31,0.35);
+  }
+  .hero-art::before{
+    content:''; position:absolute; inset:-50px; z-index:-1;
+    background:radial-gradient(circle at 50% 42%, rgba(217,166,46,0.20), transparent 65%);
+    filter:blur(6px);
   }
   .hero-art svg{ width:100%; height:auto; max-width:280px; }
+  #heroVisual img{ width:100%; max-width:320px; max-height:340px; object-fit:cover; border-radius:12px; display:block; }
   .hero-art .float-tag{
     position:absolute; background:#fff; border:2px solid var(--ink); border-radius:10px;
     padding:8px 12px; font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:700;
@@ -141,10 +175,15 @@
   }
   .card{
     background:var(--paper); border:2px solid var(--ink); border-radius:var(--radius);
-    padding:16px; position:relative; display:flex; flex-direction:column;
+    padding:16px; position:relative; display:flex; flex-direction:column; cursor:pointer;
     transition:transform .15s ease, box-shadow .15s ease;
+    box-shadow:0 1px 2px rgba(20,24,31,0.05), 0 14px 26px -18px rgba(20,24,31,0.35);
   }
-  .card:hover{ transform:translateY(-4px); box-shadow:6px 6px 0 var(--ink); }
+  .card.reveal:hover{
+    transform:scale(1.035);
+    box-shadow:0 10px 20px -8px rgba(20,24,31,0.35);
+    z-index:2;
+  }
   .card .hole{
     position:absolute; top:12px; left:14px; width:16px; height:16px; border-radius:50%;
     background:var(--canvas); border:2px solid var(--ink); z-index:2;
@@ -155,7 +194,9 @@
     border-radius:50% 0 0 0; opacity:.55;
   }
   .card .thumb{
-    background:#fff; border:1.5px solid var(--line); border-radius:10px;
+    background:linear-gradient(180deg,#ffffff,var(--paper));
+    box-shadow:inset 0 1px 4px rgba(20,24,31,0.07);
+    border:1.5px solid var(--line); border-radius:10px;
     height:150px; display:flex; align-items:center; justify-content:center; margin-bottom:14px;
     color:var(--denim); overflow:hidden;
   }
@@ -188,13 +229,21 @@
   .add-btn:disabled{ background:#c7c7c7; cursor:not-allowed; }
 
   /* ---------- How it works ---------- */
-  .how{ background:var(--paper); border-top:2px solid var(--ink); border-bottom:2px solid var(--ink); }
-  .how-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:0; }
-  .how-step{ padding:34px 22px; border-right:1.5px dashed var(--ink); }
+  .how{
+    background:linear-gradient(180deg,var(--denim-dark),#0e1c30);
+    border-top:none; border-bottom:none; color:#fff; position:relative; overflow:hidden;
+  }
+  .how::before{
+    content:''; position:absolute; inset:0; opacity:0.5; pointer-events:none;
+    background:radial-gradient(700px 300px at 85% 0%, rgba(217,166,46,0.14), transparent 60%);
+  }
+  .how .section-head h2{ color:#fff; }
+  .how-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:0; position:relative; }
+  .how-step{ padding:34px 22px; border-right:1px solid rgba(255,255,255,0.14); }
   .how-step:last-child{ border-right:none; }
-  .how-step .k{ font-family:'JetBrains Mono',monospace; color:var(--denim); font-weight:700; font-size:12px; }
-  .how-step h4{ margin:10px 0 6px; font-size:16px; }
-  .how-step p{ margin:0; font-size:13px; color:#6b7280; line-height:1.5; }
+  .how-step .k{ font-family:'JetBrains Mono',monospace; color:var(--mustard); font-weight:700; font-size:12px; }
+  .how-step h4{ margin:10px 0 6px; font-size:16px; color:#fff; }
+  .how-step p{ margin:0; font-size:13px; color:rgba(255,255,255,0.62); line-height:1.5; }
 
   /* ---------- Footer ---------- */
   footer{ max-width:1180px; margin:0 auto; padding:40px 24px 60px; }
@@ -248,8 +297,9 @@
   .checkout-btn{
     width:100%; background:var(--denim); color:#fff; border:none; border-radius:999px;
     padding:15px; font-weight:700; font-size:14.5px; cursor:pointer; margin-top:14px;
+    box-shadow:0 14px 26px -14px rgba(31,58,95,0.55); transition:background .15s ease, transform .15s ease;
   }
-  .checkout-btn:hover{ background:var(--denim-dark); }
+  .checkout-btn:hover{ background:var(--denim-dark); transform:translateY(-1px); }
   .checkout-btn:disabled{ background:#c7c7c7; cursor:not-allowed; }
 
   /* ---------- Checkout form (inline in drawer) ---------- */
@@ -268,6 +318,90 @@
     font-family:'JetBrains Mono',monospace; z-index:80; opacity:0; pointer-events:none; transition:all .25s ease;
   }
   .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  .fly-item{
+    position:fixed; z-index:100; border-radius:50%; pointer-events:none;
+    background:var(--paper); border:2px solid var(--ink); overflow:hidden;
+    display:flex; align-items:center; justify-content:center; color:var(--denim);
+    transition: transform 0.65s cubic-bezier(.35,0,.55,1.2), opacity 0.65s ease, width 0.65s ease, height 0.65s ease;
+  }
+  .fly-item img{ width:100%; height:100%; object-fit:cover; }
+  .fly-item svg{ width:60%; height:60%; }
+  .cart-btn.bump{ animation: cartBump 0.35s ease; }
+  @keyframes cartBump{
+    0%{ transform:scale(1); }
+    35%{ transform:scale(1.18); }
+    100%{ transform:scale(1); }
+  }
+
+  /* ---------- Product detail modal ---------- */
+  .pmodal{
+    position:fixed; top:50%; left:50%; z-index:65; background:#fff;
+    width:min(560px,92vw); max-height:88vh; overflow-y:auto;
+    border:2px solid var(--ink); border-radius:20px;
+    box-shadow:0 30px 60px rgba(20,24,31,0.35);
+    opacity:0; pointer-events:none;
+    transform:translate(-50%,-50%) scale(.94);
+    transition:transform .22s cubic-bezier(.2,.8,.3,1), opacity .18s ease;
+  }
+  .pmodal.open{ opacity:1; pointer-events:auto; transform:translate(-50%,-50%) scale(1); }
+  .pmodal-close{
+    position:absolute; top:14px; right:14px; z-index:2; width:34px; height:34px; border-radius:50%;
+    background:#fff; border:2px solid var(--ink); font-size:19px; line-height:1; cursor:pointer; color:var(--ink);
+  }
+  .pmodal-img{
+    height:280px; background:var(--paper); border-bottom:2px solid var(--ink);
+    border-radius:18px 18px 0 0; display:flex; align-items:center; justify-content:center;
+    overflow:hidden; color:var(--denim);
+  }
+  .pmodal-img svg{ width:130px; height:130px; }
+  .pmodal-img img{ width:100%; height:100%; object-fit:cover; }
+  .pmodal-body{ padding:24px 26px 28px; }
+  .pmodal-badges{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+  .pmodal-badges .cond, .pmodal-badges .offer-ribbon{ position:static; max-width:none; }
+  .pmodal-body h3{ font-size:22px; margin:0 0 6px; }
+  .pmodal-meta{ font-size:13px; color:#6b7280; margin-bottom:14px; }
+  .pmodal-price{ font-family:'JetBrains Mono',monospace; font-size:22px; font-weight:700; margin-bottom:16px; }
+  .pmodal-price small{ color:#9ca3af; text-decoration:line-through; font-weight:400; font-size:14px; margin-right:8px; }
+  .pmodal-desc{ font-size:13.5px; color:#4b5563; line-height:1.6; margin-bottom:22px; }
+  .size-label{
+    font-size:11.5px; font-weight:600; text-transform:uppercase; letter-spacing:.4px;
+    color:#4b5563; display:block; margin-bottom:9px;
+  }
+  .size-options{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:6px; }
+  .size-chip{
+    border:1.5px solid var(--ink); background:#fff; border-radius:8px; min-width:46px;
+    padding:9px 12px; text-align:center; font-family:'JetBrains Mono',monospace; font-size:13px;
+    font-weight:700; cursor:pointer; transition:all .12s ease;
+  }
+  .size-chip:hover{ border-color:var(--denim); color:var(--denim); }
+  .size-chip.selected{ background:var(--ink); color:#fff; border-color:var(--ink); }
+  .size-chip.sold-out{
+    background:var(--paper); color:#b3b0a8; border-color:var(--line);
+    text-decoration:line-through; cursor:not-allowed;
+  }
+  .size-chip.sold-out:hover{ border-color:var(--line); color:#b3b0a8; }
+  .size-note{ font-size:11.5px; color:#9ca3af; margin:8px 0 0; }
+  .size-warn{ font-size:12px; color:var(--thread); margin:8px 0 0; display:none; }
+  .size-warn.show{ display:block; }
+  .pmodal-qty-row{ display:flex; align-items:center; justify-content:space-between; margin:20px 0 20px; }
+  .pmodal-actions .checkout-btn{ margin-top:0; }
+
+  .sold-out-ribbon{
+    position:absolute; top:14px; right:14px; background:var(--ink); color:#fff;
+    font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700; padding:3px 9px;
+    border-radius:999px; text-transform:uppercase; z-index:3;
+  }
+  .card.all-sold-out .thumb{ opacity:0.45; filter:grayscale(0.5); }
+  .card.all-sold-out h3, .card.all-sold-out .price{ opacity:0.55; }
+  .card.all-sold-out .add-btn{ background:#c7c7c7; cursor:not-allowed; }
+
+  /* ---------- Scroll-reveal ---------- */
+  .reveal{
+    opacity:0; transform:translateY(28px);
+    transition:opacity .7s cubic-bezier(.16,.8,.4,1), transform .7s cubic-bezier(.16,.8,.4,1);
+  }
+  .reveal.in-view{ opacity:1; transform:translateY(0); }
 
   .order-success{ text-align:center; padding:40px 12px; }
   .order-success .ok-mark{
@@ -307,8 +441,9 @@
 </div>
 
 <section class="hero">
-  <div>
+  <div class="reveal">
     <div class="stamp">QUALITY<br>CHECKED<br>PRODUCTS</div>
+    <div class="kicker">Curated Second-Hand · Kathmandu Valley</div>
     <h1>Quality picks,<br><span>delivered</span> across<br>the Valley.</h1>
     <p>Browse the full catalog and get it dropped at your door in Kathmandu, Lalitpur and Bhaktapur — cash on delivery, no hassle.</p>
     <div class="hero-ctas">
@@ -321,20 +456,22 @@
       <div><div class="n">24hr</div><div class="l">Avg. Delivery</div></div>
     </div>
   </div>
-  <div class="hero-art">
-    <div class="float-tag a">Rs 100 OFF</div>
-    <div class="float-tag b">COD ✓</div>
-    <svg viewBox="0 0 200 220" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M70 30 L60 55 L20 65 L35 210 L165 210 L180 65 L140 55 L130 30 Z" stroke="#14181f" stroke-width="4" fill="#ffffff"/>
-      <path d="M70 30 Q100 55 130 30" stroke="#14181f" stroke-width="4" fill="none"/>
-      <circle cx="60" cy="55" r="5" fill="#1f3a5f"/>
-      <circle cx="140" cy="55" r="5" fill="#1f3a5f"/>
-    </svg>
+  <div class="hero-art reveal" style="transition-delay:.12s;">
+    <div class="float-tag a" id="heroTagA">Rs 100 OFF</div>
+    <div class="float-tag b" id="heroTagB">COD ✓</div>
+    <div id="heroVisual">
+      <svg viewBox="0 0 200 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M70 30 L60 55 L20 65 L35 210 L165 210 L180 65 L140 55 L130 30 Z" stroke="#14181f" stroke-width="4" fill="#ffffff"/>
+        <path d="M70 30 Q100 55 130 30" stroke="#14181f" stroke-width="4" fill="none"/>
+        <circle cx="60" cy="55" r="5" fill="#1f3a5f"/>
+        <circle cx="140" cy="55" r="5" fill="#1f3a5f"/>
+      </svg>
+    </div>
   </div>
 </section>
 
 <section class="section" id="shop">
-  <div class="section-head">
+  <div class="section-head reveal">
     <h2>The Rack</h2>
     <div class="count"><span id="resultCount">0</span> ITEMS</div>
   </div>
@@ -345,20 +482,20 @@
 
 <section class="how" id="how">
   <div class="section" style="padding-top:44px; padding-bottom:44px;">
-    <div class="section-head" style="border-bottom:none; margin-bottom:0;">
+    <div class="section-head reveal" style="border-bottom:none; margin-bottom:0;">
       <h2>How Ordering Works</h2>
     </div>
   </div>
   <div class="how-grid">
-    <div class="how-step"><div class="k">STEP 1</div><h4>Browse the rack</h4><p>Pick pieces you like and add them to your cart.</p></div>
-    <div class="how-step"><div class="k">STEP 2</div><h4>Checkout details</h4><p>Enter your name, phone and delivery address.</p></div>
-    <div class="how-step"><div class="k">STEP 3</div><h4>Order logged instantly</h4><p>Your order lands straight in our system — no back-and-forth needed.</p></div>
-    <div class="how-step"><div class="k">STEP 4</div><h4>Cash on delivery</h4><p>We confirm by phone and deliver across the Valley within 24-48 hrs.</p></div>
+    <div class="how-step reveal" style="transition-delay:.05s;"><div class="k">STEP 1</div><h4>Browse the rack</h4><p>Pick pieces you like and add them to your cart.</p></div>
+    <div class="how-step reveal" style="transition-delay:.15s;"><div class="k">STEP 2</div><h4>Checkout details</h4><p>Enter your name, phone and delivery address.</p></div>
+    <div class="how-step reveal" style="transition-delay:.25s;"><div class="k">STEP 3</div><h4>Order logged instantly</h4><p>Your order lands straight in our system — no back-and-forth needed.</p></div>
+    <div class="how-step reveal" style="transition-delay:.35s;"><div class="k">STEP 4</div><h4>Cash on delivery</h4><p>We confirm by phone and deliver across the Valley within 24-48 hrs.</p></div>
   </div>
 </section>
 
 <footer>
-  <div class="foot-inner">
+  <div class="foot-inner reveal">
     <p>© <span id="year"></span> ShopSlipper — a Kaazi venture. Kathmandu Valley, Nepal.</p>
     <p>Orders logged automatically · Cash on delivery</p>
   </div>
@@ -375,6 +512,14 @@
   <div class="drawer-foot" id="drawerFoot"></div>
 </div>
 
+<!-- Product Detail Modal -->
+<div class="overlay" id="pOverlay"></div>
+<div class="pmodal" id="pModal" role="dialog" aria-modal="true" aria-labelledby="pModalTitle">
+  <button class="pmodal-close" id="pModalClose" aria-label="Close">×</button>
+  <div class="pmodal-img" id="pModalImg"></div>
+  <div class="pmodal-body" id="pModalBody"></div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -386,23 +531,24 @@ const CONFIG = {
   currency: "Rs",
   deliveryFee: 149,
   pageSize: 60,
-  // Paste a direct image link here to use your own logo instead of the "S" circle.
-  // Leave blank to keep the default letter mark.
-  logoUrl: "https://raw.githubusercontent.com/ghanshyambista80-ship-it/ShopSlipper/main/WhatsApp%20Image%202026-07-19%20at%2012.21.17%20PM.jpeg",
+  logoUrl: "https://raw.githubusercontent.com/ghanshyambista80-ship-it/ShopSlipper/main/WhatsApp%20Image%202026-07-20%20at%202.17.32%20PM.jpeg",
+  heroImageUrl: "https://raw.githubusercontent.com/ghanshyambista80-ship-it/ShopSlipper/main/WhatsApp%20Image%202026-07-21%20at%209.12.22%20AM.jpeg",
+  heroTagA: "Rs 100 OFF",
+  heroTagB: "COD ✓",
   sheetWebAppUrl: "https://script.google.com/macros/s/AKfycbwmsPnmPziug2mdSM9Kfl6CAlOge4FOmYYGMYUQn7wyPDOE6tOCa5POtmD56Wz_DBrx0A/exec",
   productsCsvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSkMEBcxvLNqFY3G2Ivm9W6nUyHnP7l8mGQvLMM-f0NeMO6OI4tWvU64iZcoS-_wc9xpvpQE91loK5W/pub?output=csv"
 };
 
 const SAMPLE_PRODUCTS = [
-  { id:"P001", name:"Denim Trucker Jacket", category:"Jackets", size:"M", price:1450, mrp:2200, condition:"Like New", icon:"jacket", offer:"", image:"" },
-  { id:"P002", name:"Straight Fit Jeans",   category:"Jeans",   size:"32", price:1100, mrp:1800, condition:"Very Good", icon:"jeans", offer:"20% OFF", image:"" },
-  { id:"P003", name:"Oversized Graphic Tee", category:"Tops",   size:"L", price:550,  mrp:900,  condition:"Excellent", icon:"tee", offer:"", image:"" },
-  { id:"P004", name:"Corduroy Overshirt",   category:"Jackets", size:"M", price:1600, mrp:2600, condition:"Like New", icon:"jacket", offer:"", image:"" },
-  { id:"P005", name:"Wide Leg Denim",       category:"Jeans",   size:"30", price:1250, mrp:1950, condition:"Very Good", icon:"jeans", offer:"BUY 1 GET 1", image:"" },
-  { id:"P006", name:"Striped Polo Shirt",   category:"Tops",    size:"M", price:650,  mrp:1100, condition:"Excellent", icon:"tee", offer:"", image:"" },
-  { id:"P007", name:"Cargo Utility Pants",  category:"Jeans",   size:"32", price:1350, mrp:2100, condition:"Very Good", icon:"jeans", offer:"", image:"" },
-  { id:"P008", name:"Bomber Jacket",        category:"Jackets", size:"L", price:1800, mrp:2900, condition:"Like New", icon:"jacket", offer:"FESTIVE SALE", image:"" },
-  { id:"P009", name:"Basic Crewneck Tee",   category:"Tops",    size:"S", price:450,  mrp:750,  condition:"Excellent", icon:"tee", offer:"", image:"" },
+  { id:"P001", name:"Denim Trucker Jacket", category:"Jackets", sizes:["S","M","L"], soldOutSizes:["S"], price:1450, mrp:2200, condition:"Like New", icon:"jacket", offer:"", image:"", description:"Classic trucker cut in mid-wash denim. Button front, twin chest pockets, barely worn." },
+  { id:"P002", name:"Straight Fit Jeans",   category:"Jeans",   sizes:["30","32","34"], soldOutSizes:[], price:1100, mrp:1800, condition:"Very Good", icon:"jeans", offer:"20% OFF", image:"", description:"Timeless straight-leg fit in medium-heavy denim. Slight natural fading at the knees." },
+  { id:"P003", name:"Oversized Graphic Tee", category:"Tops",   sizes:["M","L","XL"], soldOutSizes:["M","L","XL"], price:550,  mrp:900,  condition:"Excellent", icon:"tee", offer:"", image:"", description:"Boxy oversized fit in soft cotton jersey. Original print, no cracking or fading." },
+  { id:"P004", name:"Corduroy Overshirt",   category:"Jackets", sizes:["S","M"], soldOutSizes:[], price:1600, mrp:2600, condition:"Like New", icon:"jacket", offer:"", image:"", description:"Heavyweight cord in a warm rust tone. Works as a light jacket or open-layer shirt." },
+  { id:"P005", name:"Wide Leg Denim",       category:"Jeans",   sizes:["28","30","32"], soldOutSizes:["28"], price:1250, mrp:1950, condition:"Very Good", icon:"jeans", offer:"BUY 1 GET 1", image:"", description:"Relaxed wide-leg silhouette, high rise, great drape. Minimal signs of wear." },
+  { id:"P006", name:"Striped Polo Shirt",   category:"Tops",    sizes:["S","M","L"], soldOutSizes:["L"], price:650,  mrp:1100, condition:"Excellent", icon:"tee", offer:"", image:"", description:"Breathable pique cotton with classic stripe detailing and a ribbed collar." },
+  { id:"P007", name:"Cargo Utility Pants",  category:"Jeans",   sizes:["30","32","34"], soldOutSizes:[], price:1350, mrp:2100, condition:"Very Good", icon:"jeans", offer:"", image:"", description:"Six-pocket utility cargos in durable cotton twill with adjustable ankle cuffs." },
+  { id:"P008", name:"Bomber Jacket",        category:"Jackets", sizes:["M","L","XL"], soldOutSizes:[], price:1800, mrp:2900, condition:"Like New", icon:"jacket", offer:"FESTIVE SALE", image:"", description:"Classic bomber silhouette, ribbed cuffs and hem, lightly padded for cool evenings." },
+  { id:"P009", name:"Basic Crewneck Tee",   category:"Tops",    sizes:["S","M","L"], soldOutSizes:[], price:450,  mrp:750,  condition:"Excellent", icon:"tee", offer:"", image:"", description:"Everyday staple crewneck in soft combed cotton. Holds its shape after washing." },
 ];
 
 const ICONS = {
@@ -429,6 +575,34 @@ function handleImgError(imgEl){
   imgEl.replaceWith(wrapper);
 }
 
+const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* =========================================================
+   SCROLL REVEAL
+   ========================================================= */
+let scrollObserver = null;
+function initScrollObserver(){
+  if (prefersReducedMotion){
+    document.querySelectorAll('.reveal').forEach(el=> el.classList.add('in-view'));
+    return;
+  }
+  scrollObserver = new IntersectionObserver((entries)=>{
+    entries.forEach(entry=>{
+      if (entry.isIntersecting){
+        entry.target.classList.add('in-view');
+        scrollObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold:0.12, rootMargin:'0px 0px -40px 0px' });
+  document.querySelectorAll('.reveal').forEach(el=> scrollObserver.observe(el));
+}
+function observeReveal(el){
+  if (!el) return;
+  if (prefersReducedMotion){ el.classList.add('in-view'); return; }
+  if (scrollObserver) scrollObserver.observe(el);
+  else el.classList.add('in-view');
+}
+
 /* =========================================================
    STATE
    ========================================================= */
@@ -439,6 +613,9 @@ let searchTerm = "";
 let visibleCount = 60;
 let view = "cart"; // 'cart' | 'checkout' | 'success'
 let lastOrderId = null;
+let currentProduct = null;
+let selectedSize = null;
+let modalQty = 1;
 
 /* =========================================================
    LOAD PRODUCTS — from published Google Sheet CSV, or sample data
@@ -473,13 +650,32 @@ function csvToProducts(text){
   return rows.slice(1).filter(r => r.length > 1 || r[0]).map(r => {
     const obj = {};
     header.forEach((h,i) => obj[h] = (r[i] || "").trim());
+    const sizesRaw = obj.sizes || obj.size || "";
+    const sizes = sizesRaw ? sizesRaw.split(/[|,]/).map(s=>s.trim()).filter(Boolean) : [];
+    const soldOutRaw = obj.sold_out_sizes || obj.soldoutsizes || "";
+    const soldOutSizes = soldOutRaw ? soldOutRaw.split(/[|,]/).map(s=>s.trim()).filter(Boolean) : [];
+    const mrp = Number(obj.mrp) || Number(obj.price) || 0;
+    const discountRaw = obj.discount || obj.discount_percent || obj['discount%'] || obj.off || "";
+    const discountPct = Number(String(discountRaw).replace('%','')) || 0;
+    const price = (discountPct > 0 && mrp > 0)
+      ? Math.round(mrp * (1 - discountPct / 100))
+      : (Number(obj.price) || mrp);
+    const offer = obj.offer || (discountPct > 0 ? `${discountPct}% OFF` : "");
     return {
       id: obj.id, name: obj.name, category: obj.category || "Other",
-      size: obj.size, price: Number(obj.price)||0, mrp: Number(obj.mrp)||Number(obj.price)||0,
-      condition: obj.condition || "Good", icon: obj.icon || "tag", offer: obj.offer || "",
-      image: obj.image || ""
+      sizes, soldOutSizes, price, mrp,
+      condition: obj.condition || "Good", icon: obj.icon || "tag", offer,
+      image: obj.image || "", description: obj.description || ""
     };
   }).filter(p => p.id && p.name);
+}
+function isSizeSoldOut(p, size){
+  return !!(p.soldOutSizes && p.soldOutSizes.includes(size));
+}
+function isFullySoldOut(p){
+  const sizes = (p.sizes && p.sizes.length) ? p.sizes : null;
+  if (!sizes) return false;
+  return sizes.every(s => isSizeSoldOut(p, s));
 }
 async function loadProducts(){
   const grid = document.getElementById('productGrid');
@@ -533,24 +729,37 @@ function renderGrid(){
     document.getElementById('productGrid').innerHTML = `<div class="empty-state">No products match — try a different search or filter.</div>`;
     return;
   }
-  document.getElementById('productGrid').innerHTML = list.map(p => `
-    <div class="card">
+  document.getElementById('productGrid').innerHTML = list.map((p, i) => {
+    const fullySoldOut = isFullySoldOut(p);
+    return `
+    <div class="card reveal ${fullySoldOut ? 'all-sold-out' : ''}" data-id="${p.id}" role="button" tabindex="0" aria-label="View ${escapeAttr(p.name)}" style="transition-delay:${(i%6)*0.05}s;">
       <div class="hole"></div><div class="string"></div>
-      <span class="cond">${p.condition}</span>
-      ${p.offer ? `<span class="offer-ribbon">${p.offer}</span>` : ""}
+      ${fullySoldOut ? `<span class="sold-out-ribbon">Sold Out</span>` : `
+        <span class="cond">${p.condition}</span>
+        ${p.offer ? `<span class="offer-ribbon">${p.offer}</span>` : ""}
+      `}
       <div class="thumb">${thumbFor(p)}</div>
       <h3>${p.name}</h3>
-      <div class="meta">${p.category}${p.size ? " · Size " + p.size : ""}</div>
+      <div class="meta">${p.category}${p.sizes && p.sizes.length ? " · " + p.sizes.length + " size" + (p.sizes.length>1?"s":"") : ""}</div>
       <div class="row">
         <div class="price">${p.mrp > p.price ? `<small>${CONFIG.currency} ${p.mrp}</small>` : ""}${CONFIG.currency} ${p.price}</div>
-        <button class="add-btn" data-id="${p.id}">+ ADD</button>
+        <button class="add-btn" data-id="${p.id}" ${fullySoldOut ? 'disabled' : ''}>${fullySoldOut ? 'SOLD OUT' : 'SELECT SIZE'}</button>
       </div>
     </div>
-  `).join('') + (filtered.length > visibleCount
+  `; }).join('') + (filtered.length > visibleCount
       ? `<div class="load-more-wrap"><button class="btn-ghost" id="loadMoreBtn">Load More (${filtered.length - visibleCount} left)</button></div>`
       : '');
+  document.querySelectorAll('.card').forEach(card=>{
+    card.addEventListener('click', ()=> openProductModal(card.dataset.id));
+    card.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); openProductModal(card.dataset.id); } });
+    observeReveal(card);
+  });
   document.querySelectorAll('.add-btn').forEach(btn=>{
-    btn.addEventListener('click', ()=> addToCart(btn.dataset.id));
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      if (btn.disabled) return;
+      openProductModal(btn.dataset.id);
+    });
   });
   const loadMoreBtn = document.getElementById('loadMoreBtn');
   if (loadMoreBtn) loadMoreBtn.addEventListener('click', ()=>{ visibleCount += CONFIG.pageSize; renderGrid(); });
@@ -559,25 +768,64 @@ function renderGrid(){
 /* =========================================================
    CART LOGIC
    ========================================================= */
-function addToCart(id){
+function cartKey(id, size){ return id + '::' + size; }
+function addToCart(id, size, qty){
   const product = PRODUCTS.find(p=>p.id===id);
-  const existing = cart.find(c=>c.id===id);
-  if (existing) existing.qty += 1;
-  else cart.push({ ...product, qty:1 });
+  if (!product) return;
+  qty = qty || 1;
+  size = size || (product.sizes && product.sizes[0]) || 'One Size';
+  const key = cartKey(id, size);
+  const existing = cart.find(c=>c.key===key);
+  if (existing) existing.qty += qty;
+  else cart.push({ ...product, size, qty, key });
   updateCartCount();
-  showToast(`${product.name} added to cart`);
+  showToast(`${product.name} (Size ${size}) added to cart`);
 }
-function changeQty(id, delta){
-  const item = cart.find(c=>c.id===id);
+function changeQty(key, delta){
+  const item = cart.find(c=>c.key===key);
   if (!item) return;
   item.qty += delta;
-  if (item.qty <= 0) cart = cart.filter(c=>c.id!==id);
+  if (item.qty <= 0) cart = cart.filter(c=>c.key!==key);
   updateCartCount();
   renderDrawer();
 }
 function cartSubtotal(){ return cart.reduce((s,c)=> s + c.price*c.qty, 0); }
 function cartCount(){ return cart.reduce((s,c)=> s + c.qty, 0); }
 function updateCartCount(){ document.getElementById('cartCount').textContent = cartCount(); }
+
+function flyToCart(thumb){
+  const cartBtn = document.getElementById('openCart');
+  if (!thumb || !cartBtn) return;
+
+  const startRect = thumb.getBoundingClientRect();
+  const endRect = cartBtn.getBoundingClientRect();
+
+  const clone = document.createElement('div');
+  clone.className = 'fly-item';
+  clone.innerHTML = thumb.innerHTML;
+  clone.style.left = startRect.left + 'px';
+  clone.style.top = startRect.top + 'px';
+  clone.style.width = startRect.width + 'px';
+  clone.style.height = startRect.height + 'px';
+  document.body.appendChild(clone);
+
+  clone.getBoundingClientRect();
+
+  requestAnimationFrame(() => {
+    const endX = endRect.left + endRect.width / 2 - startRect.left - startRect.width / 2;
+    const endY = endRect.top + endRect.height / 2 - startRect.top - startRect.height / 2;
+    clone.style.transform = `translate(${endX}px, ${endY}px)`;
+    clone.style.width = '18px';
+    clone.style.height = '18px';
+    clone.style.opacity = '0.2';
+  });
+
+  setTimeout(() => {
+    clone.remove();
+    cartBtn.classList.add('bump');
+    setTimeout(() => cartBtn.classList.remove('bump'), 350);
+  }, 650);
+}
 
 function showToast(msg){
   const t = document.getElementById('toast');
@@ -657,16 +905,16 @@ function renderDrawer(){
         <h5>${c.name}</h5>
         <div class="ci-meta">Size ${c.size} · ${c.condition}</div>
         <div class="qty">
-          <button data-id="${c.id}" data-d="-1">−</button>
+          <button data-key="${c.key}" data-d="-1">−</button>
           <span>${c.qty}</span>
-          <button data-id="${c.id}" data-d="1">+</button>
+          <button data-key="${c.key}" data-d="1">+</button>
         </div>
       </div>
       <div class="ci-price">${CONFIG.currency} ${c.price*c.qty}</div>
     </div>
   `).join('');
   body.querySelectorAll('.qty button').forEach(btn=>{
-    btn.addEventListener('click', ()=> changeQty(btn.dataset.id, parseInt(btn.dataset.d)));
+    btn.addEventListener('click', ()=> changeQty(btn.dataset.key, parseInt(btn.dataset.d)));
   });
   foot.innerHTML = `
     <div class="sum-row"><span>Subtotal</span><span class="mono">${CONFIG.currency} ${cartSubtotal()}</span></div>
@@ -675,6 +923,85 @@ function renderDrawer(){
     <button class="checkout-btn" id="goCheckout">Checkout</button>
   `;
   document.getElementById('goCheckout').addEventListener('click', ()=>{ view='checkout'; renderDrawer(); });
+}
+
+/* =========================================================
+   PRODUCT DETAIL MODAL (size selection)
+   ========================================================= */
+function openProductModal(id){
+  currentProduct = PRODUCTS.find(p=>p.id===id);
+  if (!currentProduct) return;
+  selectedSize = null;
+  modalQty = 1;
+  renderProductModal();
+  document.getElementById('pOverlay').classList.add('open');
+  document.getElementById('pModal').classList.add('open');
+}
+function closeProductModal(){
+  document.getElementById('pOverlay').classList.remove('open');
+  document.getElementById('pModal').classList.remove('open');
+}
+function renderProductModal(){
+  const p = currentProduct;
+  if (!p) return;
+  const sizes = (p.sizes && p.sizes.length) ? p.sizes : ['One Size'];
+  document.getElementById('pModalImg').innerHTML = thumbFor(p);
+  document.getElementById('pModalBody').innerHTML = `
+    <div class="pmodal-badges">
+      <span class="cond">${p.condition}</span>
+      ${p.offer ? `<span class="offer-ribbon">${p.offer}</span>` : ""}
+    </div>
+    <h3 id="pModalTitle">${p.name}</h3>
+    <div class="pmodal-meta">${p.category}</div>
+    <div class="pmodal-price">${p.mrp > p.price ? `<small>${CONFIG.currency} ${p.mrp}</small>` : ""}${CONFIG.currency} ${p.price}</div>
+    <p class="pmodal-desc">${p.description || "A carefully checked second-hand piece, ready to wear."}</p>
+    <label class="size-label">Choose your size</label>
+    <div class="size-options" id="sizeOptions">
+      ${sizes.map(s => {
+        const soldOut = isSizeSoldOut(p, s);
+        return `<button type="button" class="size-chip ${selectedSize===s?'selected':''} ${soldOut?'sold-out':''}" data-size="${escapeAttr(s)}" ${soldOut?'disabled aria-disabled="true"':''}>${s}</button>`;
+      }).join('')}
+    </div>
+    ${sizes.some(s=>isSizeSoldOut(p,s)) ? `<div class="size-note">Struck-through sizes are currently out of stock.</div>` : ''}
+    <div class="size-warn" id="sizeWarn">Please select a size to continue.</div>
+    <div class="pmodal-qty-row">
+      <label class="size-label" style="margin:0;">Quantity</label>
+      <div class="qty">
+        <button id="pQtyMinus" type="button">−</button>
+        <span id="pQtyVal">${modalQty}</span>
+        <button id="pQtyPlus" type="button">+</button>
+      </div>
+    </div>
+    <div class="pmodal-actions">
+      <button class="checkout-btn" id="pAddToCart" ${isFullySoldOut(p) ? 'disabled' : ''}>${isFullySoldOut(p) ? 'Sold Out' : 'Add to Cart'}</button>
+    </div>
+  `;
+  document.querySelectorAll('#sizeOptions .size-chip').forEach(chip=>{
+    if (chip.disabled) return;
+    chip.addEventListener('click', ()=>{
+      selectedSize = chip.dataset.size;
+      document.getElementById('sizeWarn').classList.remove('show');
+      document.querySelectorAll('#sizeOptions .size-chip').forEach(c=>c.classList.remove('selected'));
+      chip.classList.add('selected');
+    });
+  });
+  document.getElementById('pQtyMinus').addEventListener('click', ()=>{
+    modalQty = Math.max(1, modalQty-1);
+    document.getElementById('pQtyVal').textContent = modalQty;
+  });
+  document.getElementById('pQtyPlus').addEventListener('click', ()=>{
+    modalQty += 1;
+    document.getElementById('pQtyVal').textContent = modalQty;
+  });
+  document.getElementById('pAddToCart').addEventListener('click', ()=>{
+    if (!selectedSize){
+      document.getElementById('sizeWarn').classList.add('show');
+      return;
+    }
+    flyToCart(document.getElementById('pModalImg'));
+    addToCart(p.id, selectedSize, modalQty);
+    closeProductModal();
+  });
 }
 
 /* =========================================================
@@ -693,7 +1020,7 @@ async function submitOrder(){
   }
 
   const orderId = "SS" + Date.now().toString().slice(-7).padStart(7,"0") + "NP";
-  const itemsSummary = cart.map(c => `${c.name} (x${c.qty})`).join(", ");
+  const itemsSummary = cart.map(c => `${c.name} [Size ${c.size}] (x${c.qty})`).join(", ");
   const total = cartSubtotal() + CONFIG.deliveryFee;
 
   const payload = {
@@ -712,7 +1039,7 @@ async function submitOrder(){
     if (CONFIG.sheetWebAppUrl && CONFIG.sheetWebAppUrl.startsWith("http")){
       await fetch(CONFIG.sheetWebAppUrl, {
         method: "POST",
-        mode: "no-cors", // Apps Script web apps don't return CORS headers by default
+        mode: "no-cors",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify(payload),
       });
@@ -735,6 +1062,13 @@ async function submitOrder(){
 document.getElementById('openCart').addEventListener('click', ()=> openDrawer('cart'));
 document.getElementById('closeCart').addEventListener('click', closeDrawer);
 document.getElementById('overlay').addEventListener('click', closeDrawer);
+document.getElementById('pModalClose').addEventListener('click', closeProductModal);
+document.getElementById('pOverlay').addEventListener('click', closeProductModal);
+document.addEventListener('keydown', (e)=>{
+  if (e.key !== 'Escape') return;
+  if (document.getElementById('pModal').classList.contains('open')) closeProductModal();
+  else if (document.getElementById('drawer').classList.contains('open')) closeDrawer();
+});
 document.getElementById('year').textContent = new Date().getFullYear();
 
 if (CONFIG.logoUrl && CONFIG.logoUrl.startsWith("http")){
@@ -742,6 +1076,13 @@ if (CONFIG.logoUrl && CONFIG.logoUrl.startsWith("http")){
     `<img src="${escapeAttr(CONFIG.logoUrl)}" alt="${escapeAttr(CONFIG.storeName)} logo">`;
 }
 document.querySelector('.logo .name').textContent = CONFIG.storeName;
+
+if (CONFIG.heroImageUrl && CONFIG.heroImageUrl.startsWith("http")){
+  document.getElementById('heroVisual').innerHTML =
+    `<img src="${escapeAttr(CONFIG.heroImageUrl)}" alt="${escapeAttr(CONFIG.storeName)} featured product">`;
+}
+if (CONFIG.heroTagA) document.getElementById('heroTagA').textContent = CONFIG.heroTagA;
+if (CONFIG.heroTagB) document.getElementById('heroTagB').textContent = CONFIG.heroTagB;
 
 let searchDebounce;
 document.getElementById('searchBox').addEventListener('input', (e)=>{
@@ -753,6 +1094,7 @@ document.getElementById('searchBox').addEventListener('input', (e)=>{
   }, 150);
 });
 
+initScrollObserver();
 loadProducts();
 updateCartCount();
 </script>
