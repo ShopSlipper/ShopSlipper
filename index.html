@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>ShopSlipper — Kathmandu Valley</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -20,6 +20,10 @@
     --radius:14px;
   }
   *{box-sizing:border-box;}
+  html, body {
+    overflow-x: hidden;
+    width: 100%;
+  }
   html{scroll-behavior:smooth;}
   body{
     margin:0; color:var(--ink); position:relative;
@@ -414,7 +418,7 @@
   .size-options{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:6px; }
   .size-chip{
     border:1.5px solid var(--ink); background:#fff; border-radius:8px; min-width:46px;
-    padding:9px 12px; text-align:center; font-family:'JetBrains Mono',monospace; font-size:13px;
+    padding:99px 12px; text-align:center; font-family:'JetBrains Mono',monospace; font-size:13px;
     font-weight:700; cursor:pointer; transition:all .12s ease;
   }
   .size-chip:hover{ border-color:var(--denim); color:var(--denim); }
