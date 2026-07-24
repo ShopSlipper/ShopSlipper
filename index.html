@@ -459,6 +459,25 @@
   .order-success p{ color:#6b7280; font-size:13.5px; margin:0 0 4px; }
   .order-success .oid{ font-family:'JetBrains Mono',monospace; background:var(--paper); border:1px dashed var(--ink); border-radius:8px; padding:8px 14px; display:inline-block; margin-top:14px; font-size:13px; }
 
+  /* ---------- Address auto-correct ---------- */
+  .addr-suggest{
+    font-size:12px; color:var(--denim-dark); background:var(--paper);
+    border:1px dashed var(--denim); border-radius:8px; padding:8px 10px;
+    margin-top:6px; display:none; align-items:center; justify-content:space-between; gap:10px;
+  }
+  .addr-suggest.show{ display:flex; }
+  .addr-suggest .as-text{ line-height:1.4; }
+  .addr-suggest .as-text b{ color:var(--ink); }
+  .addr-suggest button{
+    background:var(--denim); color:#fff; border:none; border-radius:999px;
+    padding:5px 12px; font-size:11.5px; font-weight:700; cursor:pointer;
+    font-family:'JetBrains Mono',monospace; white-space:nowrap; flex-shrink:0;
+  }
+  .addr-suggest button:hover{ background:var(--denim-dark); }
+  .addr-suggest .as-dismiss{
+    background:none; color:#9ca3af; padding:5px 6px; font-size:14px;
+  }
+
   @media (max-width:860px){
     .hero{ grid-template-columns:1fr; }
     .how-grid{ grid-template-columns:1fr 1fr; }
@@ -926,6 +945,113 @@ function showToast(msg){
 }
 
 /* =========================================================
+   ADDRESS AUTO-CORRECTION (Kathmandu Valley place names)
+   ========================================================= */
+const KTM_VALLEY_PLACES = [
+  "Kathmandu","Lalitpur","Patan","Bhaktapur","Thamel","Baneshwor","New Baneshwor","Old Baneshwor",
+  "Koteshwor","Kalanki","Gongabu","Balaju","Maharajgunj","Chabahil","Boudha","Baudha","Jorpati",
+  "Sinamangal","Tinkune","Sundhara","Ason","Basantapur","Naxal","Bhotahity","Putalisadak","Dillibazar",
+  "Anamnagar","Bagbazar","Baneshor","Battisputali","Sankhamul","Teku","Kalimati","Kuleshwor","Balkhu",
+  "Swayambhu","Sitapaila","Nayabazar","Samakhusi","Dallu","Bafal","Sohrakhutte","Lazimpat","Baluwatar",
+  "Hattisar","Gairidhara","Gyaneshwor","Chhauni","Khusibu","Paknajol","Jamal","Ratnapark","Sundarijal",
+  "Budhanilkantha","Bansbari","Dhapasi","Basundhara","Golfutar","Narayantar","Tokha","Jorpati","Gokarna",
+  "Lokanthali","Kausaltar","Sallaghari","Jagati","Radhe Radhe","Suryabinayak","Katunje","Duwakot",
+  "Thimi","Madhyapur Thimi","Bode","Sallaghari","Gatthaghar","Imadol","Sanepa","Jawalakhel","Jawlakhel",
+  "Pulchowk","Kupondole","Kumaripati","Ekantakuna","Satdobato","Gwarko","Balkumari","Lagankhel",
+  "Nakhipot","Chakupat","Chapagaun","Godawari","Harisiddhi","Bungamati","Khokana","Thecho","Dhobighat",
+  "Sanepa Height","Bishalnagar","Panipokhari","Dhumbarahi","Sifal","Chuchepati","Gaushala","Mitrapark",
+  "Min Bhawan","Shantinagar","Kupandole","Naikap","Nagarjun","Ramkot","Machhapokhari","Syuchatar",
+  "Thankot","Naubise","Balambu","Khadka Bhadrakali","Kirtipur","Panga","Nayabazaar","Chandragiri",
+  "Tarakeshwor","Manamaiju","Tokha Chandeshwori","Jhamsikhel","Pinglasthan","Bijulibazar","Anamnagar",
+  "Maitidevi","Chundevi","Handigaun","Jayabageshwori","Nayabaneshwor","Manohara","Sunakothi",
+  "Godawari","Lubhu","Lamatar","Bhaisepati","Nakkhu","Chandragiri","Sitapaila","Naikap"
+];
+const UNIQUE_PLACES = [...new Set(KTM_VALLEY_PLACES)];
+
+function levenshtein(a, b){
+  a = a.toLowerCase(); b = b.toLowerCase();
+  const m = a.length, n = b.length;
+  if (!m) return n; if (!n) return m;
+  const dp = Array.from({length:m+1}, (_,i)=> [i, ...Array(n).fill(0)]);
+  for (let j=0;j<=n;j++) dp[0][j] = j;
+  for (let i=1;i<=m;i++){
+    for (let j=1;j<=n;j++){
+      const cost = a[i-1] === b[j-1] ? 0 : 1;
+      dp[i][j] = Math.min(dp[i-1][j]+1, dp[i][j-1]+1, dp[i-1][j-1]+cost);
+    }
+  }
+  return dp[m][n];
+}
+
+// Find best-matching known place for one word/token of the address (not exact, but close)
+function findClosestPlace(token){
+  const t = token.trim();
+  if (t.length < 4) return null; // too short to safely correct
+  const tLower = t.toLowerCase();
+  let best = null, bestDist = Infinity;
+  for (const place of UNIQUE_PLACES){
+    if (place.toLowerCase() === tLower) return null; // already correct, no suggestion needed
+    const dist = levenshtein(t, place);
+    const threshold = place.length <= 6 ? 2 : 3; // allow more slack for longer names
+    if (dist <= threshold && dist < bestDist){
+      bestDist = dist; best = place;
+    }
+  }
+  return best;
+}
+
+// Scan a full address string for tokens that look like near-miss spellings of known places
+function suggestAddressCorrection(address){
+  if (!address || address.trim().length < 4) return null;
+  // Split on common separators, keep multi-word candidates too (check 1-2 word windows)
+  const rawTokens = address.split(/[,\n]/).map(s=>s.trim()).filter(Boolean);
+  for (const chunk of rawTokens){
+    const words = chunk.split(/\s+/).filter(Boolean);
+    // try 2-word windows first (e.g. "New Baneshwor"), then single words
+    for (let w=2; w>=1; w--){
+      for (let i=0; i+w<=words.length; i++){
+        const candidate = words.slice(i, i+w).join(' ');
+        if (candidate.replace(/[^a-zA-Z]/g,'').length < 4) continue;
+        const match = findClosestPlace(candidate);
+        if (match){
+          return { original: candidate, corrected: match, fullChunk: chunk };
+        }
+      }
+    }
+  }
+  return null;
+}
+
+function applyAddressCorrection(){
+  const field = document.getElementById('cAddress');
+  const sugg = document.getElementById('addrSuggest');
+  if (!field || !sugg || !sugg.dataset.original || !sugg.dataset.corrected) return;
+  const original = sugg.dataset.original, corrected = sugg.dataset.corrected;
+  // Replace only the matched token (case-insensitive, whole word/phrase)
+  const re = new RegExp(original.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'i');
+  field.value = field.value.replace(re, corrected);
+  sugg.classList.remove('show');
+  field.focus();
+}
+
+function checkAddressSpelling(){
+  const field = document.getElementById('cAddress');
+  const sugg = document.getElementById('addrSuggest');
+  if (!field || !sugg) return;
+  const result = suggestAddressCorrection(field.value);
+  if (result){
+    sugg.dataset.original = result.original;
+    sugg.dataset.corrected = result.corrected;
+    sugg.querySelector('.as-text').innerHTML = `Did you mean <b>${escapeAttr(result.corrected)}</b> instead of "${escapeAttr(result.original)}"?`;
+    sugg.classList.add('show');
+  } else {
+    sugg.classList.remove('show');
+    delete sugg.dataset.original;
+    delete sugg.dataset.corrected;
+  }
+}
+
+/* =========================================================
    DRAWER RENDER
    ========================================================= */
 function openDrawer(startView){
@@ -966,7 +1092,17 @@ function renderDrawer(){
       <button class="back-link" id="backToCart">← Back to cart</button>
       <div class="form-group"><label>Full Name</label><input id="cName" placeholder="e.g. Your Name" /></div>
       <div class="form-group"><label>Phone Number</label><input id="cPhone" placeholder="98XXXXXXXX" /></div>
-      <div class="form-group"><label>Delivery Address</label><textarea id="cAddress" rows="3" placeholder="Area, street, landmark, city"></textarea></div>
+      <div class="form-group">
+        <label>Delivery Address</label>
+        <textarea id="cAddress" rows="3" placeholder="Area, street, landmark, city"></textarea>
+        <div class="addr-suggest" id="addrSuggest">
+          <span class="as-text"></span>
+          <span style="display:flex; gap:4px; flex-shrink:0;">
+            <button type="button" id="addrFixBtn">Fix</button>
+            <button type="button" class="as-dismiss" id="addrDismissBtn">✕</button>
+          </span>
+        </div>
+      </div>
       <div class="form-group"><label>Email Address (Optional)</label><input id="cEmail" type="email" placeholder="you@gmail.com" /></div>
       <div class="form-group"><label>Order Note (optional)</label><textarea id="cNote" rows="2" placeholder="Preferred delivery time, etc."></textarea></div>
     `;
@@ -978,6 +1114,18 @@ function renderDrawer(){
     `;
     document.getElementById('backToCart').addEventListener('click', ()=>{ view='cart'; renderDrawer(); });
     document.getElementById('placeOrderBtn').addEventListener('click', submitOrder);
+
+    let addrDebounce;
+    const addressField = document.getElementById('cAddress');
+    addressField.addEventListener('input', ()=>{
+      clearTimeout(addrDebounce);
+      addrDebounce = setTimeout(checkAddressSpelling, 400);
+    });
+    addressField.addEventListener('blur', checkAddressSpelling);
+    document.getElementById('addrFixBtn').addEventListener('click', applyAddressCorrection);
+    document.getElementById('addrDismissBtn').addEventListener('click', ()=>{
+      document.getElementById('addrSuggest').classList.remove('show');
+    });
     return;
   }
 
