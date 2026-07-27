@@ -565,7 +565,7 @@
         <circle cx="140" cy="55" r="5" fill="#1f3a5f"/>
       </svg>
     </div>
-    <button class="btn-primary" style="margin-top:20px; width:100%;" onclick="openDrawer('checkout')">Order Now</button>
+    <button class="btn-primary" style="margin-top:20px; width:100%;" onclick="openGiftCheckout()">Order Now</button>
   </div>
 </section>
 
@@ -637,8 +637,8 @@ const CONFIG = {
   currency: "Rs",
   deliveryFee: 149,
   pageSize: 60,
-  logoUrl: "https://raw.githubusercontent.com/ShopSlipper/ShopSlipper/main/WhatsApp%20Image%202026-07-20%20at%202.17.32%20PM.jpeg",
-  heroImageUrl: "https://raw.githubusercontent.com/ShopSlipper/ShopSlipper/main/Untitled%20design.png",
+  logoUrl: "https://raw.githubusercontent.com/ghanshyambista80-ship-it/ShopSlipper/main/WhatsApp%20Image%202026-07-20%20at%202.17.32%20PM.jpeg",
+  heroImageUrl: "",
   heroTagA: "Free",
   heroTagB: "",
   email: "www.shopslipper@gmail.com",
@@ -649,7 +649,14 @@ const CONFIG = {
   sheetWebAppUrl: "https://script.google.com/macros/s/AKfycbyCM3kmuzGTszngwN-FiG61cymzyhRKNlnJAMYuh82CaTBddJPEe51CtsKMeoAmoz9cfA/exec",
   productsCsvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQd96p5gNA5FkuPj62x-08vIkyndn8wK5R14agatf1OJbS_-GzTTyHe_v_iKMZ3rPFWhW7ZotQZDZOt/pub?gid=0&single=true&output=csv",
   // Show the SKU/product ID on product cards & cart items. Turn off if you'd rather keep it hidden from customers.
-  showSkuToCustomers: true
+  showSkuToCustomers: true,
+  // Mystery Gift quick-order (hero banner "Order Now" button). Free product — customer only pays delivery.
+  giftProduct: {
+    id: "GIFT-001",
+    name: "Mystery Gift",
+    price: 0,
+    deliveryFee: 100
+  }
 };
 
 const ICONS = {
@@ -1047,8 +1054,8 @@ function suggestAddressCorrection(address){
   return null;
 }
 
-function applyAddressCorrection(){
-  const field = document.getElementById('cAddress');
+function applyAddressCorrection(fieldId){
+  const field = document.getElementById(fieldId || 'cAddress');
   const sugg = document.getElementById('addrSuggest');
   if (!field || !sugg || !sugg.dataset.original || !sugg.dataset.corrected) return;
   const original = sugg.dataset.original, corrected = sugg.dataset.corrected;
@@ -1059,8 +1066,8 @@ function applyAddressCorrection(){
   field.focus();
 }
 
-function checkAddressSpelling(){
-  const field = document.getElementById('cAddress');
+function checkAddressSpelling(fieldId){
+  const field = document.getElementById(fieldId || 'cAddress');
   const sugg = document.getElementById('addrSuggest');
   if (!field || !sugg) return;
   const result = suggestAddressCorrection(field.value);
@@ -1089,6 +1096,12 @@ function closeDrawer(){
   document.getElementById('overlay').classList.remove('open');
   document.getElementById('drawer').classList.remove('open');
 }
+function openGiftCheckout(){
+  view = 'giftCheckout';
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById('drawer').classList.add('open');
+  renderDrawer();
+}
 
 function renderDrawer(){
   const title = document.getElementById('drawerTitle');
@@ -1107,6 +1120,64 @@ function renderDrawer(){
     foot.innerHTML = `<button class="checkout-btn" id="continueShopping">Continue Shopping</button>`;
     document.getElementById('continueShopping').addEventListener('click', ()=>{
       cart = []; updateCartCount(); view='cart'; closeDrawer();
+    });
+    return;
+  }
+
+  if (view === 'giftCheckout'){
+    title.textContent = "Claim Your Mystery Gift";
+    body.innerHTML = `
+      <div class="cart-item" style="border-bottom:1px solid var(--line);">
+        <div class="ci-thumb">${ICONS.tag}</div>
+        <div class="ci-info">
+          <h5>${escapeAttr(CONFIG.giftProduct.name)}</h5>
+          <div class="ci-meta">Free product</div>
+        </div>
+        <div class="ci-price">${CONFIG.currency} 0</div>
+      </div>
+      <div class="form-group" style="margin-top:16px;">
+        <label>Full Name</label>
+        <input id="gName" placeholder="e.g. Your Name" />
+        <div class="field-error-msg" id="gNameErr">Please enter your name.</div>
+      </div>
+      <div class="form-group">
+        <label>Phone Number</label>
+        <input id="gPhone" placeholder="98XXXXXXXX" inputmode="tel" />
+        <div class="field-error-msg" id="gPhoneErr">Please enter a valid phone number.</div>
+      </div>
+      <div class="form-group">
+        <label>Delivery Address</label>
+        <textarea id="gAddress" rows="3" placeholder="Area, street, landmark, city"></textarea>
+        <div class="field-error-msg" id="gAddressErr">Please enter your delivery address.</div>
+        <div class="addr-suggest" id="addrSuggest">
+          <span class="as-text"></span>
+          <span style="display:flex; gap:4px; flex-shrink:0;">
+            <button type="button" id="addrFixBtn">Fix</button>
+            <button type="button" class="as-dismiss" id="addrDismissBtn">✕</button>
+          </span>
+        </div>
+      </div>
+      <div class="form-group"><label>Email Address (Optional)</label><input id="gEmail" type="email" placeholder="you@gmail.com" /></div>
+      <div class="form-group"><label>Order Note (optional)</label><textarea id="gNote" rows="2" placeholder="Preferred delivery time, etc."></textarea></div>
+    `;
+    foot.innerHTML = `
+      <div class="sum-row"><span>Gift</span><span class="mono">${CONFIG.currency} 0 (Free)</span></div>
+      <div class="sum-row"><span>Delivery</span><span class="mono">${CONFIG.currency} ${CONFIG.giftProduct.deliveryFee}</span></div>
+      <div class="sum-row total"><span>Total to Pay</span><span class="mono">${CONFIG.currency} ${CONFIG.giftProduct.deliveryFee}</span></div>
+      <button class="checkout-btn" id="claimGiftBtn">Claim Your Gift</button>
+    `;
+    document.getElementById('claimGiftBtn').addEventListener('click', submitGiftOrder);
+
+    let gAddrDebounce;
+    const gAddressField = document.getElementById('gAddress');
+    gAddressField.addEventListener('input', ()=>{
+      clearTimeout(gAddrDebounce);
+      gAddrDebounce = setTimeout(()=>checkAddressSpelling('gAddress'), 400);
+    });
+    gAddressField.addEventListener('blur', ()=>checkAddressSpelling('gAddress'));
+    document.getElementById('addrFixBtn').addEventListener('click', ()=>applyAddressCorrection('gAddress'));
+    document.getElementById('addrDismissBtn').addEventListener('click', ()=>{
+      document.getElementById('addrSuggest').classList.remove('show');
     });
     return;
   }
@@ -1359,6 +1430,66 @@ async function submitOrder(){
     console.error(err);
     showToast("Something went wrong — please try again", true);
     btn.disabled = false; btn.textContent = "Place Order";
+  }
+}
+
+async function submitGiftOrder(){
+  const name = document.getElementById('gName').value.trim();
+  const phone = document.getElementById('gPhone').value.trim();
+  const address = document.getElementById('gAddress').value.trim();
+  const email = document.getElementById('gEmail').value.trim();
+  const note = document.getElementById('gNote').value.trim();
+
+  const nameOk = !!name;
+  const phoneOk = !!phone && isValidPhone(phone);
+  const addressOk = !!address;
+
+  setFieldError('gName', 'gNameErr', !nameOk);
+  setFieldError('gPhone', 'gPhoneErr', !phoneOk);
+  setFieldError('gAddress', 'gAddressErr', !addressOk);
+
+  if (!nameOk || !phoneOk || !addressOk){
+    showToast(!phoneOk && phone ? "Please enter a valid phone number" : "Please fill in name, phone and address", true);
+    return;
+  }
+
+  const gift = CONFIG.giftProduct;
+  const orderId = "SS" + Date.now().toString().slice(-7).padStart(7,"0") + "GFT";
+  const itemsSummary = `${gift.name} [SKU: ${gift.id}] (x1)`;
+  const skuList = `${gift.id} x1`;
+  const total = gift.price + gift.deliveryFee;
+
+  const payload = {
+    orderId, name, phone, address, email, note,
+    items: itemsSummary,
+    skus: skuList,
+    subtotal: gift.price,
+    delivery: gift.deliveryFee,
+    total,
+    timestamp: new Date().toISOString(),
+  };
+
+  const btn = document.getElementById('claimGiftBtn');
+  btn.disabled = true; btn.textContent = "Claiming your gift...";
+
+  try {
+    if (CONFIG.sheetWebAppUrl && CONFIG.sheetWebAppUrl.startsWith("http")){
+      await fetch(CONFIG.sheetWebAppUrl, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload),
+      });
+    } else {
+      console.warn("sheetWebAppUrl not configured — order was not sent anywhere.");
+    }
+    lastOrderId = orderId;
+    view = 'success';
+    renderDrawer();
+  } catch (err){
+    console.error(err);
+    showToast("Something went wrong — please try again", true);
+    btn.disabled = false; btn.textContent = "Claim Your Gift";
   }
 }
 
