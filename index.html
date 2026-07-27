@@ -638,7 +638,7 @@ const CONFIG = {
   deliveryFee: 149,
   pageSize: 60,
   logoUrl: "https://raw.githubusercontent.com/ghanshyambista80-ship-it/ShopSlipper/main/WhatsApp%20Image%202026-07-20%20at%202.17.32%20PM.jpeg",
-  heroImageUrl: "https://raw.githubusercontent.com/ShopSlipper/ShopSlipper/main/Untitled%20design.png",
+  heroImageUrl: "",
   heroTagA: "Free",
   heroTagB: "",
   email: "www.shopslipper@gmail.com",
@@ -738,6 +738,7 @@ let searchTerm = "";
 let visibleCount = 60;
 let view = "cart";
 let lastOrderId = null;
+let lastOrderData = null;
 let currentProduct = null;
 let selectedSize = null;
 let modalQty = 1;
@@ -976,6 +977,32 @@ function showToast(msg, isError){
   window.__toastTimer = setTimeout(()=> t.classList.remove('show'), 2600);
 }
 
+// Formats a Nepali phone number for wa.me links: strips non-digits,
+// drops a leading 0, and prefixes the 977 country code if missing.
+function formatPhoneForWhatsapp(phone){
+  let digits = String(phone || '').replace(/\D/g, '');
+  digits = digits.replace(/^0+/, '');
+  if (!digits.startsWith('977')) digits = '977' + digits;
+  return digits;
+}
+
+// Builds a wa.me link that opens a chat with the customer's own number
+// pre-filled with their order details, so tapping it saves the order
+// as a note-to-self in their WhatsApp.
+function buildWhatsAppSaveLink(orderData){
+  if (!orderData || !orderData.phone) return null;
+  const waPhone = formatPhoneForWhatsapp(orderData.phone);
+  if (waPhone.length < 12) return null; // too short to be a valid number
+  const msg =
+    `ShopSlipper Order Confirmation\n\n` +
+    `Order ID: ${orderData.orderId}\n` +
+    `Items: ${orderData.items}\n` +
+    `Total: ${CONFIG.currency} ${orderData.total}\n` +
+    `Delivery Address: ${orderData.address}\n\n` +
+    `We'll call to confirm delivery within a few hours.`;
+  return `https://wa.me/${waPhone}?text=${encodeURIComponent(msg)}`;
+}
+
 /* =========================================================
    ADDRESS AUTO-CORRECTION (Kathmandu Valley place names)
    ========================================================= */
@@ -1110,6 +1137,7 @@ function renderDrawer(){
 
   if (view === 'success'){
     title.textContent = "Order Placed";
+    const waLink = buildWhatsAppSaveLink(lastOrderData);
     body.innerHTML = `
       <div class="order-success">
         <div class="ok-mark">✓</div>
@@ -1117,7 +1145,10 @@ function renderDrawer(){
         <p>We'll call to confirm delivery within a few hours.</p>
         <div class="oid">Order ID: ${lastOrderId}</div>
       </div>`;
-    foot.innerHTML = `<button class="checkout-btn" id="continueShopping">Continue Shopping</button>`;
+    foot.innerHTML = `
+      ${waLink ? `<a class="checkout-btn" href="${waLink}" target="_blank" rel="noopener" style="text-decoration:none; display:flex; align-items:center; justify-content:center; gap:8px; background:#25D366;">💬 Save Order on WhatsApp</a>` : ''}
+      <button class="checkout-btn" id="continueShopping" style="${waLink ? 'margin-top:10px;' : ''}">Continue Shopping</button>
+    `;
     document.getElementById('continueShopping').addEventListener('click', ()=>{
       cart = []; updateCartCount(); view='cart'; closeDrawer();
     });
@@ -1157,7 +1188,11 @@ function renderDrawer(){
           </span>
         </div>
       </div>
-      <div class="form-group"><label>Email Address (Optional)</label><input id="gEmail" type="email" placeholder="you@gmail.com" /></div>
+      <div class="form-group">
+        <label>Email Address</label>
+        <input id="gEmail" type="email" placeholder="you@gmail.com" />
+        <div class="field-error-msg" id="gEmailErr">Please enter a valid email address.</div>
+      </div>
       <div class="form-group"><label>Order Note (optional)</label><textarea id="gNote" rows="2" placeholder="Preferred delivery time, etc."></textarea></div>
     `;
     foot.innerHTML = `
@@ -1212,7 +1247,11 @@ function renderDrawer(){
           </span>
         </div>
       </div>
-      <div class="form-group"><label>Email Address (Optional)</label><input id="cEmail" type="email" placeholder="you@gmail.com" /></div>
+      <div class="form-group">
+        <label>Email Address</label>
+        <input id="cEmail" type="email" placeholder="you@gmail.com" />
+        <div class="field-error-msg" id="cEmailErr">Please enter a valid email address.</div>
+      </div>
       <div class="form-group"><label>Order Note (optional)</label><textarea id="cNote" rows="2" placeholder="Preferred delivery time, etc."></textarea></div>
     `;
     foot.innerHTML = `
@@ -1367,6 +1406,10 @@ function isValidPhone(phone){
   return digits.length >= 9 && digits.length <= 15;
 }
 
+function isValidEmail(email){
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
 async function submitOrder(){
   const name = document.getElementById('cName').value.trim();
   const phone = document.getElementById('cPhone').value.trim();
@@ -1377,13 +1420,18 @@ async function submitOrder(){
   const nameOk = !!name;
   const phoneOk = !!phone && isValidPhone(phone);
   const addressOk = !!address;
+  const emailOk = !!email && isValidEmail(email);
 
   setFieldError('cName', 'cNameErr', !nameOk);
   setFieldError('cPhone', 'cPhoneErr', !phoneOk);
   setFieldError('cAddress', 'cAddressErr', !addressOk);
+  setFieldError('cEmail', 'cEmailErr', !emailOk);
 
-  if (!nameOk || !phoneOk || !addressOk){
-    showToast(!phoneOk && phone ? "Please enter a valid phone number" : "Please fill in name, phone and address", true);
+  if (!nameOk || !phoneOk || !addressOk || !emailOk){
+    let msg = "Please fill in name, phone, address and email";
+    if (phone && !phoneOk) msg = "Please enter a valid phone number";
+    else if (email && !emailOk) msg = "Please enter a valid email address";
+    showToast(msg, true);
     return;
   }
 
@@ -1424,6 +1472,7 @@ async function submitOrder(){
       console.warn("sheetWebAppUrl not configured — order was not sent anywhere.");
     }
     lastOrderId = orderId;
+    lastOrderData = payload;
     view = 'success';
     renderDrawer();
   } catch (err){
@@ -1443,13 +1492,18 @@ async function submitGiftOrder(){
   const nameOk = !!name;
   const phoneOk = !!phone && isValidPhone(phone);
   const addressOk = !!address;
+  const emailOk = !!email && isValidEmail(email);
 
   setFieldError('gName', 'gNameErr', !nameOk);
   setFieldError('gPhone', 'gPhoneErr', !phoneOk);
   setFieldError('gAddress', 'gAddressErr', !addressOk);
+  setFieldError('gEmail', 'gEmailErr', !emailOk);
 
-  if (!nameOk || !phoneOk || !addressOk){
-    showToast(!phoneOk && phone ? "Please enter a valid phone number" : "Please fill in name, phone and address", true);
+  if (!nameOk || !phoneOk || !addressOk || !emailOk){
+    let msg = "Please fill in name, phone, address and email";
+    if (phone && !phoneOk) msg = "Please enter a valid phone number";
+    else if (email && !emailOk) msg = "Please enter a valid email address";
+    showToast(msg, true);
     return;
   }
 
@@ -1484,6 +1538,7 @@ async function submitGiftOrder(){
       console.warn("sheetWebAppUrl not configured — order was not sent anywhere.");
     }
     lastOrderId = orderId;
+    lastOrderData = payload;
     view = 'success';
     renderDrawer();
   } catch (err){
