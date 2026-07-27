@@ -47,7 +47,6 @@
   a{ color:inherit; }
   img{ max-width:100%; display:block; }
 
-  /* ---------- Top bar ---------- */
   .topbar{
     position:fixed;
     top:0; left:0; right:0;
@@ -89,7 +88,6 @@
     padding:1px 7px; font-size:12px; font-weight:700;
   }
 
-  /* ---------- Hero ---------- */
   .hero{
     max-width:1180px; margin:0 auto; padding:64px 24px 40px;
     display:grid; grid-template-columns:1.1fr 0.9fr; gap:40px; align-items:center;
@@ -153,7 +151,6 @@
   .float-tag.b{ bottom:18px; right:18px; transform:rotate(4deg); color:var(--denim); }
   .float-tag:empty{ display:none; }
 
-  /* ---------- Section heading ---------- */
   .section{ max-width:1180px; margin:0 auto; padding:40px 24px; }
   .section-head{
     display:flex; align-items:baseline; justify-content:space-between;
@@ -172,8 +169,7 @@
     grid-column:1/-1; text-align:center; padding:60px 10px; color:#9ca3af;
     font-family:'JetBrains Mono',monospace; font-size:13px;
   }
-  .load-more-wrap{ grid-column:1/-1; display:flex; justify-content:center; padding-top:10px; }
-  .filters{ display:flex; gap:8px; margin-bottom:26px; flex-wrap:wrap; }
+  .filters{ display:flex; gap:8px; margin-bottom:18px; flex-wrap:wrap; }
   .chip{
     border:1.5px solid var(--ink); background:#fff; border-radius:999px; padding:7px 16px;
     font-family:'JetBrains Mono',monospace; font-size:12.5px; cursor:pointer; font-weight:600;
@@ -181,7 +177,6 @@
   }
   .chip.active, .chip:hover{ background:var(--ink); color:#fff; }
 
-  /* ---------- Product grid ---------- */
   .grid{
     display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:22px;
     perspective:1200px;
@@ -196,20 +191,6 @@
   .card.tilt{ box-shadow:10px 14px 22px -8px rgba(20,24,31,0.35), 6px 6px 0 var(--ink); z-index:3; }
   .card .thumb, .card .cond, .card .offer-ribbon, .card h3, .card .row{
     transition:transform .18s ease-out;
-  }
-  .card.tilt .thumb{ transform:translateZ(34px); }
-  .card.tilt .cond{ transform:translateZ(48px); }
-  .card.tilt .offer-ribbon{ transform:translateZ(48px); }
-  .card.tilt h3{ transform:translateZ(20px); }
-  .card.tilt .row{ transform:translateZ(26px); }
-  .card .shine{
-    position:absolute; inset:0; border-radius:inherit; pointer-events:none;
-    background:radial-gradient(circle at var(--mx,50%) var(--my,50%), rgba(255,255,255,0.45), transparent 55%);
-    opacity:0; transition:opacity .18s ease-out; mix-blend-mode:overlay; z-index:2;
-  }
-  .card.tilt .shine{ opacity:1; }
-  @media (hover:none){
-    .card.tilt{ transform:none !important; }
   }
   .card .hole{
     position:absolute; top:12px; left:14px; width:16px; height:16px; border-radius:50%;
@@ -256,7 +237,38 @@
   .add-btn:hover{ background:var(--denim); }
   .add-btn:disabled{ background:#c7c7c7; cursor:not-allowed; }
 
-  /* ---------- How it works ---------- */
+  .pagination-wrap{
+    grid-column:1/-1;
+    display:flex;
+    justify-content:center;
+    margin-top:6px;
+  }
+  .pagination{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    justify-content:center;
+    margin-top:10px;
+  }
+  .page-btn{
+    border:1.5px solid var(--ink);
+    background:#fff;
+    border-radius:10px;
+    padding:8px 12px;
+    cursor:pointer;
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    font-weight:700;
+    transition:all .15s ease;
+  }
+  .page-btn:hover{
+    background:var(--paper);
+  }
+  .page-btn.active{
+    background:var(--ink);
+    color:#fff;
+  }
+
   .how{
     background:linear-gradient(180deg,var(--denim-dark),#1e3b52);
     border-top:none; border-bottom:none; color:#fff; position:relative; overflow:hidden;
@@ -273,7 +285,6 @@
   .how-step h4{ margin:10px 0 6px; font-size:16px; color:#fff; }
   .how-step p{ margin:0; font-size:13px; color:rgba(255,255,255,0.62); line-height:1.5; }
 
-  /* ---------- Footer ---------- */
   footer{ max-width:1180px; margin:0 auto; padding:40px 24px 60px; }
   footer .foot-inner{
     display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;
@@ -307,7 +318,6 @@
     background:var(--denim); color:#fff; border-color:var(--denim);
   }
 
-  /* ---------- Cart drawer ---------- */
   .overlay{
     position:fixed; inset:0; background:rgba(20,24,31,0.5); z-index:50; opacity:0; pointer-events:none;
     transition:opacity .2s ease;
@@ -357,7 +367,6 @@
   .checkout-btn:hover{ background:var(--denim-dark); transform:translateY(-1px); }
   .checkout-btn:disabled{ background:#c7c7c7; cursor:not-allowed; box-shadow:none; transform:none; }
 
-  /* ---------- Checkout form (inline in drawer) ---------- */
   .form-group{ margin-bottom:12px; }
   .form-group label{ font-size:11.5px; font-weight:600; text-transform:uppercase; letter-spacing:.4px; color:#4b5563; display:block; margin-bottom:5px; }
   .form-group input, .form-group textarea{
@@ -394,7 +403,6 @@
     100%{ transform:scale(1); }
   }
 
-  /* ---------- Product detail modal ---------- */
   .pmodal{
     position:fixed; top:50%; left:50%; z-index:65; background:#fff;
     width:min(560px,92vw); max-height:88vh; overflow-y:auto;
@@ -457,7 +465,6 @@
   .card.all-sold-out h3, .card.all-sold-out .price{ opacity:0.55; }
   .card.all-sold-out .add-btn{ background:#c7c7c7; cursor:not-allowed; }
 
-  /* ---------- Scroll-reveal ---------- */
   .reveal{
     opacity:0; transform:translateY(28px);
     transition:opacity .7s cubic-bezier(.16,.8,.4,1), transform .7s cubic-bezier(.16,.8,.4,1);
@@ -473,7 +480,6 @@
   .order-success p{ color:#6b7280; font-size:13.5px; margin:0 0 4px; }
   .order-success .oid{ font-family:'JetBrains Mono',monospace; background:var(--paper); border:1px dashed var(--ink); border-radius:8px; padding:8px 14px; display:inline-block; margin-top:14px; font-size:13px; }
 
-  /* ---------- Address auto-correct ---------- */
   .addr-suggest{
     font-size:12px; color:var(--denim-dark); background:var(--paper);
     border:1px dashed var(--denim); border-radius:8px; padding:8px 10px;
@@ -580,6 +586,9 @@
   <input type="text" id="searchBox" class="search-box" placeholder="Search products…" />
   <div class="filters" id="filters"></div>
   <div class="grid" id="productGrid"></div>
+  <div class="pagination-wrap">
+    <div class="pagination" id="pagination"></div>
+  </div>
 </section>
 
 <section class="how" id="how">
@@ -610,7 +619,6 @@
   </div>
 </footer>
 
-<!-- Cart / Checkout Drawer -->
 <div class="overlay" id="overlay"></div>
 <div class="drawer" id="drawer">
   <div class="drawer-head">
@@ -621,7 +629,6 @@
   <div class="drawer-foot" id="drawerFoot"></div>
 </div>
 
-<!-- Product Detail Modal -->
 <div class="overlay" id="pOverlay"></div>
 <div class="pmodal" id="pModal" role="dialog" aria-modal="true" aria-labelledby="pModalTitle">
   <button class="pmodal-close" id="pModalClose" aria-label="Close">×</button>
@@ -632,14 +639,11 @@
 <div class="toast" id="toast"></div>
 
 <script>
-/* =========================================================
-   CONFIG — replace with your own values
-   ========================================================= */
 const CONFIG = {
   storeName: "ShopSlipper",
   currency: "Rs",
   deliveryFee: 149,
-  pageSize: 60,
+  pageSize: 12,
   logoUrl: "https://raw.githubusercontent.com/ghanshyambista80-ship-it/ShopSlipper/main/WhatsApp%20Image%202026-07-20%20at%202.17.32%20PM.jpeg",
   heroImageUrl: "https://raw.githubusercontent.com/ShopSlipper/ShopSlipper/main/Untitled%20design.png",
   heroTagA: "Free",
@@ -651,15 +655,8 @@ const CONFIG = {
   tiktok: "https://www.tiktok.com/@shopslipper03?_r=1&_t=ZS-98G2OLLOoQG",
   sheetWebAppUrl: "https://script.google.com/macros/s/AKfycbyCM3kmuzGTszngwN-FiG61cymzyhRKNlnJAMYuh82CaTBddJPEe51CtsKMeoAmoz9cfA/exec",
   productsCsvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQd96p5gNA5FkuPj62x-08vIkyndn8wK5R14agatf1OJbS_-GzTTyHe_v_iKMZ3rPFWhW7ZotQZDZOt/pub?gid=0&single=true&output=csv",
-  // Show the SKU/product ID on product cards & cart items. Turn off if you'd rather keep it hidden from customers.
   showSkuToCustomers: true,
-  // Mystery Gift quick-order (hero banner "Order Now" button). Free product — customer only pays delivery.
-  giftProduct: {
-    id: "GIFT-001",
-    name: "Mystery Gift",
-    price: 0,
-    deliveryFee: 100
-  }
+  giftProduct: { id: "GIFT-001", name: "Mystery Gift", price: 0, deliveryFee: 100 }
 };
 
 const ICONS = {
@@ -705,9 +702,6 @@ function resetCardTilt(card){
   card.classList.remove('tilt');
 }
 
-/* =========================================================
-   SCROLL REVEAL
-   ========================================================= */
 let scrollObserver = null;
 function initScrollObserver(){
   if (prefersReducedMotion){
@@ -731,14 +725,11 @@ function observeReveal(el){
   else el.classList.add('in-view');
 }
 
-/* =========================================================
-   STATE
-   ========================================================= */
 let PRODUCTS = [];
 let cart = [];
 let activeFilter = "All";
 let searchTerm = "";
-let visibleCount = 60;
+let currentPage = 1;
 let view = "cart";
 let lastOrderId = null;
 let lastOrderData = null;
@@ -746,9 +737,6 @@ let currentProduct = null;
 let selectedSize = null;
 let modalQty = 1;
 
-/* =========================================================
-   LOAD PRODUCTS
-   ========================================================= */
 function parseCsv(text){
   const rows = [];
   let row = [], field = "", inQuotes = false;
@@ -799,20 +787,18 @@ function csvToProducts(text){
     };
   }).filter(p => {
     if (!p.id || !p.name) return false;
-    // Guard against duplicate SKUs in the sheet — first occurrence wins.
     if (seenIds.has(p.id)) return false;
     seenIds.add(p.id);
     return true;
   });
 }
-function isSizeSoldOut(p, size){
-  return !!(p.soldOutSizes && p.soldOutSizes.includes(size));
-}
+function isSizeSoldOut(p, size){ return !!(p.soldOutSizes && p.soldOutSizes.includes(size)); }
 function isFullySoldOut(p){
   const sizes = (p.sizes && p.sizes.length) ? p.sizes : null;
   if (!sizes) return false;
   return sizes.every(s => isSizeSoldOut(p, s));
 }
+
 async function loadProducts(){
   const grid = document.getElementById('productGrid');
   if (CONFIG.productsCsvUrl && CONFIG.productsCsvUrl.startsWith("http")){
@@ -825,7 +811,7 @@ async function loadProducts(){
     } catch (err){
       console.error("Could not load products from sheet:", err);
       PRODUCTS = [];
-      grid.innerHTML = `<div class="empty-state">Couldn't load products right now — please refresh the page. 🔄</div>`;
+      grid.innerHTML = `<div class="empty-state">Couldn't load products right now — please refresh the page.</div>`;
       return;
     }
   } else {
@@ -835,9 +821,6 @@ async function loadProducts(){
   renderGrid();
 }
 
-/* =========================================================
-   RENDER: filters + product grid
-   ========================================================= */
 function renderFilters(){
   const cats = ["All", ...new Set(PRODUCTS.map(p=>p.category))];
   const hasOffers = PRODUCTS.some(p => p.offer);
@@ -846,7 +829,7 @@ function renderFilters(){
     `<button class="chip ${c===activeFilter?'active':''}" data-cat="${escapeAttr(c)}">${c}</button>`
   ).join('') + (hasOffers ? `<button class="chip offer-chip ${activeFilter==='__offers__'?'active':''}" data-cat="__offers__">🔥 Offers</button>` : '');
   el.querySelectorAll('.chip').forEach(btn=>{
-    btn.addEventListener('click', ()=>{ activeFilter = btn.dataset.cat; visibleCount = CONFIG.pageSize; renderFilters(); renderGrid(); });
+    btn.addEventListener('click', ()=>{ activeFilter = btn.dataset.cat; currentPage = 1; renderFilters(); renderGrid(); });
   });
 }
 
@@ -856,20 +839,58 @@ function matchesSearch(p){
   return p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q) || p.id.toLowerCase().includes(q);
 }
 
+function renderPagination(totalPages){
+  const el = document.getElementById('pagination');
+  if (totalPages <= 1){
+    el.innerHTML = '';
+    return;
+  }
+  const pages = [];
+  const maxButtons = 5;
+  let start = Math.max(1, currentPage - Math.floor(maxButtons / 2));
+  let end = start + maxButtons - 1;
+  if (end > totalPages){
+    end = totalPages;
+    start = Math.max(1, end - maxButtons + 1);
+  }
+  for (let i = start; i <= end; i++){
+    pages.push(i);
+  }
+  el.innerHTML = `
+    ${currentPage > 1 ? `<button class="page-btn" data-page="${currentPage - 1}">←</button>` : ''}
+    ${pages.map(p => `<button class="page-btn ${p===currentPage?'active':''}" data-page="${p}">${p}</button>`).join('')}
+    ${currentPage < totalPages ? `<button class="page-btn" data-page="${currentPage + 1}">→</button>` : ''}
+  `;
+  el.querySelectorAll('.page-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      currentPage = Number(btn.dataset.page);
+      renderGrid();
+      document.getElementById('shop').scrollIntoView({behavior:'smooth', block:'start'});
+    });
+  });
+}
+
 function renderGrid(){
   const filtered = PRODUCTS
     .filter(p => activeFilter==="All" || (activeFilter==="__offers__" ? p.offer : p.category===activeFilter))
     .filter(matchesSearch);
-  document.getElementById('resultCount').textContent = filtered.length;
 
-  const list = filtered.slice(0, visibleCount);
+  document.getElementById('resultCount').textContent = filtered.length;
+  const totalPages = Math.max(1, Math.ceil(filtered.length / CONFIG.pageSize));
+  if (currentPage > totalPages) currentPage = totalPages;
+
+  const start = (currentPage - 1) * CONFIG.pageSize;
+  const list = filtered.slice(start, start + CONFIG.pageSize);
+
   if (!list.length){
     const emptyMsg = PRODUCTS.length === 0
       ? `<div class="empty-state">No products yet — check back soon! 👀</div>`
       : `<div class="empty-state">No products match — try a different search or filter.</div>`;
     document.getElementById('productGrid').innerHTML = emptyMsg;
+    document.getElementById('pagination').innerHTML = '';
     return;
   }
+
   document.getElementById('productGrid').innerHTML = list.map((p, i) => {
     const fullySoldOut = isFullySoldOut(p);
     return `
@@ -888,9 +909,11 @@ function renderGrid(){
         <button class="add-btn" data-id="${escapeAttr(p.id)}" ${fullySoldOut ? 'disabled' : ''}>${fullySoldOut ? 'SOLD OUT' : 'SELECT SIZE'}</button>
       </div>
     </div>
-  `; }).join('') + (filtered.length > visibleCount
-      ? `<div class="load-more-wrap"><button class="btn-ghost" id="loadMoreBtn">Load More (${filtered.length - visibleCount} left)</button></div>`
-      : '');
+  `;
+  }).join('');
+
+  renderPagination(totalPages);
+
   document.querySelectorAll('.card').forEach(card=>{
     card.addEventListener('click', ()=> openProductModal(card.dataset.id));
     card.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); openProductModal(card.dataset.id); } });
@@ -905,13 +928,8 @@ function renderGrid(){
       openProductModal(btn.dataset.id);
     });
   });
-  const loadMoreBtn = document.getElementById('loadMoreBtn');
-  if (loadMoreBtn) loadMoreBtn.addEventListener('click', ()=>{ visibleCount += CONFIG.pageSize; renderGrid(); });
 }
 
-/* =========================================================
-   CART LOGIC
-   ========================================================= */
 function cartKey(id, size){ return id + '::' + size; }
 function addToCart(id, size, qty){
   const product = PRODUCTS.find(p=>p.id===id);
@@ -980,22 +998,16 @@ function showToast(msg, isError){
   window.__toastTimer = setTimeout(()=> t.classList.remove('show'), 2600);
 }
 
-// Formats a Nepali phone number for wa.me links: strips non-digits,
-// drops a leading 0, and prefixes the 977 country code if missing.
 function formatPhoneForWhatsapp(phone){
   let digits = String(phone || '').replace(/\D/g, '');
   digits = digits.replace(/^0+/, '');
   if (!digits.startsWith('977')) digits = '977' + digits;
   return digits;
 }
-
-// Builds a wa.me link that opens a chat with the customer's own number
-// pre-filled with their order details, so tapping it saves the order
-// as a note-to-self in their WhatsApp.
 function buildWhatsAppSaveLink(orderData){
   if (!orderData || !orderData.phone) return null;
   const waPhone = formatPhoneForWhatsapp(orderData.phone);
-  if (waPhone.length < 12) return null; // too short to be a valid number
+  if (waPhone.length < 12) return null;
   const msg =
     `ShopSlipper Order Confirmation\n\n` +
     `Order ID: ${orderData.orderId}\n` +
@@ -1006,9 +1018,6 @@ function buildWhatsAppSaveLink(orderData){
   return `https://wa.me/${waPhone}?text=${encodeURIComponent(msg)}`;
 }
 
-/* =========================================================
-   ADDRESS AUTO-CORRECTION (Kathmandu Valley place names)
-   ========================================================= */
 const KTM_VALLEY_PLACES = [
   "Kathmandu","Lalitpur","Patan","Bhaktapur","Thamel","Baneshwor","New Baneshwor","Old Baneshwor",
   "Koteshwor","Kalanki","Gongabu","Balaju","Maharajgunj","Chabahil","Boudha","Baudha","Jorpati",
@@ -1044,32 +1053,26 @@ function levenshtein(a, b){
   }
   return dp[m][n];
 }
-
-// Find best-matching known place for one word/token of the address (not exact, but close)
 function findClosestPlace(token){
   const t = token.trim();
-  if (t.length < 4) return null; // too short to safely correct
+  if (t.length < 4) return null;
   const tLower = t.toLowerCase();
   let best = null, bestDist = Infinity;
   for (const place of UNIQUE_PLACES){
-    if (place.toLowerCase() === tLower) return null; // already correct, no suggestion needed
+    if (place.toLowerCase() === tLower) return null;
     const dist = levenshtein(t, place);
-    const threshold = place.length <= 6 ? 2 : 3; // allow more slack for longer names
+    const threshold = place.length <= 6 ? 2 : 3;
     if (dist <= threshold && dist < bestDist){
       bestDist = dist; best = place;
     }
   }
   return best;
 }
-
-// Scan a full address string for tokens that look like near-miss spellings of known places
 function suggestAddressCorrection(address){
   if (!address || address.trim().length < 4) return null;
-  // Split on common separators, keep multi-word candidates too (check 1-2 word windows)
-  const rawTokens = address.split(/[,\n]/).map(s=>s.trim()).filter(Boolean);
+  const rawTokens = address.split(/[,\\n]/).map(s=>s.trim()).filter(Boolean);
   for (const chunk of rawTokens){
-    const words = chunk.split(/\s+/).filter(Boolean);
-    // try 2-word windows first (e.g. "New Baneshwor"), then single words
+    const words = chunk.split(/\\s+/).filter(Boolean);
     for (let w=2; w>=1; w--){
       for (let i=0; i+w<=words.length; i++){
         const candidate = words.slice(i, i+w).join(' ');
@@ -1083,19 +1086,16 @@ function suggestAddressCorrection(address){
   }
   return null;
 }
-
 function applyAddressCorrection(fieldId){
   const field = document.getElementById(fieldId || 'cAddress');
   const sugg = document.getElementById('addrSuggest');
   if (!field || !sugg || !sugg.dataset.original || !sugg.dataset.corrected) return;
   const original = sugg.dataset.original, corrected = sugg.dataset.corrected;
-  // Replace only the matched token (case-insensitive, whole word/phrase)
-  const re = new RegExp(original.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'i');
+  const re = new RegExp(original.replace(/[.*+?^${}()|[\\]\\\\]/g,'\\\\$&'), 'i');
   field.value = field.value.replace(re, corrected);
   sugg.classList.remove('show');
   field.focus();
 }
-
 function checkAddressSpelling(fieldId){
   const field = document.getElementById(fieldId || 'cAddress');
   const sugg = document.getElementById('addrSuggest');
@@ -1113,9 +1113,6 @@ function checkAddressSpelling(fieldId){
   }
 }
 
-/* =========================================================
-   DRAWER RENDER
-   ========================================================= */
 function openDrawer(startView){
   view = startView || 'cart';
   document.getElementById('overlay').classList.add('open');
@@ -1270,10 +1267,10 @@ function renderDrawer(){
     const addressField = document.getElementById('cAddress');
     addressField.addEventListener('input', ()=>{
       clearTimeout(addrDebounce);
-      addrDebounce = setTimeout(checkAddressSpelling, 400);
+      addrDebounce = setTimeout(()=>checkAddressSpelling('cAddress'), 400);
     });
-    addressField.addEventListener('blur', checkAddressSpelling);
-    document.getElementById('addrFixBtn').addEventListener('click', applyAddressCorrection);
+    addressField.addEventListener('blur', ()=>checkAddressSpelling('cAddress'));
+    document.getElementById('addrFixBtn').addEventListener('click', ()=>applyAddressCorrection('cAddress'));
     document.getElementById('addrDismissBtn').addEventListener('click', ()=>{
       document.getElementById('addrSuggest').classList.remove('show');
     });
@@ -1314,9 +1311,6 @@ function renderDrawer(){
   document.getElementById('goCheckout').addEventListener('click', ()=>{ view='checkout'; renderDrawer(); });
 }
 
-/* =========================================================
-   PRODUCT DETAIL MODAL
-   ========================================================= */
 function openProductModal(id){
   currentProduct = PRODUCTS.find(p=>p.id===id);
   if (!currentProduct) return;
@@ -1394,21 +1388,16 @@ function renderProductModal(){
   });
 }
 
-/* =========================================================
-   SUBMIT ORDER
-   ========================================================= */
 function setFieldError(inputId, errId, show){
   const input = document.getElementById(inputId);
   const err = document.getElementById(errId);
   if (input) input.classList.toggle('field-error', !!show);
   if (err) err.classList.toggle('show', !!show);
 }
-
 function isValidPhone(phone){
   const digits = phone.replace(/\D/g, '');
   return digits.length >= 9 && digits.length <= 15;
 }
-
 function isValidEmail(email){
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
@@ -1471,8 +1460,6 @@ async function submitOrder(){
         headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify(payload),
       });
-    } else {
-      console.warn("sheetWebAppUrl not configured — order was not sent anywhere.");
     }
     lastOrderId = orderId;
     lastOrderData = payload;
@@ -1537,8 +1524,6 @@ async function submitGiftOrder(){
         headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify(payload),
       });
-    } else {
-      console.warn("sheetWebAppUrl not configured — order was not sent anywhere.");
     }
     lastOrderId = orderId;
     lastOrderData = payload;
@@ -1551,9 +1536,6 @@ async function submitGiftOrder(){
   }
 }
 
-/* =========================================================
-   INIT
-   ========================================================= */
 document.getElementById('openCart').addEventListener('click', ()=> openDrawer('cart'));
 document.getElementById('closeCart').addEventListener('click', closeDrawer);
 document.getElementById('overlay').addEventListener('click', closeDrawer);
@@ -1623,7 +1605,7 @@ document.getElementById('searchBox').addEventListener('input', (e)=>{
   clearTimeout(searchDebounce);
   searchDebounce = setTimeout(()=>{
     searchTerm = e.target.value;
-    visibleCount = CONFIG.pageSize;
+    currentPage = 1;
     renderGrid();
   }, 150);
 });
