@@ -453,7 +453,10 @@
   .size-note{ font-size:11.5px; color:#9ca3af; margin:8px 0 0; }
   .size-warn{ font-size:12px; color:var(--thread); margin:8px 0 0; display:none; }
   .size-warn.show{ display:block; }
+  .pmodal-qty-row{ display:flex; align-items:center; justify-content:space-between; margin:20px 0 20px; }
+  .pmodal-actions .checkout-btn{ margin-top:0; }
 
+  /* --- NEW: color options (swatch picker) --- */
   .color-options{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom:8px; }
   .color-chip{
     width:34px; height:34px; border-radius:50%; border:2px solid var(--ink);
@@ -466,9 +469,6 @@
     background:linear-gradient(to top right, transparent 46%, var(--ink) 48%, var(--ink) 52%, transparent 54%);
   }
   .color-name{ font-size:12px; color:#4b5563; font-weight:600; margin:2px 0 10px; min-height:16px; }
-
-  .pmodal-qty-row{ display:flex; align-items:center; justify-content:space-between; margin:20px 0 20px; }
-  .pmodal-actions .checkout-btn{ margin-top:0; }
 
   .sold-out-ribbon{
     position:absolute; top:14px; right:14px; background:var(--ink); color:#fff;
@@ -829,6 +829,7 @@ function csvToProducts(text){
     const soldOutRaw = obj.sold_out_sizes || obj.soldoutsizes || "";
     const soldOutSizes = soldOutRaw ? soldOutRaw.split(/[|,]/).map(s=>s.trim()).filter(Boolean) : [];
 
+    // --- colors ---
     const colorsRaw = obj.colors || obj.color || "";
     const colors = colorsRaw ? colorsRaw.split(/[|,]/).map(s=>s.trim()).filter(Boolean) : [];
     const soldOutColorsRaw = obj.sold_out_colors || obj.soldoutcolors || "";
@@ -836,13 +837,13 @@ function csvToProducts(text){
     const colorImagesRaw = obj.color_images || obj.colorimages || "";
     const colorImages = {};
     if (colorImagesRaw){
-      colorImagesRaw.split('|').forEach(pair => {
-        const idx = pair.indexOf(':');
-        if (idx === -1) return;
-        const color = pair.slice(0, idx).trim();
-        const url = pair.slice(idx + 1).trim();
+      const pairRe = /([^|:]+):(https?:\/\/[^|]+)/g;
+      let m;
+      while ((m = pairRe.exec(colorImagesRaw)) !== null){
+        const color = m[1].trim();
+        const url = m[2].trim();
         if (color && url) colorImages[color] = url;
-      });
+      }
     }
 
     const mrp = Number(obj.mrp) || Number(obj.price) || 0;
@@ -1492,7 +1493,9 @@ function renderProductModal(){
   const p = currentProduct;
   if (!p) return;
   const sizes = (p.sizes && p.sizes.length) ? p.sizes : ['One Size'];
+
   setModalImage(imageForColor(p, selectedColor), p.icon, p.name);
+
   document.getElementById('pModalBody').innerHTML = `
     <div class="pmodal-badges">
       <span class="cond">${p.condition}</span>
@@ -1513,7 +1516,7 @@ function renderProductModal(){
     ${sizes.some(s=>isSizeSoldOut(p,s)) ? `<div class="size-note">Struck-through sizes are currently out of stock.</div>` : ''}
     <div class="size-warn" id="sizeWarn">Please select a size to continue.</div>
     ${p.colors && p.colors.length ? `
-      <label class="size-label">Choose your color</label>
+      <label class="size-label" style="margin-top:16px;">Choose your color</label>
       <div class="color-options" id="colorOptions">
         ${p.colors.map(c => {
           const soldOut = isColorSoldOut(p, c);
@@ -1546,18 +1549,20 @@ function renderProductModal(){
       chip.classList.add('selected');
     });
   });
-  document.querySelectorAll('#colorOptions .color-chip').forEach(chip=>{
-    if (chip.disabled) return;
-    chip.addEventListener('click', ()=>{
-      selectedColor = chip.dataset.color;
-      const colorWarn = document.getElementById('colorWarn');
-      if (colorWarn) colorWarn.classList.remove('show');
-      document.getElementById('colorName').textContent = selectedColor;
-      document.querySelectorAll('#colorOptions .color-chip').forEach(c=>c.classList.remove('selected'));
-      chip.classList.add('selected');
-      setModalImage(imageForColor(p, selectedColor), p.icon, p.name);
+  const colorOptionsEl = document.getElementById('colorOptions');
+  if (colorOptionsEl){
+    colorOptionsEl.querySelectorAll('.color-chip').forEach(chip=>{
+      if (chip.disabled) return;
+      chip.addEventListener('click', ()=>{
+        selectedColor = chip.dataset.color;
+        document.getElementById('colorWarn').classList.remove('show');
+        document.getElementById('colorName').textContent = selectedColor;
+        colorOptionsEl.querySelectorAll('.color-chip').forEach(c=>c.classList.remove('selected'));
+        chip.classList.add('selected');
+        setModalImage(imageForColor(p, selectedColor), p.icon, p.name);
+      });
     });
-  });
+  }
   document.getElementById('pQtyMinus').addEventListener('click', ()=>{
     modalQty = Math.max(1, modalQty-1);
     document.getElementById('pQtyVal').textContent = modalQty;
