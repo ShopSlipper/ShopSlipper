@@ -725,6 +725,18 @@ function iconFor(key){ return ICONS[key] || ICONS.tag; }
 function escapeAttr(str){
   return String(str||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");
 }
+function toRawGithubUrl(url){
+  if (!url) return url;
+  const trimmed = url.trim();
+  // Matches: https://github.com/{user}/{repo}/blob/{branch}/{path...}
+  const m = trimmed.match(/^https?:\/\/github\.com\/([^\/\s]+)\/([^\/\s]+)\/blob\/(.+)$/i);
+  if (m){
+    const [, user, repo, rest] = m;
+    const path = rest.split('?')[0]; // strip any ?raw=true or query string
+    return `https://raw.githubusercontent.com/${user}/${repo}/${path}`;
+  }
+  return trimmed;
+}
 function thumbFor(p){
   if (p.image){
     return `<img src="${escapeAttr(p.image)}" alt="${escapeAttr(p.name)}" loading="lazy" data-fallback-icon="${escapeAttr(p.icon)}" onerror="handleImgError(this)">`;
@@ -841,7 +853,7 @@ function csvToProducts(text){
       let m;
       while ((m = pairRe.exec(colorImagesRaw)) !== null){
         const color = m[1].trim();
-        const url = m[2].trim();
+        const url = toRawGithubUrl(m[2].trim());
         if (color && url) colorImages[color] = url;
       }
     }
@@ -858,7 +870,7 @@ function csvToProducts(text){
       sizes, soldOutSizes, colors, soldOutColors, colorImages,
       price, mrp,
       condition: obj.condition || "Good", icon: obj.icon || "tag", offer,
-      image: obj.image || "", description: obj.description || ""
+      image: toRawGithubUrl(obj.image || ""), description: obj.description || ""
     };
   }).filter(p => {
     if (!p.id || !p.name) return false;
@@ -1745,6 +1757,9 @@ document.addEventListener('keydown', (e)=>{
   else if (document.getElementById('drawer').classList.contains('open')) closeDrawer();
 });
 document.getElementById('year').textContent = new Date().getFullYear();
+
+if (CONFIG.logoUrl) CONFIG.logoUrl = toRawGithubUrl(CONFIG.logoUrl);
+if (CONFIG.heroImageUrl) CONFIG.heroImageUrl = toRawGithubUrl(CONFIG.heroImageUrl);
 
 if (CONFIG.logoUrl && CONFIG.logoUrl.startsWith("http")){
   document.querySelector('.logo .mark').innerHTML =
