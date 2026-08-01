@@ -165,6 +165,29 @@
     font-family:'Inter',sans-serif; font-size:14px; background:var(--paper);
   }
   .search-box:focus{ outline:2px solid var(--denim); border-color:var(--denim); }
+  .search-row{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:16px; }
+  .search-row .search-box{ margin-bottom:0; flex:1; min-width:200px; }
+  .image-search-btn{
+    border:1.5px solid var(--denim); background:#fff; color:var(--denim); border-radius:999px;
+    padding:10px 16px; font-family:'JetBrains Mono',monospace; font-size:12.5px; font-weight:700;
+    cursor:pointer; display:inline-flex; align-items:center; gap:6px; white-space:nowrap;
+    transition:all .15s ease;
+  }
+  .image-search-btn:hover{ background:var(--denim); color:#fff; }
+  .image-search-btn:disabled{ opacity:.5; cursor:not-allowed; }
+  .visual-search-banner{
+    display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+    background:var(--paper); border:1.5px dashed var(--denim); border-radius:12px;
+    padding:10px 16px; margin-bottom:16px; font-size:13px; color:var(--denim-dark);
+  }
+  .visual-search-banner .vs-left{ display:flex; align-items:center; gap:10px; }
+  .visual-search-thumb{
+    width:38px; height:38px; border-radius:8px; object-fit:cover; border:1.5px solid var(--ink); flex-shrink:0;
+  }
+  .visual-search-banner button{
+    background:var(--ink); color:#fff; border:none; border-radius:999px; padding:6px 14px;
+    font-size:11.5px; font-weight:700; cursor:pointer; font-family:'JetBrains Mono',monospace;
+  }
   .loading-msg, .empty-state{
     grid-column:1/-1; text-align:center; padding:60px 10px; color:#9ca3af;
     font-family:'JetBrains Mono',monospace; font-size:13px;
@@ -630,7 +653,12 @@
     <h2>The Rack</h2>
     <div class="count"><span id="resultCount">0</span> ITEMS</div>
   </div>
-  <input type="text" id="searchBox" class="search-box" placeholder="Search products…" />
+  <div class="search-row">
+    <input type="text" id="searchBox" class="search-box" placeholder="Search products…" />
+    <button type="button" class="image-search-btn" id="imageSearchBtn">📷 Search by Photo</button>
+    <input type="file" id="imageSearchInput" accept="image/*" style="display:none">
+  </div>
+  <div id="visualSearchBanner"></div>
   <div class="filters" id="filters"></div>
   <div class="grid" id="productGrid"></div>
   <div class="pagination-wrap">
@@ -804,6 +832,11 @@ let currentProduct = null;
 let selectedSize = null;
 let selectedColor = null;
 let modalQty = 1;
+let visualSearchActive = false;
+let visualSearchOrder = [];
+let tfLoaded = false;
+let mobilenetModel = null;
+const productEmbeddingCache = {};
 
 function parseCsv(text){
   const rows = [];
@@ -891,6 +924,130 @@ function isFullySoldOut(p){
   return sizes.every(s => isSizeSoldOut(p, s));
 }
 
+/* --- Visual (photo) search --- */
+function loadScript(src){
+  return new Promise((resolve, reject)=>{
+    const s = document.createElement('script');
+    s.src = src;
+    s.onload = resolve;
+    s.onerror = ()=> reject(new Error('Failed to load ' + src));
+    document.head.appendChild(s);
+  });
+}
+async function ensureVisualSearchReady(){
+  if (!tfLoaded){
+    await loadScript('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js');
+    await loadScript('https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.1/dist/mobilenet.min.js');
+    tfLoaded = true;
+  }
+  if (!mobilenetModel){
+    mobilenetModel = await mobilenet.load({ version: 2, alpha: 1.0 });
+  }
+}
+function loadImageEl(url){
+  return new Promise((resolve, reject)=>{
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = ()=> resolve(img);
+    img.onerror = ()=> reject(new Error('Image failed to load: ' + url));
+    img.src = url;
+  });
+}
+async function getProductEmbedding(p){
+  if (productEmbeddingCache[p.id]) return productEmbeddingCache[p.id];
+  if (!p.image) return null;
+  try {
+    const imgEl = await loadImageEl(p.image);
+    const embeddingTensor = mobilenetModel.infer(imgEl, true);
+    const arr = await embeddingTensor.data();
+    embeddingTensor.dispose();
+    productEmbeddingCache[p.id] = arr;
+    return arr;
+  } catch (err){
+    console.warn('Could not analyze product image for', p.id, err);
+    return null;
+  }
+}
+function cosineSimilarity(a, b){
+  let dot = 0, na = 0, nb = 0;
+  for (let i=0; i<a.length; i++){ dot += a[i]*b[i]; na += a[i]*a[i]; nb += b[i]*b[i]; }
+  if (na === 0 || nb === 0) return 0;
+  return dot / (Math.sqrt(na) * Math.sqrt(nb));
+}
+function clearVisualSearch(){
+  visualSearchActive = false;
+  visualSearchOrder = [];
+  const banner = document.getElementById('visualSearchBanner');
+  if (banner) banner.innerHTML = '';
+}
+function renderVisualSearchBanner(thumbSrc){
+  const el = document.getElementById('visualSearchBanner');
+  if (!el) return;
+  if (!visualSearchActive){ el.innerHTML = ''; return; }
+  el.innerHTML = `
+    <div class="visual-search-banner">
+      <div class="vs-left">
+        <img class="visual-search-thumb" src="${thumbSrc}" alt="Your uploaded photo">
+        <span>Showing products similar to your photo (${visualSearchOrder.length} found)</span>
+      </div>
+      <button type="button" id="clearVisualSearchBtn">Clear</button>
+    </div>`;
+  document.getElementById('clearVisualSearchBtn').addEventListener('click', ()=>{
+    clearVisualSearch();
+    currentPage = 1;
+    renderGrid();
+  });
+}
+async function handleImageSearchFile(file){
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async (e)=>{
+    const dataUrl = e.target.result;
+    const btn = document.getElementById('imageSearchBtn');
+    btn.disabled = true;
+    const originalLabel = btn.textContent;
+    btn.textContent = '⏳ Loading...';
+    showToast('Analyzing your photo…');
+    try {
+      await ensureVisualSearchReady();
+      const uploadedImg = new Image();
+      uploadedImg.src = dataUrl;
+      await new Promise((res, rej)=>{ uploadedImg.onload = res; uploadedImg.onerror = rej; });
+      const uploadedTensor = mobilenetModel.infer(uploadedImg, true);
+      const uploadedEmbedding = await uploadedTensor.data();
+      uploadedTensor.dispose();
+
+      btn.textContent = '⏳ Comparing...';
+      showToast('Comparing with your products…');
+      const scored = [];
+      for (const p of PRODUCTS){
+        if (!p.image) continue;
+        const emb = await getProductEmbedding(p);
+        if (!emb) continue;
+        scored.push({ id: p.id, score: cosineSimilarity(uploadedEmbedding, emb) });
+      }
+      scored.sort((a,b)=> b.score - a.score);
+      visualSearchOrder = scored.map(s=>s.id);
+      visualSearchActive = true;
+      activeFilter = "All";
+      searchTerm = "";
+      document.getElementById('searchBox').value = "";
+      currentPage = 1;
+      renderFilters();
+      renderVisualSearchBanner(dataUrl);
+      renderGrid();
+      showToast(visualSearchOrder.length ? `Found ${visualSearchOrder.length} similar products` : 'No comparable products found');
+    } catch (err){
+      console.error(err);
+      showToast("Couldn't analyze that photo — please try another", true);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = originalLabel;
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
 async function loadProducts(){
   const grid = document.getElementById('productGrid');
   if (CONFIG.productsCsvUrl && CONFIG.productsCsvUrl.startsWith("http")){
@@ -921,7 +1078,10 @@ function renderFilters(){
     `<button class="chip ${c===activeFilter?'active':''}" data-cat="${escapeAttr(c)}">${c}</button>`
   ).join('') + (hasOffers ? `<button class="chip offer-chip ${activeFilter==='__offers__'?'active':''}" data-cat="__offers__">🔥 Offers</button>` : '');
   el.querySelectorAll('.chip').forEach(btn=>{
-    btn.addEventListener('click', ()=>{ activeFilter = btn.dataset.cat; currentPage = 1; renderFilters(); renderGrid(); });
+    btn.addEventListener('click', ()=>{
+      if (visualSearchActive) clearVisualSearch();
+      activeFilter = btn.dataset.cat; currentPage = 1; renderFilters(); renderGrid();
+    });
   });
 }
 
@@ -963,9 +1123,15 @@ function renderPagination(totalPages){
 }
 
 function renderGrid(){
-  const filtered = PRODUCTS
-    .filter(p => activeFilter==="All" || (activeFilter==="__offers__" ? p.offer : p.category===activeFilter))
-    .filter(matchesSearch);
+  let filtered;
+  if (visualSearchActive && visualSearchOrder.length){
+    const byId = new Map(PRODUCTS.map(p=>[p.id, p]));
+    filtered = visualSearchOrder.map(id => byId.get(id)).filter(Boolean);
+  } else {
+    filtered = PRODUCTS
+      .filter(p => activeFilter==="All" || (activeFilter==="__offers__" ? p.offer : p.category===activeFilter))
+      .filter(matchesSearch);
+  }
 
   document.getElementById('resultCount').textContent = filtered.length;
   const totalPages = Math.max(1, Math.ceil(filtered.length / CONFIG.pageSize));
@@ -1819,14 +1985,25 @@ document.getElementById('searchBox').addEventListener('input', (e)=>{
   searchDebounce = setTimeout(()=>{
     searchTerm = e.target.value;
     currentPage = 1;
+    if (searchTerm && visualSearchActive) clearVisualSearch();
     renderGrid();
   }, 150);
+});
+
+document.getElementById('imageSearchBtn').addEventListener('click', ()=>{
+  document.getElementById('imageSearchInput').click();
+});
+document.getElementById('imageSearchInput').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  handleImageSearchFile(file);
+  e.target.value = '';
 });
 
 function goHomeAndRefresh(){
   activeFilter = "All";
   searchTerm = "";
   currentPage = 1;
+  if (visualSearchActive) clearVisualSearch();
   document.getElementById('searchBox').value = "";
   window.scrollTo({ top: 0, behavior: 'smooth' });
   loadProducts();
