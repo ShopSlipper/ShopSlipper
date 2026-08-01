@@ -1361,7 +1361,12 @@ function loadRecentlyViewedFromStorage(){
     const raw = localStorage.getItem('shopslipper_recently_viewed');
     if (raw){
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) recentlyViewed = parsed;
+      if (Array.isArray(parsed)){
+        // Support old format (plain id strings) by treating them as just-viewed
+        recentlyViewed = parsed.map(item =>
+          typeof item === 'string' ? { id: item, viewedAt: Date.now() } : item
+        );
+      }
     }
   } catch (err){
     console.warn('Could not load recently viewed', err);
@@ -1374,8 +1379,9 @@ function saveRecentlyViewedToStorage(){
     console.warn('Could not save recently viewed', err);
   }
 }
+const RECENTLY_VIEWED_TTL_MS = 60 * 1000; // 1 minute
 function trackRecentlyViewed(id){
-  recentlyViewed = [id, ...recentlyViewed.filter(x => x !== id)].slice(0, 8);
+  recentlyViewed = [{ id, viewedAt: Date.now() }, ...recentlyViewed.filter(x => x.id !== id)].slice(0, 20);
   saveRecentlyViewedToStorage();
   renderRecentlyViewed();
 }
@@ -1383,7 +1389,13 @@ function renderRecentlyViewed(){
   const section = document.getElementById('recentlyViewedSection');
   const strip = document.getElementById('recentStrip');
   if (!section || !strip) return;
-  const items = recentlyViewed.map(id => PRODUCTS.find(p=>p.id===id)).filter(Boolean);
+  const now = Date.now();
+  const fresh = recentlyViewed.filter(entry => now - entry.viewedAt < RECENTLY_VIEWED_TTL_MS);
+  if (fresh.length !== recentlyViewed.length){
+    recentlyViewed = fresh;
+    saveRecentlyViewedToStorage();
+  }
+  const items = fresh.map(entry => PRODUCTS.find(p=>p.id===entry.id)).filter(Boolean);
   if (!items.length){
     section.style.display = 'none';
     strip.innerHTML = '';
@@ -2290,6 +2302,8 @@ loadCartFromStorage();
 loadRecentlyViewedFromStorage();
 updateCartCount();
 loadProducts();
+
+setInterval(renderRecentlyViewed, 5000);
 
 window.addEventListener('popstate', ()=>{
   const params = new URLSearchParams(window.location.search);
