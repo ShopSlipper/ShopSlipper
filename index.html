@@ -499,8 +499,14 @@
   .size-chip{
     border:1.5px solid var(--ink); background:#fff; border-radius:8px; min-width:26px;
     padding:8px 6px; text-align:center; font-family:'JetBrains Mono',monospace; font-size:13px;
-    font-weight:700; cursor:pointer; transition:all .12s ease;
+    font-weight:700; cursor:pointer; transition:all .12s ease; position:relative;
   }
+  .size-chip.low-stock{ border-color:var(--thread); }
+  .size-chip.low-stock::after{
+    content:''; position:absolute; top:-3px; right:-3px; width:8px; height:8px;
+    border-radius:50%; background:var(--thread); border:1.5px solid #fff;
+  }
+  .low-stock-note{ font-size:11.5px; color:var(--thread); margin:8px 0 0; font-weight:600; }
   .size-chip:hover{ border-color:var(--denim); color:var(--denim); }
   .size-chip.selected{ background:var(--ink); color:#fff; border-color:var(--ink); }
   .size-chip.sold-out{
@@ -528,6 +534,29 @@
   .related-thumb svg{ width:30px; height:30px; }
   .related-name{ font-size:11px; font-weight:600; line-height:1.3; margin-bottom:2px; }
   .related-price{ font-family:'JetBrains Mono',monospace; font-size:11.5px; font-weight:700; }
+  .recent-strip{
+    display:flex; gap:14px; overflow-x:auto; padding-bottom:10px; -webkit-overflow-scrolling:touch;
+  }
+  .recent-card{
+    flex:0 0 140px; background:var(--paper); border:1.5px solid var(--line); border-radius:12px;
+    padding:10px; cursor:pointer; transition:border-color .15s ease;
+  }
+  .recent-card:hover{ border-color:var(--denim); }
+  .recent-thumb{
+    height:90px; border-radius:8px; background:#fff; overflow:hidden;
+    display:flex; align-items:center; justify-content:center; color:var(--denim); margin-bottom:8px;
+  }
+  .recent-thumb img{ width:100%; height:100%; object-fit:cover; }
+  .recent-thumb svg{ width:36px; height:36px; }
+  .recent-name{
+    font-size:12px; font-weight:600; margin-bottom:2px; white-space:nowrap;
+    overflow:hidden; text-overflow:ellipsis;
+  }
+  .recent-price{ font-family:'JetBrains Mono',monospace; font-size:11.5px; font-weight:700; }
+  @media (max-width:560px){
+    .recent-card{ flex-basis:110px; }
+    .recent-thumb{ height:72px; }
+  }
 
   /* --- NEW: color options (swatch picker) --- */
   .color-options{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom:8px; }
@@ -696,6 +725,13 @@
     </div>
     <button class="btn-primary" style="margin-top:20px; width:100%;" onclick="openGiftCheckout()">Order Now</button>
   </div>
+</section>
+
+<section class="section" id="recentlyViewedSection" style="display:none; padding-top:8px; padding-bottom:8px;">
+  <div class="section-head reveal" style="border-bottom:none; margin-bottom:14px;">
+    <h2 style="font-size:20px;">Recently Viewed</h2>
+  </div>
+  <div class="recent-strip" id="recentStrip"></div>
 </section>
 
 <section class="section" id="shop">
@@ -884,6 +920,7 @@ let selectedColor = null;
 let modalQty = 1;
 let visualSearchActive = false;
 let visualSearchOrder = [];
+let recentlyViewed = [];
 let tfLoaded = false;
 let mobilenetModel = null;
 const productEmbeddingCache = {};
@@ -924,6 +961,18 @@ function csvToProducts(text){
     const soldOutRaw = obj.sold_out_sizes || obj.soldoutsizes || "";
     const soldOutSizes = soldOutRaw ? soldOutRaw.split(/[|,]/).map(s=>s.trim()).filter(Boolean) : [];
 
+    const stockCountsRaw = obj.stock_counts || obj.stockcounts || "";
+    const stockCounts = {};
+    if (stockCountsRaw){
+      stockCountsRaw.split('|').forEach(pair => {
+        const idx = pair.indexOf(':');
+        if (idx === -1) return;
+        const size = pair.slice(0, idx).trim();
+        const qty = Number(pair.slice(idx + 1).trim());
+        if (size && !isNaN(qty)) stockCounts[size] = qty;
+      });
+    }
+
     // --- colors ---
     const colorsRaw = obj.colors || obj.color || "";
     const colors = colorsRaw ? colorsRaw.split(/[|,]/).map(s=>s.trim()).filter(Boolean) : [];
@@ -950,7 +999,7 @@ function csvToProducts(text){
     const offer = obj.offer || (discountPct > 0 ? `${discountPct}% OFF` : "");
     return {
       id: obj.id || obj.sku, name: obj.name, category: obj.category || "Other",
-      sizes, soldOutSizes, colors, soldOutColors, colorImages,
+      sizes, soldOutSizes, colors, soldOutColors, colorImages, stockCounts,
       price, mrp,
       condition: obj.condition || "Good", icon: obj.icon || "tag", offer,
       image: toRawGithubUrl(obj.image || ""), description: obj.description || ""
@@ -963,6 +1012,13 @@ function csvToProducts(text){
   });
 }
 function isSizeSoldOut(p, size){ return !!(p.soldOutSizes && p.soldOutSizes.includes(size)); }
+function getStockCount(p, size){
+  return (p.stockCounts && p.stockCounts[size] !== undefined) ? p.stockCounts[size] : null;
+}
+function isLowStock(p, size){
+  const c = getStockCount(p, size);
+  return c !== null && c > 0 && c <= 3;
+}
 function isColorSoldOut(p, color){ return !!(p.soldOutColors && p.soldOutColors.includes(color)); }
 function imageForColor(p, color){
   if (color && p.colorImages && p.colorImages[color]) return p.colorImages[color];
@@ -1132,6 +1188,7 @@ async function loadProducts(skipDeepLink){
   }
   renderFilters();
   renderGrid();
+  renderRecentlyViewed();
   if (!skipDeepLink) openProductFromUrlIfPresent();
 }
 
@@ -1297,6 +1354,55 @@ function loadCartFromStorage(){
     console.warn('Could not load saved cart', err);
     cart = [];
   }
+}
+
+function loadRecentlyViewedFromStorage(){
+  try {
+    const raw = localStorage.getItem('shopslipper_recently_viewed');
+    if (raw){
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) recentlyViewed = parsed;
+    }
+  } catch (err){
+    console.warn('Could not load recently viewed', err);
+  }
+}
+function saveRecentlyViewedToStorage(){
+  try {
+    localStorage.setItem('shopslipper_recently_viewed', JSON.stringify(recentlyViewed));
+  } catch (err){
+    console.warn('Could not save recently viewed', err);
+  }
+}
+function trackRecentlyViewed(id){
+  recentlyViewed = [id, ...recentlyViewed.filter(x => x !== id)].slice(0, 8);
+  saveRecentlyViewedToStorage();
+  renderRecentlyViewed();
+}
+function renderRecentlyViewed(){
+  const section = document.getElementById('recentlyViewedSection');
+  const strip = document.getElementById('recentStrip');
+  if (!section || !strip) return;
+  const items = recentlyViewed.map(id => PRODUCTS.find(p=>p.id===id)).filter(Boolean);
+  if (!items.length){
+    section.style.display = 'none';
+    strip.innerHTML = '';
+    return;
+  }
+  section.style.display = 'block';
+  strip.innerHTML = items.map(p => `
+    <div class="recent-card" data-id="${escapeAttr(p.id)}" role="button" tabindex="0" aria-label="View ${escapeAttr(p.name)}">
+      <div class="recent-thumb">${thumbFor(p)}</div>
+      <div class="recent-name">${p.name}</div>
+      <div class="recent-price">${CONFIG.currency} ${p.price}</div>
+    </div>
+  `).join('');
+  strip.querySelectorAll('.recent-card').forEach(card=>{
+    card.addEventListener('click', ()=> openProductModal(card.dataset.id));
+    card.addEventListener('keydown', (e)=>{
+      if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openProductModal(card.dataset.id); }
+    });
+  });
 }
 
 function flyToCart(thumb){
@@ -1769,6 +1875,7 @@ function openProductModal(id, opts){
   document.getElementById('pOverlay').classList.add('open');
   document.getElementById('pModal').classList.add('open');
   updateUrlForProduct(id, selectedColor);
+  trackRecentlyViewed(id);
 }
 function closeProductModal(){
   document.getElementById('pOverlay').classList.remove('open');
@@ -1816,10 +1923,16 @@ function renderProductModal(){
     <div class="size-options" id="sizeOptions">
       ${sizes.map(s => {
         const soldOut = isSizeSoldOut(p, s);
-        return `<button type="button" class="size-chip ${selectedSize===s?'selected':''} ${soldOut?'sold-out':''}" data-size="${escapeAttr(s)}" ${soldOut?'disabled aria-disabled="true"':''}>${s}</button>`;
+        const lowStock = !soldOut && isLowStock(p, s);
+        return `<button type="button" class="size-chip ${selectedSize===s?'selected':''} ${soldOut?'sold-out':''} ${lowStock?'low-stock':''}" data-size="${escapeAttr(s)}" ${soldOut?'disabled aria-disabled="true"':''}>${s}</button>`;
       }).join('')}
     </div>
     ${sizes.some(s=>isSizeSoldOut(p,s)) ? `<div class="size-note">Struck-through sizes are currently out of stock.</div>` : ''}
+    ${(() => {
+      const lowOnes = sizes.filter(s => isLowStock(p, s));
+      if (!lowOnes.length) return '';
+      return `<div class="low-stock-note">🔥 Almost gone: ${lowOnes.map(s => `${s} (${getStockCount(p,s)} left)`).join(', ')}</div>`;
+    })()}
     <div class="size-warn" id="sizeWarn">Please select a size to continue.</div>
     ${p.colors && p.colors.length ? `
       <label class="size-label" style="margin-top:16px;">Choose your color</label>
@@ -2174,6 +2287,7 @@ logoHomeEl.addEventListener('keydown', (e)=>{
 
 initScrollObserver();
 loadCartFromStorage();
+loadRecentlyViewedFromStorage();
 updateCartCount();
 loadProducts();
 
@@ -2191,6 +2305,7 @@ window.addEventListener('popstate', ()=>{
       renderProductModal();
       document.getElementById('pOverlay').classList.add('open');
       document.getElementById('pModal').classList.add('open');
+      trackRecentlyViewed(id);
       return;
     }
   }
