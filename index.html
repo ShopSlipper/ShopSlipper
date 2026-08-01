@@ -61,7 +61,7 @@
     max-width:1180px; margin:0 auto; padding:16px 24px;
     display:flex; align-items:center; justify-content:space-between;
   }
-  .logo{ display:flex; align-items:center; gap:10px; }
+  .logo{ display:flex; align-items:center; gap:10px; cursor:pointer; }
   .logo .mark{
     width:52px; height:52px; border-radius:50%; background:var(--denim);
     display:flex; align-items:center; justify-content:center;
@@ -581,7 +581,7 @@
 
 <div class="topbar">
   <div class="topbar-inner">
-    <div class="logo">
+    <div class="logo" id="logoHome" role="button" tabindex="0" aria-label="Go to homepage and refresh">
       <div class="mark">S</div>
       <div>
         <div class="name">ShopSlipper</div>
@@ -1806,6 +1806,20 @@ document.getElementById('searchBox').addEventListener('input', (e)=>{
     currentPage = 1;
     renderGrid();
   }, 150);
+});
+
+function goHomeAndRefresh(){
+  activeFilter = "All";
+  searchTerm = "";
+  currentPage = 1;
+  document.getElementById('searchBox').value = "";
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  loadProducts();
+}
+const logoHomeEl = document.getElementById('logoHome');
+logoHomeEl.addEventListener('click', goHomeAndRefresh);
+logoHomeEl.addEventListener('keydown', (e)=>{
+  if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); goHomeAndRefresh(); }
 });
 
 initScrollObserver();
