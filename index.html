@@ -1975,6 +1975,23 @@ function renderDrawer(){
         <div class="field-error-msg" id="rPhoneErr">${t('enterValidPhone')}</div>
       </div>
       <div class="form-group">
+        <label>${t('emailAddress')}</label>
+        <input id="rEmail" type="email" placeholder="you@gmail.com" />
+        <div class="field-error-msg" id="rEmailErr">${t('enterValidEmail')}</div>
+      </div>
+      <div class="form-group">
+        <label>${t('deliveryAddress')}</label>
+        <textarea id="rAddress" rows="3" placeholder="${t('addressPlaceholder')}"></textarea>
+        <div class="field-error-msg" id="rAddressErr">${t('enterAddress')}</div>
+        <div class="addr-suggest" id="addrSuggest">
+          <span class="as-text"></span>
+          <span style="display:flex; gap:4px; flex-shrink:0;">
+            <button type="button" id="addrFixBtn">${t('fix')}</button>
+            <button type="button" class="as-dismiss" id="addrDismissBtn">✕</button>
+          </span>
+        </div>
+      </div>
+      <div class="form-group">
         <label>${t('returnReason')}</label>
         <textarea id="rReason" rows="3" placeholder="${t('returnReasonPlaceholder')}"></textarea>
         <div class="field-error-msg" id="rReasonErr">${t('enterReason')}</div>
@@ -1983,6 +2000,18 @@ function renderDrawer(){
     foot.innerHTML = `<button class="checkout-btn" id="submitReturnBtn">${t('submitReturn')}</button>`;
     document.getElementById('submitReturnBtn').addEventListener('click', submitReturnOrder);
     preventEnterSubmit(body);
+
+    let rAddrDebounce;
+    const rAddressField = document.getElementById('rAddress');
+    rAddressField.addEventListener('input', ()=>{
+      clearTimeout(rAddrDebounce);
+      rAddrDebounce = setTimeout(()=>checkAddressSpelling('rAddress'), 400);
+    });
+    rAddressField.addEventListener('blur', ()=>checkAddressSpelling('rAddress'));
+    document.getElementById('addrFixBtn').addEventListener('click', ()=>applyAddressCorrection('rAddress'));
+    document.getElementById('addrDismissBtn').addEventListener('click', ()=>{
+      document.getElementById('addrSuggest').classList.remove('show');
+    });
     return;
   }
 
@@ -2581,11 +2610,15 @@ async function submitReturnOrder(){
   const orderDateStr = document.getElementById('rOrderDate').value;
   const name = document.getElementById('rName').value.trim();
   const phone = document.getElementById('rPhone').value.trim();
+  const email = document.getElementById('rEmail').value.trim();
+  const address = document.getElementById('rAddress').value.trim();
   const reason = document.getElementById('rReason').value.trim();
 
   const orderIdOk = !!orderId;
   const nameOk = !!name;
   const phoneOk = !!phone && isValidPhone(phone);
+  const emailOk = !!email && isValidEmail(email);
+  const addressOk = !!address;
   const reasonOk = !!reason;
 
   let orderDateOk = !!orderDateStr;
@@ -2601,14 +2634,20 @@ async function submitReturnOrder(){
   setFieldError('rOrderDate', 'rOrderDateErr', !orderDateOk || !withinWindow);
   setFieldError('rName', 'rNameErr', !nameOk);
   setFieldError('rPhone', 'rPhoneErr', !phoneOk);
+  setFieldError('rEmail', 'rEmailErr', !emailOk);
+  setFieldError('rAddress', 'rAddressErr', !addressOk);
   setFieldError('rReason', 'rReasonErr', !reasonOk);
 
   if (orderDateOk && !withinWindow){
     document.getElementById('rOrderDateErr').textContent = t('returnWindowExpired').replace('{days}', CONFIG.returnWindowDays);
   }
 
-  if (!orderIdOk || !orderDateOk || !withinWindow || !nameOk || !phoneOk || !reasonOk){
-    showToast(!orderDateOk || !withinWindow ? t('returnWindowExpired').replace('{days}', CONFIG.returnWindowDays) : t('fillAllFields'), true);
+  if (!orderIdOk || !orderDateOk || !withinWindow || !nameOk || !phoneOk || !emailOk || !addressOk || !reasonOk){
+    let msg = t('fillAllFields');
+    if (!orderDateOk || !withinWindow) msg = t('returnWindowExpired').replace('{days}', CONFIG.returnWindowDays);
+    else if (phone && !phoneOk) msg = t('enterValidPhone');
+    else if (email && !emailOk) msg = t('enterValidEmail');
+    showToast(msg, true);
     return;
   }
 
@@ -2619,7 +2658,7 @@ async function submitReturnOrder(){
     returnId,
     orderId,
     orderDate: orderDateStr,
-    name, phone, reason,
+    name, phone, email, address, reason,
     timestamp: new Date().toISOString(),
   };
 
