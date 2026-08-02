@@ -6,7 +6,7 @@
 <title>ShopSlipper — Invoice Generator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/JsBarcode/3.11.5/JsBarcode.all.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.12.3/JsBarcode.all.min.js"></script>
 <style>
   :root{
     --ink:#28394a;
@@ -71,8 +71,8 @@
   .inv-head .meta .oid{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:18px; margin:2px 0 10px; }
   .inv-head .meta .date{ font-size:12.5px; color:#4b5563; }
 
-  .barcode-wrap{ text-align:right; margin-top:8px; }
-  .barcode-wrap svg{ max-width:220px; height:auto; }
+  .barcode-wrap{ text-align:right; margin-top:8px; height:44px; }
+  .barcode-wrap svg{ max-width:220px; width:220px; height:44px; }
 
   .inv-parties{ display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:26px; }
   .inv-parties .label{ font-size:10.5px; text-transform:uppercase; letter-spacing:1.2px; color:#6b7280; margin-bottom:6px; }
@@ -141,8 +141,8 @@
     .inv-head .meta .label{ font-size:7px; }
     .inv-head .meta .oid{ font-size:11px; margin:1px 0 2px; }
     .inv-head .meta .date{ font-size:7.5px; }
-    .barcode-wrap{ margin-top:4px; }
-    .barcode-wrap svg{ max-width:150px; }
+    .barcode-wrap{ margin-top:4px; height:22px; }
+    .barcode-wrap svg{ max-width:150px; width:150px; height:22px; }
 
     .inv-parties{ grid-template-columns:1fr; gap:8px; margin-bottom:10px; }
     .inv-parties .label{ font-size:6.5px; margin-bottom:2px; }
@@ -197,7 +197,7 @@
         <div class="oid mono" id="invOrderId"></div>
         <div class="date" id="invDate"></div>
         <div class="barcode-wrap">
-          <svg id="invBarcode"></svg>
+          <svg id="invBarcode" width="220" height="44"></svg>
         </div>
       </div>
     </div>
@@ -258,6 +258,9 @@ const CONFIG = {
   email: "www.shopslipper@gmail.com",
   phone: "+9779747961784"
 };
+
+// Paste the Web App URL you got from Apps Script deployment here:
+const STATUS_UPDATE_URL = "PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE";
 
 // Beautiful personalized quotes array
 const QUOTES = [
@@ -404,6 +407,7 @@ function renderInvoice(order){
   document.getElementById('invQuote').textContent = generatePersonalizedQuote(order.name);
 
   // Render scannable barcode for the order ID
+  const barcodeWrap = document.querySelector('.barcode-wrap');
   if (order.orderId && window.JsBarcode){
     try{
       JsBarcode("#invBarcode", order.orderId, {
@@ -413,9 +417,13 @@ function renderInvoice(order){
         height: 40,
         width: 1.6
       });
+      barcodeWrap.style.display = '';
     } catch(e){
       console.error('Barcode render failed', e);
+      barcodeWrap.style.display = 'none';
     }
+  } else {
+    barcodeWrap.style.display = 'none';
   }
 
   document.getElementById('invoice').classList.add('show');
@@ -426,6 +434,25 @@ function setStatus(msg, type){
   const el = document.getElementById('statusMsg');
   el.textContent = msg || '';
   el.className = 'status' + (type ? ' ' + type : '');
+}
+
+let currentOrderId = null;
+
+async function markOrderProcessing(orderId){
+  if (!STATUS_UPDATE_URL || STATUS_UPDATE_URL.indexOf('PASTE_YOUR') === 0){
+    console.warn('STATUS_UPDATE_URL not configured — skipping status update.');
+    return;
+  }
+  try{
+    await fetch(STATUS_UPDATE_URL, {
+      method: 'POST',
+      mode: 'no-cors', // Apps Script web apps don't return readable CORS headers by default
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ orderId: orderId, status: 'Processing' })
+    });
+  } catch(err){
+    console.error('Failed to update order status:', err);
+  }
 }
 
 async function lookupOrder(){
@@ -457,6 +484,7 @@ async function lookupOrder(){
       return;
     }
     renderInvoice(match);
+    currentOrderId = match.orderId;
     setStatus('');
   } catch (err){
     console.error(err);
@@ -471,13 +499,19 @@ document.getElementById('lookupBtn').addEventListener('click', lookupOrder);
 document.getElementById('orderIdInput').addEventListener('keydown', (e)=>{
   if (e.key === 'Enter'){ e.preventDefault(); lookupOrder(); }
 });
-document.getElementById('printBtn').addEventListener('click', ()=> window.print());
+document.getElementById('printBtn').addEventListener('click', ()=>{
+  if (currentOrderId){
+    markOrderProcessing(currentOrderId);
+  }
+  window.print();
+});
 document.getElementById('newSearchBtn').addEventListener('click', ()=>{
   document.getElementById('orderIdInput').value = '';
   document.getElementById('orderIdInput').focus();
   document.getElementById('invoice').classList.remove('show');
   document.getElementById('actions').style.display = 'none';
   setStatus('');
+  currentOrderId = null;
 });
 
 // Auto-focus the search box so a barcode scanner (which types the code
