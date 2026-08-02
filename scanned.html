@@ -34,7 +34,9 @@
   .brandbar .mark{
     width:44px; height:44px; border-radius:50%; background:var(--denim); color:#fff;
     display:flex; align-items:center; justify-content:center; font-family:'Anton',sans-serif; font-size:19px;
+    overflow:hidden; flex-shrink:0;
   }
+  .brandbar .mark img{ width:100%; height:100%; object-fit:cover; display:block; }
   .brandbar h1{ font-family:'Anton',sans-serif; letter-spacing:.4px; font-size:20px; margin:0; }
   .brandbar .sub{ font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:#6b7280; margin-top:1px; }
 
@@ -107,7 +109,7 @@
 <body>
 <div class="wrap">
   <div class="brandbar">
-    <div class="mark">S</div>
+    <div class="mark"><img src="https://raw.githubusercontent.com/ShopSlipper/ShopSlipper/main/WhatsApp%20Image%202026-07-20%20at%202.17.32%20PM.jpeg" alt="ShopSlipper logo"></div>
     <div>
       <h1>ShopSlipper</h1>
       <div class="sub">Scanned — Delivery Handover</div>
@@ -153,7 +155,7 @@ const ORDERS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRhZzq7p
 const CONFIG = { currency: "Rs" };
 
 // Same Apps Script Web App URL used by the invoice generator
-const STATUS_UPDATE_URL = "https://script.google.com/macros/s/AKfycbzb41GKorM_F6MMqUmdK9rLc5NMMvY3o2BD6hcBXhiod93Ub2CRHijI5T3gWisjIsP1/exec";
+const STATUS_UPDATE_URL = "PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE";
 const DELIVERY_FIELD = "Delivery Status"; // column this page writes to
 
 function parseCsv(text){
