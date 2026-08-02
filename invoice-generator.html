@@ -94,8 +94,8 @@
   .inv-note .label{ font-size:10.5px; text-transform:uppercase; letter-spacing:1px; color:var(--denim-dark); margin-bottom:4px; }
 
   .inv-quote{
-    text-align:center; font-style:italic; font-size:13px; color:var(--denim-dark);
-    background:var(--paper); border-radius:10px; padding:12px 16px; margin-bottom:22px; line-height:1.5;
+    text-align:center; font-style:italic; font-size:14px; color:var(--denim-dark); font-weight: 500;
+    background:var(--paper); border-radius:10px; padding:16px 20px; margin-bottom:22px; line-height:1.5;
   }
   .inv-quote::before{ content:'“'; } .inv-quote::after{ content:'”'; }
 
@@ -156,7 +156,7 @@
     .inv-note{ padding:6px 8px; font-size:7px; margin-bottom:10px; }
     .inv-note .label{ font-size:6.5px; }
 
-    .inv-quote{ font-size:7px; padding:6px 8px; margin-bottom:8px; }
+    .inv-quote{ font-size:7.5px; padding:8px 10px; margin-bottom:8px; }
 
     .inv-foot{ font-size:6.5px; padding-top:8px; }
   }
@@ -250,6 +250,18 @@ const CONFIG = {
   phone: "+9779747961784"
 };
 
+// Beautiful personalized quotes array
+const QUOTES = [
+  "Step into comfort, {name}. May your new slippers bring peace to your daily journey.",
+  "Walking on clouds just got easier. Enjoy your new pair, {name}!",
+  "A journey of a thousand miles begins with a fabulous pair of slippers, {name}.",
+  "Comfort is not a luxury, it is a necessity. Enjoy your relaxing moments, {name}.",
+  "May every step you take be filled with joy and warmth, {name}.",
+  "Thank you for letting us be part of your cozy moments, {name}.",
+  "Keep your feet cozy and your heart warm. Enjoy the comfort, {name}.",
+  "Here is to relaxing days, peaceful nights, and happy feet, {name}."
+];
+
 document.getElementById('fromEmail').textContent = "📧 " + CONFIG.email;
 document.getElementById('fromPhone').textContent = "📱 " + CONFIG.phone;
 
@@ -281,10 +293,7 @@ function csvToOrders(text){
   const rows = parseCsv(text);
   if (!rows.length) return [];
   
-  // ULTRA-ROBUST HEADER PARSING
-  // This strips all spaces, underscores, and makes everything lowercase so it will match no matter how it's typed in the sheet.
   const header = rows[0].map(h => h.trim().toLowerCase().replace(/[^a-z0-9]/g, ''));
-  console.log("Found Sheet Headers (Normalized):", header);
 
   return rows.slice(1).filter(r => r.length > 1 || r[0]).map(r => {
     const obj = {};
@@ -331,9 +340,25 @@ function escapeHtml(str){
 
 function formatMoney(v){
   if (!v) return "—";
-  const strVal = String(v).replace(/[^0-9.]/g, ''); // strip non-numeric
+  const strVal = String(v).replace(/[^0-9.]/g, ''); 
   const n = Number(strVal);
   return CONFIG.currency + " " + (isNaN(n) ? (v || "0") : n.toLocaleString());
+}
+
+// Generates a personalized quote based on the customer's name
+function generatePersonalizedQuote(fullName) {
+  // Extract just the first name (e.g., "John Doe" -> "John")
+  const firstName = (fullName || "Friend").trim().split(' ')[0];
+  
+  // Use the characters in their name to pick a quote consistently
+  let charSum = 0;
+  for (let i = 0; i < firstName.length; i++) {
+    charSum += firstName.charCodeAt(i);
+  }
+  
+  const quoteIndex = charSum % QUOTES.length;
+  // Replace {name} placeholder with their actual first name
+  return QUOTES[quoteIndex].replace('{name}', firstName);
 }
 
 function renderInvoice(order){
@@ -366,6 +391,9 @@ function renderInvoice(order){
     noteBlock.style.display = 'none';
   }
 
+  // Inject the personalized quote
+  document.getElementById('invQuote').textContent = generatePersonalizedQuote(order.name);
+
   document.getElementById('invoice').classList.add('show');
   document.getElementById('actions').style.display = 'flex';
 }
@@ -378,7 +406,6 @@ function setStatus(msg, type){
 
 async function lookupOrder(){
   const rawInput = document.getElementById('orderIdInput').value;
-  // Strips all whitespace and turns lowercase to guarantee a match
   const targetId = rawInput.replace(/\s+/g, '').toLowerCase(); 
   
   if (!targetId){
@@ -399,12 +426,10 @@ async function lookupOrder(){
     const text = await res.text();
     const orders = csvToOrders(text);
     
-    // Exact fuzzy matching: comparing stripped input to stripped spreadsheet data
     const match = orders.find(o => o.orderId.replace(/\s+/g, '').toLowerCase() === targetId);
     
     if (!match){
       setStatus(`No order found matching "${rawInput}". Check the ID and try again. (Note: Google Sheets can take 3-5 mins to publish new orders)`, 'error');
-      console.log("Available Order IDs in sheet:", orders.map(o => o.orderId));
       return;
     }
     renderInvoice(match);
@@ -431,7 +456,6 @@ document.getElementById('newSearchBtn').addEventListener('click', ()=>{
   setStatus('');
 });
 
-// Support deep-linking: invoice-generator.html?order=SS7029074NP
 const params = new URLSearchParams(window.location.search);
 const preId = params.get('order');
 if (preId){
