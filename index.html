@@ -2828,6 +2828,8 @@ window.addEventListener('popstate', ()=>{
   document.getElementById('pOverlay').classList.remove('open');
   document.getElementById('pModal').classList.remove('open');
 });
+  // Add this to your existing script block in index.html, ideally near the bottom before ###############################
+
 document.getElementById('your-return-form-id').addEventListener('submit', function(e) {
   e.preventDefault(); // Prevent the default form submission
 
@@ -2892,6 +2894,7 @@ document.getElementById('your-return-form-id').addEventListener('submit', functi
     }
   });
 });
+  
 </script>
 </body>
 </html>
