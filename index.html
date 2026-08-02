@@ -86,6 +86,27 @@
   .logo .name{ font-family:'Anton',sans-serif; font-size:20px; letter-spacing:0.5px; }
   .logo .tag{ font-size:10px; color:#6b7280; margin-top:-2px; letter-spacing:1.5px; text-transform:uppercase; }
 
+  .topbar-actions{ display:flex; align-items:center; gap:10px; }
+  .lang-toggle{
+    display:flex; align-items:center; background:#fff; border:1.5px solid var(--ink);
+    border-radius:999px; padding:3px; font-family:'JetBrains Mono',monospace; font-size:11.5px; font-weight:700;
+    cursor:pointer; gap:2px;
+  }
+  .lang-toggle button{
+    border:none; background:transparent; padding:6px 11px; border-radius:999px; cursor:pointer;
+    font-family:'JetBrains Mono',monospace; font-size:11.5px; font-weight:700; color:var(--ink);
+    transition:all .15s ease;
+  }
+  .lang-toggle button.active{ background:var(--ink); color:#fff; }
+
+  .icon-btn{
+    display:flex; align-items:center; gap:8px; background:#fff; color:var(--ink);
+    border:1.5px solid var(--ink); border-radius:999px; padding:10px 16px; cursor:pointer;
+    font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:600;
+    transition:all .15s ease;
+  }
+  .icon-btn:hover{ background:var(--ink); color:#fff; }
+
   .cart-btn{
     display:flex; align-items:center; gap:8px; background:var(--ink); color:#fff;
     border:none; border-radius:999px; padding:10px 18px; cursor:pointer;
@@ -436,6 +457,10 @@
   .field-error-msg{ font-size:11.5px; color:var(--thread); margin-top:5px; display:none; }
   .field-error-msg.show{ display:block; }
   .back-link{ font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--denim); cursor:pointer; background:none; border:none; padding:0; margin-bottom:14px; }
+  .return-note{
+    font-size:12.5px; color:#4b5563; background:var(--paper); border:1px dashed var(--denim);
+    border-radius:10px; padding:10px 12px; margin-bottom:16px; line-height:1.5;
+  }
 
   .toast{
     position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px);
@@ -672,6 +697,10 @@
     .card .string{ top:8px; left:16px; width:24px; height:24px; }
     .card .row{ flex-direction:column; align-items:flex-start; gap:6px; }
     .add-btn{ width:100%; text-align:center; }
+    .topbar-inner{ gap:8px; }
+    .lang-toggle button{ padding:5px 8px; font-size:10.5px; }
+    .icon-btn span.icon-btn-label{ display:none; }
+    .icon-btn{ padding:10px 12px; }
   }
   @media (prefers-reduced-motion: reduce){
     *{ transition:none !important; scroll-behavior:auto !important; }
@@ -687,29 +716,38 @@
       <div class="mark">S</div>
       <div>
         <div class="name">ShopSlipper</div>
-        <div class="tag">Kathmandu Valley Delivery</div>
+        <div class="tag" data-i18n="tagline">Kathmandu Valley Delivery</div>
       </div>
     </div>
-    <button class="cart-btn" id="openCart">
-      🛍 CART <span class="cart-count" id="cartCount">0</span>
-    </button>
+    <div class="topbar-actions">
+      <div class="lang-toggle" role="group" aria-label="Language">
+        <button type="button" id="langEn" class="active">EN</button>
+        <button type="button" id="langNe">नेपाली</button>
+      </div>
+      <button class="icon-btn" id="openReturn" aria-label="Return an order">
+        ↩️ <span class="icon-btn-label" data-i18n="returnBtn">Return</span>
+      </button>
+      <button class="cart-btn" id="openCart">
+        🛍 <span data-i18n="cartBtn">CART</span> <span class="cart-count" id="cartCount">0</span>
+      </button>
+    </div>
   </div>
 </div>
 
 <section class="hero">
   <div class="reveal">
-    <div class="stamp">QUALITY<br>CHECKED<br>PRODUCTS</div>
-    <div class="kicker">Kathmandu Valley</div>
-    <h1>Quality picks,<br><span>delivered</span> across<br>the Valley.</h1>
-    <p>Browse the full catalog and get it dropped at your door in Kathmandu, Lalitpur and Bhaktapur — cash on delivery, no hassle.</p>
+    <div class="stamp" data-i18n="stamp">QUALITY<br>CHECKED<br>PRODUCTS</div>
+    <div class="kicker" data-i18n="kicker">Kathmandu Valley</div>
+    <h1 data-i18n-html="heroTitle">Quality picks,<br><span>delivered</span> across<br>the Valley.</h1>
+    <p data-i18n="heroSub">Browse the full catalog and get it dropped at your door in Kathmandu, Lalitpur and Bhaktapur — cash on delivery, no hassle.</p>
     <div class="hero-ctas">
-      <button class="btn-primary" onclick="document.getElementById('shop').scrollIntoView()">Shop the Rack</button>
-      <button class="btn-ghost" onclick="document.getElementById('how').scrollIntoView()">How Ordering Works</button>
+      <button class="btn-primary" onclick="document.getElementById('shop').scrollIntoView()" data-i18n="shopRack">Shop the Rack</button>
+      <button class="btn-ghost" onclick="document.getElementById('how').scrollIntoView()" data-i18n="howItWorksBtn">How Ordering Works</button>
     </div>
     <div class="hero-stats">
-      <div><div class="n">500+</div><div class="l">Pieces Sold</div></div>
-      <div><div class="n">3</div><div class="l">Districts Covered</div></div>
-      <div><div class="n">24hr</div><div class="l">Avg. Delivery</div></div>
+      <div><div class="n">500+</div><div class="l" data-i18n="piecesSold">Pieces Sold</div></div>
+      <div><div class="n">3</div><div class="l" data-i18n="districts">Districts Covered</div></div>
+      <div><div class="n">24hr</div><div class="l" data-i18n="avgDelivery">Avg. Delivery</div></div>
     </div>
   </div>
   <div class="hero-art reveal" style="transition-delay:.12s;">
@@ -723,25 +761,25 @@
         <circle cx="140" cy="55" r="5" fill="#1f3a5f"/>
       </svg>
     </div>
-    <button class="btn-primary" style="margin-top:20px; width:100%;" onclick="openGiftCheckout()">Order Now</button>
+    <button class="btn-primary" style="margin-top:20px; width:100%;" onclick="openGiftCheckout()" data-i18n="orderNow">Order Now</button>
   </div>
 </section>
 
 <section class="section" id="recentlyViewedSection" style="display:none; padding-top:8px; padding-bottom:8px;">
   <div class="section-head reveal" style="border-bottom:none; margin-bottom:14px;">
-    <h2 style="font-size:20px;">Recently Viewed</h2>
+    <h2 style="font-size:20px;" data-i18n="recentlyViewed">Recently Viewed</h2>
   </div>
   <div class="recent-strip" id="recentStrip"></div>
 </section>
 
 <section class="section" id="shop">
   <div class="section-head reveal">
-    <h2>The Rack</h2>
-    <div class="count"><span id="resultCount">0</span> ITEMS</div>
+    <h2 data-i18n="theRack">The Rack</h2>
+    <div class="count"><span id="resultCount">0</span> <span data-i18n="items">ITEMS</span></div>
   </div>
   <div class="search-row">
-    <input type="text" id="searchBox" class="search-box" placeholder="Search products…" />
-    <button type="button" class="image-search-btn" id="imageSearchBtn">📷 Search by Photo</button>
+    <input type="text" id="searchBox" class="search-box" data-i18n-placeholder="searchPlaceholder" placeholder="Search products…" />
+    <button type="button" class="image-search-btn" id="imageSearchBtn"><span data-i18n="searchByPhoto">📷 Search by Photo</span></button>
     <input type="file" id="imageSearchInput" accept="image/*" style="display:none">
   </div>
   <div id="visualSearchBanner"></div>
@@ -755,25 +793,25 @@
 <section class="how" id="how">
   <div class="section" style="padding-top:44px; padding-bottom:44px;">
     <div class="section-head reveal" style="border-bottom:none; margin-bottom:0;">
-      <h2>How Ordering Works</h2>
+      <h2 data-i18n="howItWorksBtn">How Ordering Works</h2>
     </div>
   </div>
   <div class="how-grid">
-    <div class="how-step reveal" style="transition-delay:.05s;"><div class="k">STEP 1</div><h4>Browse the rack</h4><p>Pick pieces you like and add them to your cart.</p></div>
-    <div class="how-step reveal" style="transition-delay:.15s;"><div class="k">STEP 2</div><h4>Checkout details</h4><p>Enter your name, phone and delivery address.</p></div>
-    <div class="how-step reveal" style="transition-delay:.25s;"><div class="k">STEP 3</div><h4>Order logged instantly</h4><p>Your order lands straight in our system — no back-and-forth needed.</p></div>
-    <div class="how-step reveal" style="transition-delay:.35s;"><div class="k">STEP 4</div><h4>Cash on delivery</h4><p>We confirm by phone and deliver across the Valley within 24-48 hrs.</p></div>
+    <div class="how-step reveal" style="transition-delay:.05s;"><div class="k" data-i18n="step1k">STEP 1</div><h4 data-i18n="step1h">Browse the rack</h4><p data-i18n="step1p">Pick pieces you like and add them to your cart.</p></div>
+    <div class="how-step reveal" style="transition-delay:.15s;"><div class="k" data-i18n="step2k">STEP 2</div><h4 data-i18n="step2h">Checkout details</h4><p data-i18n="step2p">Enter your name, phone and delivery address.</p></div>
+    <div class="how-step reveal" style="transition-delay:.25s;"><div class="k" data-i18n="step3k">STEP 3</div><h4 data-i18n="step3h">Order logged instantly</h4><p data-i18n="step3p">Your order lands straight in our system — no back-and-forth needed.</p></div>
+    <div class="how-step reveal" style="transition-delay:.35s;"><div class="k" data-i18n="step4k">STEP 4</div><h4 data-i18n="step4h">Cash on delivery</h4><p data-i18n="step4p">We confirm by phone and deliver across the Valley within 24-48 hrs.</p></div>
   </div>
 </section>
 
 <footer>
   <div class="foot-inner reveal">
     <div>
-      <p>© <span id="year"></span> ShopSlipper — a Kaazi venture. Kathmandu Valley, Nepal.</p>
-      <p>Orders logged automatically · Cash on delivery</p>
+      <p><span data-i18n="footerCopy" id="footerCopy">© 2026 ShopSlipper — a Kaazi venture. Kathmandu Valley, Nepal.</span></p>
+      <p data-i18n="footerLine2">Orders logged automatically · Cash on delivery</p>
       <div class="footer-contact">
-        <a href="mailto:" id="footerEmail">📧 Email</a>
-        <a href="tel:" id="footerPhone">📱 Call</a>
+        <a href="mailto:" id="footerEmail"><span data-i18n="emailLabel">📧 Email</span></a>
+        <a href="tel:" id="footerPhone"><span data-i18n="callLabel">📱 Call</span></a>
         <div class="social-links" id="socialLinks"></div>
       </div>
     </div>
@@ -825,7 +863,8 @@ const CONFIG = {
   sheetWebAppUrl: "https://script.google.com/macros/s/AKfycbyCM3kmuzGTszngwN-FiG61cymzyhRKNlnJAMYuh82CaTBddJPEe51CtsKMeoAmoz9cfA/exec",
   productsCsvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQd96p5gNA5FkuPj62x-08vIkyndn8wK5R14agatf1OJbS_-GzTTyHe_v_iKMZ3rPFWhW7ZotQZDZOt/pub?gid=0&single=true&output=csv",
   showSkuToCustomers: true,
-  giftProduct: { id: "GIFT-001", name: "Mystery Gift", price: 0, deliveryFee: 100 }
+  giftProduct: { id: "GIFT-001", name: "Mystery Gift", price: 0, deliveryFee: 100 },
+  returnWindowDays: 3
 };
 
 const ICONS = {
@@ -834,6 +873,277 @@ const ICONS = {
   tee: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 10 L10 18 L15 28 L22 24 L22 54 H42 L42 24 L49 28 L54 18 L42 10 Q32 16 22 10 Z" stroke="currentColor" stroke-width="3" fill="none" stroke-linejoin="round"/></svg>`,
   tag: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 30 L30 8 L56 8 L56 34 L34 56 Z" stroke="currentColor" stroke-width="3" fill="none" stroke-linejoin="round"/><circle cx="42" cy="20" r="4" stroke="currentColor" stroke-width="3"/></svg>`,
 };
+
+/* --- Language / i18n --- */
+const I18N = {
+  en: {
+    tagline: "Kathmandu Valley Delivery",
+    returnBtn: "Return",
+    cartBtn: "CART",
+    stamp: "QUALITY<br>CHECKED<br>PRODUCTS",
+    kicker: "Kathmandu Valley",
+    heroTitle: "Quality picks,<br><span>delivered</span> across<br>the Valley.",
+    heroSub: "Browse the full catalog and get it dropped at your door in Kathmandu, Lalitpur and Bhaktapur — cash on delivery, no hassle.",
+    shopRack: "Shop the Rack",
+    howItWorksBtn: "How Ordering Works",
+    piecesSold: "Pieces Sold",
+    districts: "Districts Covered",
+    avgDelivery: "Avg. Delivery",
+    orderNow: "Order Now",
+    recentlyViewed: "Recently Viewed",
+    theRack: "The Rack",
+    items: "ITEMS",
+    searchPlaceholder: "Search products…",
+    searchByPhoto: "📷 Search by Photo",
+    step1k: "STEP 1", step1h: "Browse the rack", step1p: "Pick pieces you like and add them to your cart.",
+    step2k: "STEP 2", step2h: "Checkout details", step2p: "Enter your name, phone and delivery address.",
+    step3k: "STEP 3", step3h: "Order logged instantly", step3p: "Your order lands straight in our system — no back-and-forth needed.",
+    step4k: "STEP 4", step4h: "Cash on delivery", step4p: "We confirm by phone and deliver across the Valley within 24-48 hrs.",
+    footerCopy: "© {year} ShopSlipper — a Kaazi venture. Kathmandu Valley, Nepal.",
+    footerLine2: "Orders logged automatically · Cash on delivery",
+    emailLabel: "📧 Email",
+    callLabel: "📱 Call",
+    showingSimilar: "Showing products similar to your photo",
+    clear: "Clear",
+    analyzing: "Loading...",
+    analyzingToast: "Analyzing your photo…",
+    comparing: "Comparing...",
+    comparingToast: "Comparing with your products…",
+    foundSimilar: "Found similar products:",
+    noComparable: "No comparable products found",
+    photoAnalyzeError: "Couldn't analyze that photo — please try another",
+    loadError: "Couldn't load products right now — please refresh the page.",
+    all: "All",
+    offers: "Offers",
+    soldOut: "SOLD OUT",
+    selectSize: "SELECT SIZE",
+    sizesWord: "sizes",
+    sizeWord: "size",
+    sizeWord2: "Size",
+    noProductsYet: "No products yet — check back soon! 👀",
+    noMatch: "No products match — try a different search or filter.",
+    addedToCart: "added to cart",
+    didYouMean: "Did you mean",
+    insteadOf: "instead of",
+    orderPlaced: "Order Placed",
+    thanksOrderIn: "Thanks — your order is in!",
+    wellCallConfirm: "We'll call to confirm delivery within a few hours.",
+    orderIdLabel: "Order ID:",
+    saveOnWhatsapp: "Save Order on WhatsApp",
+    continueShopping: "Continue Shopping",
+    returnRequested: "Return Requested",
+    returnReceived: "Your return request is in!",
+    returnWeWillContact: "We'll call to confirm your return within a few hours.",
+    close: "Close",
+    returnAnOrder: "Return an Order",
+    returnWindowNote: "Returns are only accepted within {days} days of your order date.",
+    orderIdField: "Order ID",
+    enterOrderId: "Please enter your order ID.",
+    orderDateField: "Order Date",
+    enterValidOrderDate: "Please enter the date you placed the order.",
+    fullName: "Full Name",
+    enterName: "Please enter your name.",
+    phoneNumber: "Phone Number",
+    enterValidPhone: "Please enter a valid phone number.",
+    returnReason: "Reason for Return",
+    returnReasonPlaceholder: "Wrong size, damaged item, etc.",
+    enterReason: "Please tell us why you're returning this.",
+    submitReturn: "Submit Return Request",
+    submittingReturn: "Submitting...",
+    returnWindowExpired: "Returns are only accepted within {days} days of the order date.",
+    claimGiftTitle: "Claim Your Mystery Gift",
+    freeProduct: "Free product",
+    deliveryAddress: "Delivery Address",
+    enterAddress: "Please enter your delivery address.",
+    addressPlaceholder: "Area, street, landmark, city",
+    emailAddress: "Email Address",
+    enterValidEmail: "Please enter a valid email address.",
+    orderNote: "Order Note (optional)",
+    orderNotePlaceholder: "Preferred delivery time, etc.",
+    gift: "Gift",
+    free: "Free",
+    delivery: "Delivery",
+    totalToPay: "Total to Pay",
+    claimGiftBtn: "Claim Your Gift",
+    claimingGift: "Claiming your gift...",
+    fix: "Fix",
+    checkout: "Checkout",
+    backToCart: "Back to cart",
+    subtotal: "Subtotal",
+    total: "Total",
+    placeOrder: "Place Order",
+    placingOrder: "Placing order...",
+    yourCart: "Your Cart",
+    cartEmpty: "Your cart is empty.<br>Go add something from the rack 🛍",
+    defaultDesc: "A carefully checked second-hand piece, ready to wear.",
+    chooseSize: "Choose your size",
+    struckSizesNote: "Struck-through sizes are currently out of stock.",
+    almostGone: "Almost gone",
+    left: "left",
+    pleaseSelectSize: "Please select a size to continue.",
+    chooseColor: "Choose your color",
+    pleaseSelectColor: "Please select a color to continue.",
+    quantity: "Quantity",
+    addToCart: "Add to Cart",
+    youMightAlsoLike: "You might also like",
+    linkCopied: "Link copied to clipboard",
+    linkCopyFailed: "Could not copy link",
+    fillAllFields: "Please fill in name, phone, address and email",
+    cartIsEmpty: "Your cart is empty",
+    somethingWentWrong: "Something went wrong — please try again",
+  },
+  ne: {
+    tagline: "काठमाडौं उपत्यकाभरि डेलिभरी",
+    returnBtn: "फिर्ता",
+    cartBtn: "कार्ट",
+    stamp: "गुणस्तर<br>जाँचिएको<br>सामान",
+    kicker: "काठमाडौं उपत्यका",
+    heroTitle: "गुणस्तरीय छनोट,<br><span>डेलिभरी</span> हुन्छ<br>उपत्यकाभरि।",
+    heroSub: "पूरा सूची हेर्नुहोस् र काठमाडौं, ललितपुर र भक्तपुरमा घरैमा पाउनुहोस् — नगदमा भुक्तानी, कुनै झन्झट छैन।",
+    shopRack: "किनमेल सुरु गर्नुहोस्",
+    howItWorksBtn: "अर्डर कसरी गर्ने",
+    piecesSold: "बिक्री भएका सामान",
+    districts: "जिल्ला समेटिएको",
+    avgDelivery: "औसत डेलिभरी समय",
+    orderNow: "अहिले अर्डर गर्नुहोस्",
+    recentlyViewed: "भर्खरै हेरिएका",
+    theRack: "सामानहरू",
+    items: "वस्तुहरू",
+    searchPlaceholder: "सामान खोज्नुहोस्…",
+    searchByPhoto: "📷 फोटोबाट खोज्नुहोस्",
+    step1k: "चरण १", step1h: "सामान हेर्नुहोस्", step1p: "मनपर्ने सामान छान्नुहोस् र कार्टमा राख्नुहोस्।",
+    step2k: "चरण २", step2h: "विवरण भर्नुहोस्", step2p: "आफ्नो नाम, फोन र ठेगाना राख्नुहोस्।",
+    step3k: "चरण ३", step3h: "अर्डर तुरुन्तै दर्ता हुन्छ", step3p: "तपाईंको अर्डर सिधै हाम्रो प्रणालीमा जान्छ।",
+    step4k: "चरण ४", step4h: "नगदमा भुक्तानी", step4p: "हामी फोनबाट पुष्टि गरेर २४-४८ घण्टाभित्र डेलिभरी गर्छौं।",
+    footerCopy: "© {year} ShopSlipper — Kaazi को एउटा उद्यम। काठमाडौं उपत्यका, नेपाल।",
+    footerLine2: "अर्डर स्वतः दर्ता हुन्छ · नगदमा भुक्तानी",
+    emailLabel: "📧 इमेल",
+    callLabel: "📱 फोन गर्नुहोस्",
+    showingSimilar: "तपाईंको फोटोसँग मिल्दाजुल्दा सामानहरू देखाइँदै",
+    clear: "हटाउनुहोस्",
+    analyzing: "लोड हुँदैछ...",
+    analyzingToast: "तपाईंको फोटो विश्लेषण गरिँदैछ…",
+    comparing: "तुलना गरिँदैछ...",
+    comparingToast: "सामानहरूसँग तुलना गरिँदैछ…",
+    foundSimilar: "मिल्दाजुल्दा सामान फेला पर्यो:",
+    noComparable: "मिल्दोजुल्दो कुनै सामान फेला परेन",
+    photoAnalyzeError: "फोटो विश्लेषण गर्न सकिएन — अर्को फोटो प्रयास गर्नुहोस्",
+    loadError: "सामान लोड गर्न सकिएन — कृपया पेज पुनः लोड गर्नुहोस्।",
+    all: "सबै",
+    offers: "अफर",
+    soldOut: "स्टक सकियो",
+    selectSize: "साइज छान्नुहोस्",
+    sizesWord: "साइजहरू",
+    sizeWord: "साइज",
+    sizeWord2: "साइज",
+    noProductsYet: "अहिलेसम्म सामान छैन — छिट्टै आउनेछ! 👀",
+    noMatch: "कुनै सामान मिलेन — अर्को खोज वा फिल्टर प्रयास गर्नुहोस्।",
+    addedToCart: "कार्टमा थपियो",
+    didYouMean: "के तपाईंको मतलब",
+    insteadOf: "थियो, यसको सट्टा",
+    orderPlaced: "अर्डर गरियो",
+    thanksOrderIn: "धन्यवाद — तपाईंको अर्डर प्राप्त भयो!",
+    wellCallConfirm: "केही घण्टाभित्र हामी फोनबाट डेलिभरी पुष्टि गर्नेछौं।",
+    orderIdLabel: "अर्डर आईडी:",
+    saveOnWhatsapp: "WhatsApp मा अर्डर सुरक्षित गर्नुहोस्",
+    continueShopping: "किनमेल जारी राख्नुहोस्",
+    returnRequested: "फिर्ता अनुरोध गरियो",
+    returnReceived: "तपाईंको फिर्ता अनुरोध प्राप्त भयो!",
+    returnWeWillContact: "केही घण्टाभित्र हामी फोनबाट फिर्ता पुष्टि गर्नेछौं।",
+    close: "बन्द गर्नुहोस्",
+    returnAnOrder: "अर्डर फिर्ता गर्नुहोस्",
+    returnWindowNote: "फिर्ता अर्डर मिति देखि {days} दिनभित्र मात्र स्वीकार गरिन्छ।",
+    orderIdField: "अर्डर आईडी",
+    enterOrderId: "कृपया आफ्नो अर्डर आईडी राख्नुहोस्।",
+    orderDateField: "अर्डर गरेको मिति",
+    enterValidOrderDate: "कृपया अर्डर गरेको मिति राख्नुहोस्।",
+    fullName: "पूरा नाम",
+    enterName: "कृपया आफ्नो नाम राख्नुहोस्।",
+    phoneNumber: "फोन नम्बर",
+    enterValidPhone: "कृपया मान्य फोन नम्बर राख्नुहोस्।",
+    returnReason: "फिर्ताको कारण",
+    returnReasonPlaceholder: "गलत साइज, बिग्रेको सामान, आदि।",
+    enterReason: "कृपया फिर्ताको कारण लेख्नुहोस्।",
+    submitReturn: "फिर्ता अनुरोध पठाउनुहोस्",
+    submittingReturn: "पठाइँदैछ...",
+    returnWindowExpired: "फिर्ता अर्डर मिति देखि {days} दिनभित्र मात्र स्वीकार गरिन्छ।",
+    claimGiftTitle: "आफ्नो सप्रराइज उपहार लिनुहोस्",
+    freeProduct: "निःशुल्क सामान",
+    deliveryAddress: "डेलिभरी ठेगाना",
+    enterAddress: "कृपया आफ्नो डेलिभरी ठेगाना राख्नुहोस्।",
+    addressPlaceholder: "क्षेत्र, सडक, ल्यान्डमार्क, शहर",
+    emailAddress: "इमेल ठेगाना",
+    enterValidEmail: "कृपया मान्य इमेल ठेगाना राख्नुहोस्।",
+    orderNote: "अर्डर नोट (वैकल्पिक)",
+    orderNotePlaceholder: "मनपर्ने डेलिभरी समय, आदि।",
+    gift: "उपहार",
+    free: "निःशुल्क",
+    delivery: "डेलिभरी",
+    totalToPay: "तिर्नुपर्ने रकम",
+    claimGiftBtn: "उपहार लिनुहोस्",
+    claimingGift: "उपहार लिइँदैछ...",
+    fix: "सच्याउनुहोस्",
+    checkout: "चेकआउट",
+    backToCart: "कार्टमा फर्कनुहोस्",
+    subtotal: "सबटोटल",
+    total: "जम्मा",
+    placeOrder: "अर्डर गर्नुहोस्",
+    placingOrder: "अर्डर गरिँदैछ...",
+    yourCart: "तपाईंको कार्ट",
+    cartEmpty: "तपाईंको कार्ट खाली छ।<br>सामानहरूबाट केही थप्नुहोस् 🛍",
+    defaultDesc: "राम्रोसँग जाँचिएको सेकेन्ड ह्यान्ड सामान, प्रयोगको लागि तयार।",
+    chooseSize: "आफ्नो साइज छान्नुहोस्",
+    struckSizesNote: "काटिएका साइजहरू हाल स्टकमा छैनन्।",
+    almostGone: "स्टक सकिनै लाग्यो",
+    left: "बाँकी",
+    pleaseSelectSize: "जारी राख्न कृपया साइज छान्नुहोस्।",
+    chooseColor: "आफ्नो रंग छान्नुहोस्",
+    pleaseSelectColor: "जारी राख्न कृपया रंग छान्नुहोस्।",
+    quantity: "परिमाण",
+    addToCart: "कार्टमा राख्नुहोस्",
+    youMightAlsoLike: "तपाईंलाई यो पनि मन पर्न सक्छ",
+    linkCopied: "लिङ्क कपी गरियो",
+    linkCopyFailed: "लिङ्क कपी गर्न सकिएन",
+    fillAllFields: "कृपया नाम, फोन, ठेगाना र इमेल भर्नुहोस्",
+    cartIsEmpty: "तपाईंको कार्ट खाली छ",
+    somethingWentWrong: "केही समस्या भयो — कृपया फेरि प्रयास गर्नुहोस्",
+  }
+};
+let currentLang = (localStorage.getItem('shopslipper_lang') === 'ne') ? 'ne' : 'en';
+function t(key){
+  const dict = I18N[currentLang] || I18N.en;
+  return (dict[key] !== undefined ? dict[key] : (I18N.en[key] !== undefined ? I18N.en[key] : key));
+}
+function translateStaticDom(){
+  document.documentElement.lang = currentLang === 'ne' ? 'ne' : 'en';
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const key = el.getAttribute('data-i18n');
+    el.textContent = t(key);
+  });
+  document.querySelectorAll('[data-i18n-html]').forEach(el=>{
+    const key = el.getAttribute('data-i18n-html');
+    el.innerHTML = t(key);
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{
+    const key = el.getAttribute('data-i18n-placeholder');
+    el.placeholder = t(key);
+  });
+  const footerCopyEl = document.getElementById('footerCopy');
+  if (footerCopyEl) footerCopyEl.textContent = t('footerCopy').replace('{year}', new Date().getFullYear());
+}
+function setLang(lang){
+  currentLang = (lang === 'ne') ? 'ne' : 'en';
+  try { localStorage.setItem('shopslipper_lang', currentLang); } catch(err){}
+  document.getElementById('langEn').classList.toggle('active', currentLang === 'en');
+  document.getElementById('langNe').classList.toggle('active', currentLang === 'ne');
+  translateStaticDom();
+  // Re-render any dynamic UI text that's currently on screen
+  renderFilters();
+  renderGrid();
+  renderRecentlyViewed();
+  if (document.getElementById('drawer').classList.contains('open')) renderDrawer();
+  if (document.getElementById('pModal').classList.contains('open')) renderProductModal();
+}
 
 function iconFor(key){ return ICONS[key] || ICONS.tag; }
 function escapeAttr(str){
@@ -1094,9 +1404,9 @@ function renderVisualSearchBanner(thumbSrc){
     <div class="visual-search-banner">
       <div class="vs-left">
         <img class="visual-search-thumb" src="${thumbSrc}" alt="Your uploaded photo">
-        <span>Showing products similar to your photo (${visualSearchOrder.length} found)</span>
+        <span>${t('showingSimilar')} (${visualSearchOrder.length})</span>
       </div>
-      <button type="button" id="clearVisualSearchBtn">Clear</button>
+      <button type="button" id="clearVisualSearchBtn">${t('clear')}</button>
     </div>`;
   document.getElementById('clearVisualSearchBtn').addEventListener('click', ()=>{
     clearVisualSearch();
@@ -1112,8 +1422,8 @@ async function handleImageSearchFile(file){
     const btn = document.getElementById('imageSearchBtn');
     btn.disabled = true;
     const originalLabel = btn.textContent;
-    btn.textContent = '⏳ Loading...';
-    showToast('Analyzing your photo…');
+    btn.textContent = '⏳ ' + t('analyzing');
+    showToast(t('analyzingToast'));
     try {
       await ensureVisualSearchReady();
       const uploadedImg = new Image();
@@ -1123,8 +1433,8 @@ async function handleImageSearchFile(file){
       const uploadedEmbedding = await uploadedTensor.data();
       uploadedTensor.dispose();
 
-      btn.textContent = '⏳ Comparing...';
-      showToast('Comparing with your products…');
+      btn.textContent = '⏳ ' + t('comparing');
+      showToast(t('comparingToast'));
       const scored = [];
       for (const p of PRODUCTS){
         if (!p.image) continue;
@@ -1142,10 +1452,10 @@ async function handleImageSearchFile(file){
       renderFilters();
       renderVisualSearchBanner(dataUrl);
       renderGrid();
-      showToast(visualSearchOrder.length ? `Found ${visualSearchOrder.length} similar products` : 'No comparable products found');
+      showToast(visualSearchOrder.length ? `${t('foundSimilar')} ${visualSearchOrder.length}` : t('noComparable'));
     } catch (err){
       console.error(err);
-      showToast("Couldn't analyze that photo — please try another", true);
+      showToast(t('photoAnalyzeError'), true);
     } finally {
       btn.disabled = false;
       btn.textContent = originalLabel;
@@ -1180,7 +1490,7 @@ async function loadProducts(skipDeepLink){
     } catch (err){
       console.error("Could not load products from sheet:", err);
       PRODUCTS = [];
-      grid.innerHTML = `<div class="empty-state">Couldn't load products right now — please refresh the page.</div>`;
+      grid.innerHTML = `<div class="empty-state">${t('loadError')}</div>`;
       return;
     }
   } else {
@@ -1197,8 +1507,8 @@ function renderFilters(){
   const hasOffers = PRODUCTS.some(p => p.offer);
   const el = document.getElementById('filters');
   el.innerHTML = cats.map(c =>
-    `<button class="chip ${c===activeFilter?'active':''}" data-cat="${escapeAttr(c)}">${c}</button>`
-  ).join('') + (hasOffers ? `<button class="chip offer-chip ${activeFilter==='__offers__'?'active':''}" data-cat="__offers__">🔥 Offers</button>` : '');
+    `<button class="chip ${c===activeFilter?'active':''}" data-cat="${escapeAttr(c)}">${c==="All" ? t('all') : c}</button>`
+  ).join('') + (hasOffers ? `<button class="chip offer-chip ${activeFilter==='__offers__'?'active':''}" data-cat="__offers__">🔥 ${t('offers')}</button>` : '');
   el.querySelectorAll('.chip').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       if (visualSearchActive) clearVisualSearch();
@@ -1264,8 +1574,8 @@ function renderGrid(){
 
   if (!list.length){
     const emptyMsg = PRODUCTS.length === 0
-      ? `<div class="empty-state">No products yet — check back soon! 👀</div>`
-      : `<div class="empty-state">No products match — try a different search or filter.</div>`;
+      ? `<div class="empty-state">${t('noProductsYet')}</div>`
+      : `<div class="empty-state">${t('noMatch')}</div>`;
     document.getElementById('productGrid').innerHTML = emptyMsg;
     document.getElementById('pagination').innerHTML = '';
     return;
@@ -1276,17 +1586,17 @@ function renderGrid(){
     return `
     <div class="card reveal ${fullySoldOut ? 'all-sold-out' : ''}" data-id="${escapeAttr(p.id)}" role="button" tabindex="0" aria-label="View ${escapeAttr(p.name)}" style="transition-delay:${(i%6)*0.05}s;">
       <div class="hole"></div><div class="string"></div>
-      ${fullySoldOut ? `<span class="sold-out-ribbon">Sold Out</span>` : `
+      ${fullySoldOut ? `<span class="sold-out-ribbon">${t('soldOut')}</span>` : `
         <span class="cond">${p.condition}</span>
         ${p.offer ? `<span class="offer-ribbon">${p.offer}</span>` : ""}
       `}
       <div class="thumb">${thumbFor(p)}</div>
       <h3>${p.name}</h3>
-      <div class="meta">${p.category}${p.sizes && p.sizes.length ? " · " + p.sizes.length + " size" + (p.sizes.length>1?"s":"") : ""}</div>
+      <div class="meta">${p.category}${p.sizes && p.sizes.length ? " · " + p.sizes.length + " " + (p.sizes.length>1? t('sizesWord') : t('sizeWord')) : ""}</div>
       ${CONFIG.showSkuToCustomers ? `<div class="sku">SKU: ${escapeAttr(p.id)}</div>` : ""}
       <div class="row">
         <div class="price">${p.mrp > p.price ? `<small>${CONFIG.currency} ${p.mrp}</small>` : ""}${CONFIG.currency} ${p.price}</div>
-        <button class="add-btn" data-id="${escapeAttr(p.id)}" ${fullySoldOut ? 'disabled' : ''}>${fullySoldOut ? 'SOLD OUT' : 'SELECT SIZE'}</button>
+        <button class="add-btn" data-id="${escapeAttr(p.id)}" ${fullySoldOut ? 'disabled' : ''}>${fullySoldOut ? t('soldOut') : t('selectSize')}</button>
       </div>
     </div>
   `;
@@ -1322,7 +1632,7 @@ function addToCart(id, size, qty, color){
   else cart.push({ ...product, size, color, qty, key });
   updateCartCount();
   saveCartToStorage();
-  showToast(`${product.name} (Size ${size}${color ? ', ' + color : ''}) added to cart`);
+  showToast(`${product.name} (${t('sizeWord2')} ${size}${color ? ', ' + color : ''}) ${t('addedToCart')}`);
 }
 function changeQty(key, delta){
   const item = cart.find(c=>c.key===key);
@@ -1566,7 +1876,7 @@ function checkAddressSpelling(fieldId){
   if (result){
     sugg.dataset.original = result.original;
     sugg.dataset.corrected = result.corrected;
-    sugg.querySelector('.as-text').innerHTML = `Did you mean <b>${escapeAttr(result.corrected)}</b> instead of "${escapeAttr(result.original)}"?`;
+    sugg.querySelector('.as-text').innerHTML = `${t('didYouMean')} <b>${escapeAttr(result.corrected)}</b> ${t('insteadOf')} "${escapeAttr(result.original)}"?`;
     sugg.classList.add('show');
   } else {
     sugg.classList.remove('show');
@@ -1591,6 +1901,24 @@ function openGiftCheckout(){
   document.getElementById('drawer').classList.add('open');
   renderDrawer();
 }
+function openReturnForm(){
+  view = 'returnForm';
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById('drawer').classList.add('open');
+  renderDrawer();
+}
+
+let isSubmittingOrder = false;
+let isSubmittingGift = false;
+let isSubmittingReturn = false;
+
+function preventEnterSubmit(container){
+  container.querySelectorAll('input').forEach(inp=>{
+    inp.addEventListener('keydown', (e)=>{
+      if (e.key === 'Enter') e.preventDefault();
+    });
+  });
+}
 
 function renderDrawer(){
   const title = document.getElementById('drawerTitle');
@@ -1598,18 +1926,18 @@ function renderDrawer(){
   const foot = document.getElementById('drawerFoot');
 
   if (view === 'success'){
-    title.textContent = "Order Placed";
+    title.textContent = t('orderPlaced');
     const waLink = buildWhatsAppSaveLink(lastOrderData);
     body.innerHTML = `
       <div class="order-success">
         <div class="ok-mark">✓</div>
-        <h4>Thanks — your order is in!</h4>
-        <p>We'll call to confirm delivery within a few hours.</p>
-        <div class="oid">Order ID: ${lastOrderId}</div>
+        <h4>${t('thanksOrderIn')}</h4>
+        <p>${t('wellCallConfirm')}</p>
+        <div class="oid">${t('orderIdLabel')} ${lastOrderId}</div>
       </div>`;
     foot.innerHTML = `
-      ${waLink ? `<a class="checkout-btn" href="${waLink}" target="_blank" rel="noopener" style="text-decoration:none; display:flex; align-items:center; justify-content:center; gap:8px; background:#25D366;">💬 Save Order on WhatsApp</a>` : ''}
-      <button class="checkout-btn" id="continueShopping" style="${waLink ? 'margin-top:10px;' : ''}">Continue Shopping</button>
+      ${waLink ? `<a class="checkout-btn" href="${waLink}" target="_blank" rel="noopener" style="text-decoration:none; display:flex; align-items:center; justify-content:center; gap:8px; background:#25D366;">💬 ${t('saveOnWhatsapp')}</a>` : ''}
+      <button class="checkout-btn" id="continueShopping" style="${waLink ? 'margin-top:10px;' : ''}">${t('continueShopping')}</button>
     `;
     document.getElementById('continueShopping').addEventListener('click', ()=>{
       cart = []; saveCartToStorage(); updateCartCount(); view='cart'; closeDrawer();
@@ -1617,53 +1945,105 @@ function renderDrawer(){
     return;
   }
 
+  if (view === 'returnSuccess'){
+    title.textContent = t('returnRequested');
+    body.innerHTML = `
+      <div class="order-success">
+        <div class="ok-mark">✓</div>
+        <h4>${t('returnReceived')}</h4>
+        <p>${t('returnWeWillContact')}</p>
+        <div class="oid">${t('orderIdLabel')} ${escapeAttr(lastOrderData ? lastOrderData.orderId : '')}</div>
+      </div>`;
+    foot.innerHTML = `<button class="checkout-btn" id="closeReturnSuccess">${t('close')}</button>`;
+    document.getElementById('closeReturnSuccess').addEventListener('click', ()=>{ view='cart'; closeDrawer(); });
+    return;
+  }
+
+  if (view === 'returnForm'){
+    title.textContent = t('returnAnOrder');
+    const today = new Date().toISOString().slice(0,10);
+    body.innerHTML = `
+      <div class="return-note">${t('returnWindowNote').replace('{days}', CONFIG.returnWindowDays)}</div>
+      <div class="form-group">
+        <label>${t('orderIdField')}</label>
+        <input id="rOrderId" placeholder="e.g. SS1234567NP" />
+        <div class="field-error-msg" id="rOrderIdErr">${t('enterOrderId')}</div>
+      </div>
+      <div class="form-group">
+        <label>${t('orderDateField')}</label>
+        <input id="rOrderDate" type="date" max="${today}" />
+        <div class="field-error-msg" id="rOrderDateErr">${t('enterValidOrderDate')}</div>
+      </div>
+      <div class="form-group">
+        <label>${t('fullName')}</label>
+        <input id="rName" placeholder="e.g. Your Name" />
+        <div class="field-error-msg" id="rNameErr">${t('enterName')}</div>
+      </div>
+      <div class="form-group">
+        <label>${t('phoneNumber')}</label>
+        <input id="rPhone" placeholder="98XXXXXXXX" inputmode="tel" />
+        <div class="field-error-msg" id="rPhoneErr">${t('enterValidPhone')}</div>
+      </div>
+      <div class="form-group">
+        <label>${t('returnReason')}</label>
+        <textarea id="rReason" rows="3" placeholder="${t('returnReasonPlaceholder')}"></textarea>
+        <div class="field-error-msg" id="rReasonErr">${t('enterReason')}</div>
+      </div>
+    `;
+    foot.innerHTML = `<button class="checkout-btn" id="submitReturnBtn">${t('submitReturn')}</button>`;
+    document.getElementById('submitReturnBtn').addEventListener('click', submitReturnOrder);
+    preventEnterSubmit(body);
+    return;
+  }
+
   if (view === 'giftCheckout'){
-    title.textContent = "Claim Your Mystery Gift";
+    title.textContent = t('claimGiftTitle');
     body.innerHTML = `
       <div class="cart-item" style="border-bottom:1px solid var(--line);">
         <div class="ci-thumb">${ICONS.tag}</div>
         <div class="ci-info">
           <h5>${escapeAttr(CONFIG.giftProduct.name)}</h5>
-          <div class="ci-meta">Free product</div>
+          <div class="ci-meta">${t('freeProduct')}</div>
         </div>
         <div class="ci-price">${CONFIG.currency} 0</div>
       </div>
       <div class="form-group" style="margin-top:16px;">
-        <label>Full Name</label>
+        <label>${t('fullName')}</label>
         <input id="gName" placeholder="e.g. Your Name" />
-        <div class="field-error-msg" id="gNameErr">Please enter your name.</div>
+        <div class="field-error-msg" id="gNameErr">${t('enterName')}</div>
       </div>
       <div class="form-group">
-        <label>Phone Number</label>
+        <label>${t('phoneNumber')}</label>
         <input id="gPhone" placeholder="98XXXXXXXX" inputmode="tel" />
-        <div class="field-error-msg" id="gPhoneErr">Please enter a valid phone number.</div>
+        <div class="field-error-msg" id="gPhoneErr">${t('enterValidPhone')}</div>
       </div>
       <div class="form-group">
-        <label>Delivery Address</label>
-        <textarea id="gAddress" rows="3" placeholder="Area, street, landmark, city"></textarea>
-        <div class="field-error-msg" id="gAddressErr">Please enter your delivery address.</div>
+        <label>${t('deliveryAddress')}</label>
+        <textarea id="gAddress" rows="3" placeholder="${t('addressPlaceholder')}"></textarea>
+        <div class="field-error-msg" id="gAddressErr">${t('enterAddress')}</div>
         <div class="addr-suggest" id="addrSuggest">
           <span class="as-text"></span>
           <span style="display:flex; gap:4px; flex-shrink:0;">
-            <button type="button" id="addrFixBtn">Fix</button>
+            <button type="button" id="addrFixBtn">${t('fix')}</button>
             <button type="button" class="as-dismiss" id="addrDismissBtn">✕</button>
           </span>
         </div>
       </div>
       <div class="form-group">
-        <label>Email Address</label>
+        <label>${t('emailAddress')}</label>
         <input id="gEmail" type="email" placeholder="you@gmail.com" />
-        <div class="field-error-msg" id="gEmailErr">Please enter a valid email address.</div>
+        <div class="field-error-msg" id="gEmailErr">${t('enterValidEmail')}</div>
       </div>
-      <div class="form-group"><label>Order Note (optional)</label><textarea id="gNote" rows="2" placeholder="Preferred delivery time, etc."></textarea></div>
+      <div class="form-group"><label>${t('orderNote')}</label><textarea id="gNote" rows="2" placeholder="${t('orderNotePlaceholder')}"></textarea></div>
     `;
     foot.innerHTML = `
-      <div class="sum-row"><span>Gift</span><span class="mono">${CONFIG.currency} 0 (Free)</span></div>
-      <div class="sum-row"><span>Delivery</span><span class="mono">${CONFIG.currency} ${CONFIG.giftProduct.deliveryFee}</span></div>
-      <div class="sum-row total"><span>Total to Pay</span><span class="mono">${CONFIG.currency} ${CONFIG.giftProduct.deliveryFee}</span></div>
-      <button class="checkout-btn" id="claimGiftBtn">Claim Your Gift</button>
+      <div class="sum-row"><span>${t('gift')}</span><span class="mono">${CONFIG.currency} 0 (${t('free')})</span></div>
+      <div class="sum-row"><span>${t('delivery')}</span><span class="mono">${CONFIG.currency} ${CONFIG.giftProduct.deliveryFee}</span></div>
+      <div class="sum-row total"><span>${t('totalToPay')}</span><span class="mono">${CONFIG.currency} ${CONFIG.giftProduct.deliveryFee}</span></div>
+      <button class="checkout-btn" id="claimGiftBtn">${t('claimGiftBtn')}</button>
     `;
     document.getElementById('claimGiftBtn').addEventListener('click', submitGiftOrder);
+    preventEnterSubmit(body);
 
     let gAddrDebounce;
     const gAddressField = document.getElementById('gAddress');
@@ -1684,46 +2064,47 @@ function renderDrawer(){
   }
 
   if (view === 'checkout'){
-    title.textContent = "Checkout";
+    title.textContent = t('checkout');
     body.innerHTML = `
-      <button class="back-link" id="backToCart">← Back to cart</button>
+      <button class="back-link" id="backToCart">← ${t('backToCart')}</button>
       <div class="form-group">
-        <label>Full Name</label>
+        <label>${t('fullName')}</label>
         <input id="cName" placeholder="e.g. Your Name" />
-        <div class="field-error-msg" id="cNameErr">Please enter your name.</div>
+        <div class="field-error-msg" id="cNameErr">${t('enterName')}</div>
       </div>
       <div class="form-group">
-        <label>Phone Number</label>
+        <label>${t('phoneNumber')}</label>
         <input id="cPhone" placeholder="98XXXXXXXX" inputmode="tel" />
-        <div class="field-error-msg" id="cPhoneErr">Please enter a valid phone number.</div>
+        <div class="field-error-msg" id="cPhoneErr">${t('enterValidPhone')}</div>
       </div>
       <div class="form-group">
-        <label>Delivery Address</label>
-        <textarea id="cAddress" rows="3" placeholder="Area, street, landmark, city"></textarea>
-        <div class="field-error-msg" id="cAddressErr">Please enter your delivery address.</div>
+        <label>${t('deliveryAddress')}</label>
+        <textarea id="cAddress" rows="3" placeholder="${t('addressPlaceholder')}"></textarea>
+        <div class="field-error-msg" id="cAddressErr">${t('enterAddress')}</div>
         <div class="addr-suggest" id="addrSuggest">
           <span class="as-text"></span>
           <span style="display:flex; gap:4px; flex-shrink:0;">
-            <button type="button" id="addrFixBtn">Fix</button>
+            <button type="button" id="addrFixBtn">${t('fix')}</button>
             <button type="button" class="as-dismiss" id="addrDismissBtn">✕</button>
           </span>
         </div>
       </div>
       <div class="form-group">
-        <label>Email Address</label>
+        <label>${t('emailAddress')}</label>
         <input id="cEmail" type="email" placeholder="you@gmail.com" />
-        <div class="field-error-msg" id="cEmailErr">Please enter a valid email address.</div>
+        <div class="field-error-msg" id="cEmailErr">${t('enterValidEmail')}</div>
       </div>
-      <div class="form-group"><label>Order Note (optional)</label><textarea id="cNote" rows="2" placeholder="Preferred delivery time, etc."></textarea></div>
+      <div class="form-group"><label>${t('orderNote')}</label><textarea id="cNote" rows="2" placeholder="${t('orderNotePlaceholder')}"></textarea></div>
     `;
     foot.innerHTML = `
-      <div class="sum-row"><span>Subtotal</span><span class="mono">${CONFIG.currency} ${cartSubtotal()}</span></div>
-      <div class="sum-row"><span>Delivery</span><span class="mono">${CONFIG.currency} ${CONFIG.deliveryFee}</span></div>
-      <div class="sum-row total"><span>Total</span><span class="mono">${CONFIG.currency} ${cartSubtotal()+CONFIG.deliveryFee}</span></div>
-      <button class="checkout-btn" id="placeOrderBtn">Place Order</button>
+      <div class="sum-row"><span>${t('subtotal')}</span><span class="mono">${CONFIG.currency} ${cartSubtotal()}</span></div>
+      <div class="sum-row"><span>${t('delivery')}</span><span class="mono">${CONFIG.currency} ${CONFIG.deliveryFee}</span></div>
+      <div class="sum-row total"><span>${t('total')}</span><span class="mono">${CONFIG.currency} ${cartSubtotal()+CONFIG.deliveryFee}</span></div>
+      <button class="checkout-btn" id="placeOrderBtn">${t('placeOrder')}</button>
     `;
     document.getElementById('backToCart').addEventListener('click', ()=>{ view='cart'; renderDrawer(); });
     document.getElementById('placeOrderBtn').addEventListener('click', submitOrder);
+    preventEnterSubmit(body);
 
     let addrDebounce;
     const addressField = document.getElementById('cAddress');
@@ -1739,10 +2120,10 @@ function renderDrawer(){
     return;
   }
 
-  title.textContent = "Your Cart";
+  title.textContent = t('yourCart');
   if (cart.length === 0){
-    body.innerHTML = `<div class="empty-cart">Your cart is empty.<br>Go add something from the rack 🛍</div>`;
-    foot.innerHTML = `<button class="checkout-btn" disabled>Place Order</button>`;
+    body.innerHTML = `<div class="empty-cart">${t('cartEmpty')}</div>`;
+    foot.innerHTML = `<button class="checkout-btn" disabled>${t('placeOrder')}</button>`;
     return;
   }
   body.innerHTML = cart.map(c => `
@@ -1750,7 +2131,7 @@ function renderDrawer(){
       <div class="ci-thumb">${c.color && c.colorImages && c.colorImages[c.color] ? `<img src="${escapeAttr(c.colorImages[c.color])}" alt="${escapeAttr(c.name)}">` : thumbFor(c)}</div>
       <div class="ci-info">
         <h5>${c.name}</h5>
-        <div class="ci-meta">Size ${c.size}${c.color ? ' · ' + c.color : ''} · ${c.condition}</div>
+        <div class="ci-meta">${t('sizeWord2')} ${c.size}${c.color ? ' · ' + c.color : ''} · ${c.condition}</div>
         ${CONFIG.showSkuToCustomers ? `<div class="ci-sku">SKU: ${escapeAttr(c.id)}</div>` : ""}
         <div class="qty">
           <button data-key="${c.key}" data-d="-1" aria-label="Decrease quantity">−</button>
@@ -1765,10 +2146,10 @@ function renderDrawer(){
     btn.addEventListener('click', ()=> changeQty(btn.dataset.key, parseInt(btn.dataset.d, 10)));
   });
   foot.innerHTML = `
-    <div class="sum-row"><span>Subtotal</span><span class="mono">${CONFIG.currency} ${cartSubtotal()}</span></div>
-    <div class="sum-row"><span>Delivery</span><span class="mono">${CONFIG.currency} ${CONFIG.deliveryFee}</span></div>
-    <div class="sum-row total"><span>Total</span><span class="mono">${CONFIG.currency} ${cartSubtotal()+CONFIG.deliveryFee}</span></div>
-    <button class="checkout-btn" id="goCheckout">Checkout</button>
+    <div class="sum-row"><span>${t('subtotal')}</span><span class="mono">${CONFIG.currency} ${cartSubtotal()}</span></div>
+    <div class="sum-row"><span>${t('delivery')}</span><span class="mono">${CONFIG.currency} ${CONFIG.deliveryFee}</span></div>
+    <div class="sum-row total"><span>${t('total')}</span><span class="mono">${CONFIG.currency} ${cartSubtotal()+CONFIG.deliveryFee}</span></div>
+    <button class="checkout-btn" id="goCheckout">${t('checkout')}</button>
   `;
   document.getElementById('goCheckout').addEventListener('click', ()=>{ view='checkout'; renderDrawer(); });
 }
@@ -1864,7 +2245,7 @@ function renderRelatedProductsHtml(p){
   if (!related.length) return '';
   return `
     <div class="related-products">
-      <label class="size-label">You might also like</label>
+      <label class="size-label">${t('youMightAlsoLike')}</label>
       <div class="related-grid" id="relatedGrid">
         ${related.map(r => `
           <div class="related-card" data-id="${escapeAttr(r.id)}" role="button" tabindex="0" aria-label="View ${escapeAttr(r.name)}">
@@ -1930,8 +2311,8 @@ function renderProductModal(){
     <div class="pmodal-meta">${p.category}</div>
     ${CONFIG.showSkuToCustomers ? `<div class="pmodal-sku">SKU: ${escapeAttr(p.id)}</div>` : ""}
     <div class="pmodal-price">${p.mrp > p.price ? `<small>${CONFIG.currency} ${p.mrp}</small>` : ""}${CONFIG.currency} ${p.price}</div>
-    <p class="pmodal-desc">${p.description || "A carefully checked second-hand piece, ready to wear."}</p>
-    <label class="size-label">Choose your size</label>
+    <p class="pmodal-desc">${p.description || t('defaultDesc')}</p>
+    <label class="size-label">${t('chooseSize')}</label>
     <div class="size-options" id="sizeOptions">
       ${sizes.map(s => {
         const soldOut = isSizeSoldOut(p, s);
@@ -1939,15 +2320,15 @@ function renderProductModal(){
         return `<button type="button" class="size-chip ${selectedSize===s?'selected':''} ${soldOut?'sold-out':''} ${lowStock?'low-stock':''}" data-size="${escapeAttr(s)}" ${soldOut?'disabled aria-disabled="true"':''}>${s}</button>`;
       }).join('')}
     </div>
-    ${sizes.some(s=>isSizeSoldOut(p,s)) ? `<div class="size-note">Struck-through sizes are currently out of stock.</div>` : ''}
+    ${sizes.some(s=>isSizeSoldOut(p,s)) ? `<div class="size-note">${t('struckSizesNote')}</div>` : ''}
     ${(() => {
       const lowOnes = sizes.filter(s => isLowStock(p, s));
       if (!lowOnes.length) return '';
-      return `<div class="low-stock-note">🔥 Almost gone: ${lowOnes.map(s => `${s} (${getStockCount(p,s)} left)`).join(', ')}</div>`;
+      return `<div class="low-stock-note">🔥 ${t('almostGone')}: ${lowOnes.map(s => `${s} (${getStockCount(p,s)} ${t('left')})`).join(', ')}</div>`;
     })()}
-    <div class="size-warn" id="sizeWarn">Please select a size to continue.</div>
+    <div class="size-warn" id="sizeWarn">${t('pleaseSelectSize')}</div>
     ${p.colors && p.colors.length ? `
-      <label class="size-label" style="margin-top:16px;">Choose your color</label>
+      <label class="size-label" style="margin-top:16px;">${t('chooseColor')}</label>
       <div class="color-options" id="colorOptions">
         ${p.colors.map(c => {
           const soldOut = isColorSoldOut(p, c);
@@ -1957,10 +2338,10 @@ function renderProductModal(){
         }).join('')}
       </div>
       <div class="color-name" id="colorName">${selectedColor || ''}</div>
-      <div class="size-warn" id="colorWarn">Please select a color to continue.</div>
+      <div class="size-warn" id="colorWarn">${t('pleaseSelectColor')}</div>
     ` : ''}
     <div class="pmodal-qty-row">
-      <label class="size-label" style="margin:0;">Quantity</label>
+      <label class="size-label" style="margin:0;">${t('quantity')}</label>
       <div class="qty">
         <button id="pQtyMinus" type="button" aria-label="Decrease quantity">−</button>
         <span id="pQtyVal">${modalQty}</span>
@@ -1968,7 +2349,7 @@ function renderProductModal(){
       </div>
     </div>
     <div class="pmodal-actions" style="display:flex; gap:10px;">
-      <button class="checkout-btn" id="pAddToCart" style="flex:1;" ${isFullySoldOut(p) ? 'disabled' : ''}>${isFullySoldOut(p) ? 'Sold Out' : 'Add to Cart'}</button>
+      <button class="checkout-btn" id="pAddToCart" style="flex:1;" ${isFullySoldOut(p) ? 'disabled' : ''}>${isFullySoldOut(p) ? t('soldOut') : t('addToCart')}</button>
       <button type="button" id="pShareBtn" aria-label="Share this product" style="flex:0 0 auto; width:48px; background:#fff; border:2px solid var(--ink); border-radius:999px; cursor:pointer; font-size:18px;">🔗</button>
     </div>
     ${renderRelatedProductsHtml(p)}
@@ -2006,8 +2387,8 @@ function renderProductModal(){
       navigator.share({ title: p.name, text: `Check out ${p.name} on ShopSlipper`, url: shareUrl }).catch(()=>{});
     } else if (navigator.clipboard && navigator.clipboard.writeText){
       navigator.clipboard.writeText(shareUrl).then(
-        ()=> showToast('Link copied to clipboard'),
-        ()=> showToast('Could not copy link', true)
+        ()=> showToast(t('linkCopied')),
+        ()=> showToast(t('linkCopyFailed'), true)
       );
     } else {
       window.prompt('Copy this link:', shareUrl);
@@ -2060,6 +2441,8 @@ function isValidEmail(email){
 }
 
 async function submitOrder(){
+  if (isSubmittingOrder) return;
+
   const name = document.getElementById('cName').value.trim();
   const phone = document.getElementById('cPhone').value.trim();
   const address = document.getElementById('cAddress').value.trim();
@@ -2077,15 +2460,15 @@ async function submitOrder(){
   setFieldError('cEmail', 'cEmailErr', !emailOk);
 
   if (!nameOk || !phoneOk || !addressOk || !emailOk){
-    let msg = "Please fill in name, phone, address and email";
-    if (phone && !phoneOk) msg = "Please enter a valid phone number";
-    else if (email && !emailOk) msg = "Please enter a valid email address";
+    let msg = t('fillAllFields');
+    if (phone && !phoneOk) msg = t('enterValidPhone');
+    else if (email && !emailOk) msg = t('enterValidEmail');
     showToast(msg, true);
     return;
   }
 
   if (cart.length === 0){
-    showToast("Your cart is empty", true);
+    showToast(t('cartIsEmpty'), true);
     view = 'cart';
     renderDrawer();
     return;
@@ -2106,8 +2489,9 @@ async function submitOrder(){
     timestamp: new Date().toISOString(),
   };
 
+  isSubmittingOrder = true;
   const btn = document.getElementById('placeOrderBtn');
-  btn.disabled = true; btn.textContent = "Placing order...";
+  btn.disabled = true; btn.textContent = t('placingOrder');
 
   try {
     if (CONFIG.sheetWebAppUrl && CONFIG.sheetWebAppUrl.startsWith("http")){
@@ -2124,12 +2508,16 @@ async function submitOrder(){
     renderDrawer();
   } catch (err){
     console.error(err);
-    showToast("Something went wrong — please try again", true);
-    btn.disabled = false; btn.textContent = "Place Order";
+    showToast(t('somethingWentWrong'), true);
+    btn.disabled = false; btn.textContent = t('placeOrder');
+  } finally {
+    isSubmittingOrder = false;
   }
 }
 
 async function submitGiftOrder(){
+  if (isSubmittingGift) return;
+
   const name = document.getElementById('gName').value.trim();
   const phone = document.getElementById('gPhone').value.trim();
   const address = document.getElementById('gAddress').value.trim();
@@ -2147,9 +2535,9 @@ async function submitGiftOrder(){
   setFieldError('gEmail', 'gEmailErr', !emailOk);
 
   if (!nameOk || !phoneOk || !addressOk || !emailOk){
-    let msg = "Please fill in name, phone, address and email";
-    if (phone && !phoneOk) msg = "Please enter a valid phone number";
-    else if (email && !emailOk) msg = "Please enter a valid email address";
+    let msg = t('fillAllFields');
+    if (phone && !phoneOk) msg = t('enterValidPhone');
+    else if (email && !emailOk) msg = t('enterValidEmail');
     showToast(msg, true);
     return;
   }
@@ -2170,8 +2558,9 @@ async function submitGiftOrder(){
     timestamp: new Date().toISOString(),
   };
 
+  isSubmittingGift = true;
   const btn = document.getElementById('claimGiftBtn');
-  btn.disabled = true; btn.textContent = "Claiming your gift...";
+  btn.disabled = true; btn.textContent = t('claimingGift');
 
   try {
     if (CONFIG.sheetWebAppUrl && CONFIG.sheetWebAppUrl.startsWith("http")){
@@ -2188,12 +2577,89 @@ async function submitGiftOrder(){
     renderDrawer();
   } catch (err){
     console.error(err);
-    showToast("Something went wrong — please try again", true);
-    btn.disabled = false; btn.textContent = "Claim Your Gift";
+    showToast(t('somethingWentWrong'), true);
+    btn.disabled = false; btn.textContent = t('claimGiftBtn');
+  } finally {
+    isSubmittingGift = false;
+  }
+}
+
+async function submitReturnOrder(){
+  if (isSubmittingReturn) return;
+
+  const orderId = document.getElementById('rOrderId').value.trim();
+  const orderDateStr = document.getElementById('rOrderDate').value;
+  const name = document.getElementById('rName').value.trim();
+  const phone = document.getElementById('rPhone').value.trim();
+  const reason = document.getElementById('rReason').value.trim();
+
+  const orderIdOk = !!orderId;
+  const nameOk = !!name;
+  const phoneOk = !!phone && isValidPhone(phone);
+  const reasonOk = !!reason;
+
+  let orderDateOk = !!orderDateStr;
+  let withinWindow = false;
+  if (orderDateOk){
+    const orderDate = new Date(orderDateStr + 'T00:00:00');
+    const now = new Date();
+    const diffDays = (now - orderDate) / (1000 * 60 * 60 * 24);
+    withinWindow = diffDays >= -1 && diffDays <= CONFIG.returnWindowDays;
+  }
+
+  setFieldError('rOrderId', 'rOrderIdErr', !orderIdOk);
+  setFieldError('rOrderDate', 'rOrderDateErr', !orderDateOk || !withinWindow);
+  setFieldError('rName', 'rNameErr', !nameOk);
+  setFieldError('rPhone', 'rPhoneErr', !phoneOk);
+  setFieldError('rReason', 'rReasonErr', !reasonOk);
+
+  if (orderDateOk && !withinWindow){
+    document.getElementById('rOrderDateErr').textContent = t('returnWindowExpired').replace('{days}', CONFIG.returnWindowDays);
+  }
+
+  if (!orderIdOk || !orderDateOk || !withinWindow || !nameOk || !phoneOk || !reasonOk){
+    showToast(!orderDateOk || !withinWindow ? t('returnWindowExpired').replace('{days}', CONFIG.returnWindowDays) : t('fillAllFields'), true);
+    return;
+  }
+
+  const returnId = "RT" + Date.now().toString().slice(-7).padStart(7,"0") + "NP";
+  const payload = {
+    formType: "return",
+    sheetName: "Return Orders",
+    returnId,
+    orderId,
+    orderDate: orderDateStr,
+    name, phone, reason,
+    timestamp: new Date().toISOString(),
+  };
+
+  isSubmittingReturn = true;
+  const btn = document.getElementById('submitReturnBtn');
+  btn.disabled = true; btn.textContent = t('submittingReturn');
+
+  try {
+    if (CONFIG.sheetWebAppUrl && CONFIG.sheetWebAppUrl.startsWith("http")){
+      await fetch(CONFIG.sheetWebAppUrl, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload),
+      });
+    }
+    lastOrderData = { orderId };
+    view = 'returnSuccess';
+    renderDrawer();
+  } catch (err){
+    console.error(err);
+    showToast(t('somethingWentWrong'), true);
+    btn.disabled = false; btn.textContent = t('submitReturn');
+  } finally {
+    isSubmittingReturn = false;
   }
 }
 
 document.getElementById('openCart').addEventListener('click', ()=> openDrawer('cart'));
+document.getElementById('openReturn').addEventListener('click', ()=> openReturnForm());
 document.getElementById('closeCart').addEventListener('click', closeDrawer);
 document.getElementById('overlay').addEventListener('click', closeDrawer);
 document.getElementById('pModalClose').addEventListener('click', closeProductModal);
@@ -2203,8 +2669,6 @@ document.addEventListener('keydown', (e)=>{
   if (document.getElementById('pModal').classList.contains('open')) closeProductModal();
   else if (document.getElementById('drawer').classList.contains('open')) closeDrawer();
 });
-document.getElementById('year').textContent = new Date().getFullYear();
-
 if (CONFIG.logoUrl) CONFIG.logoUrl = toRawGithubUrl(CONFIG.logoUrl);
 if (CONFIG.heroImageUrl) CONFIG.heroImageUrl = toRawGithubUrl(CONFIG.heroImageUrl);
 
@@ -2270,6 +2734,9 @@ document.getElementById('searchBox').addEventListener('input', (e)=>{
     renderGrid();
   }, 150);
 });
+document.getElementById('searchBox').addEventListener('keydown', (e)=>{
+  if (e.key === 'Enter') e.preventDefault();
+});
 
 document.getElementById('imageSearchBtn').addEventListener('click', ()=>{
   document.getElementById('imageSearchInput').click();
@@ -2296,6 +2763,12 @@ logoHomeEl.addEventListener('click', goHomeAndRefresh);
 logoHomeEl.addEventListener('keydown', (e)=>{
   if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); goHomeAndRefresh(); }
 });
+
+document.getElementById('langEn').addEventListener('click', ()=> setLang('en'));
+document.getElementById('langNe').addEventListener('click', ()=> setLang('ne'));
+document.getElementById('langEn').classList.toggle('active', currentLang === 'en');
+document.getElementById('langNe').classList.toggle('active', currentLang === 'ne');
+translateStaticDom();
 
 initScrollObserver();
 loadCartFromStorage();
