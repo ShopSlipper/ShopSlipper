@@ -280,28 +280,34 @@ function parseCsv(text){
 function csvToOrders(text){
   const rows = parseCsv(text);
   if (!rows.length) return [];
-  const header = rows[0].map(h => h.trim().toLowerCase());
+  
+  // ULTRA-ROBUST HEADER PARSING
+  // This strips all spaces, underscores, and makes everything lowercase so it will match no matter how it's typed in the sheet.
+  const header = rows[0].map(h => h.trim().toLowerCase().replace(/[^a-z0-9]/g, ''));
+  console.log("Found Sheet Headers (Normalized):", header);
+
   return rows.slice(1).filter(r => r.length > 1 || r[0]).map(r => {
     const obj = {};
     header.forEach((h,i) => obj[h] = (r[i] || "").trim());
     return {
-      timestamp: obj['timestamp'] || "",
-      orderId: obj['order id'] || obj['orderid'] || "",
-      name: obj['customer name'] || obj['name'] || "",
-      phone: obj['phone'] || "",
-      address: obj['address'] || "",
-      email: obj['email'] || "",
-      items: obj['items'] || "",
+      timestamp: obj['timestamp'] || obj['date'] || "",
+      orderId: obj['orderid'] || obj['order'] || obj['id'] || "",
+      name: obj['customername'] || obj['name'] || "",
+      phone: obj['phone'] || obj['phonenumber'] || "",
+      address: obj['address'] || obj['deliveryaddress'] || "",
+      email: obj['email'] || obj['emailaddress'] || "",
+      items: obj['items'] || obj['products'] || "",
       subtotal: obj['subtotal'] || "",
-      delivery: obj['delivery fee'] || obj['delivery'] || "",
-      total: obj['total'] || "",
-      note: obj['note'] || "",
+      delivery: obj['deliveryfee'] || obj['delivery'] || obj['shipping'] || "",
+      total: obj['total'] || obj['totalamount'] || "",
+      note: obj['note'] || obj['notes'] || "",
       skus: obj['skus'] || ""
     };
   });
 }
 
 function parseItemsString(itemsStr){
+  if (!itemsStr) return [];
   const items = [];
   const re = /([^,[]+?)\s*\[SKU:\s*([^\]]+)\]\s*\[([^\]]+)\]\s*\(x(\d+)\)/g;
   let m;
@@ -324,12 +330,14 @@ function escapeHtml(str){
 }
 
 function formatMoney(v){
-  const n = Number(v);
+  if (!v) return "—";
+  const strVal = String(v).replace(/[^0-9.]/g, ''); // strip non-numeric
+  const n = Number(strVal);
   return CONFIG.currency + " " + (isNaN(n) ? (v || "0") : n.toLocaleString());
 }
 
 function renderInvoice(order){
-  document.getElementById('invOrderId').textContent = order.orderId;
+  document.getElementById('invOrderId').textContent = order.orderId || "—";
   document.getElementById('invDate').textContent = order.timestamp || "—";
   document.getElementById('custName').textContent = order.name || "—";
   document.getElementById('custPhone').textContent = "📱 " + (order.phone || "—");
@@ -369,8 +377,11 @@ function setStatus(msg, type){
 }
 
 async function lookupOrder(){
-  const raw = document.getElementById('orderIdInput').value.trim();
-  if (!raw){
+  const rawInput = document.getElementById('orderIdInput').value;
+  // Strips all whitespace and turns lowercase to guarantee a match
+  const targetId = rawInput.replace(/\s+/g, '').toLowerCase(); 
+  
+  if (!targetId){
     setStatus('Please enter an Order ID.', 'error');
     return;
   }
@@ -387,10 +398,13 @@ async function lookupOrder(){
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const text = await res.text();
     const orders = csvToOrders(text);
-    const target = raw.toLowerCase();
-    const match = orders.find(o => o.orderId.toLowerCase() === target);
+    
+    // Exact fuzzy matching: comparing stripped input to stripped spreadsheet data
+    const match = orders.find(o => o.orderId.replace(/\s+/g, '').toLowerCase() === targetId);
+    
     if (!match){
-      setStatus(`No order found matching "${raw}". Check the ID and try again.`, 'error');
+      setStatus(`No order found matching "${rawInput}". Check the ID and try again. (Note: Google Sheets can take 3-5 mins to publish new orders)`, 'error');
+      console.log("Available Order IDs in sheet:", orders.map(o => o.orderId));
       return;
     }
     renderInvoice(match);
