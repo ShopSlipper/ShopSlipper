@@ -690,10 +690,21 @@
     .card .string{ top:8px; left:16px; width:24px; height:24px; }
     .card .row{ flex-direction:column; align-items:flex-start; gap:6px; }
     .add-btn{ width:100%; text-align:center; }
-    .topbar-inner{ gap:8px; }
-    .lang-toggle button{ padding:5px 8px; font-size:10.5px; }
+    .topbar-inner{ gap:6px; padding:12px 14px; flex-wrap:nowrap; }
+    .topbar-actions{ gap:6px; }
+    .logo{ gap:6px; min-width:0; }
+    .logo .mark{ width:38px; height:38px; font-size:16px; }
+    .logo .name{ font-size:15px; }
+    .logo .tag{ font-size:7px; letter-spacing:0.8px; }
+    .lang-toggle{ padding:2px; }
+    .lang-toggle button{ padding:4px 6px; font-size:9.5px; }
     .icon-btn span.icon-btn-label{ display:none; }
-    .icon-btn{ padding:10px 12px; }
+    .icon-btn{ padding:8px 9px; }
+    .cart-btn{ padding:8px 10px; gap:5px; flex-shrink:0; }
+    .cart-btn span.cart-btn-label{ display:none; }
+  }
+  @media (max-width:340px){
+    .lang-toggle{ display:none; }
   }
   @media (prefers-reduced-motion: reduce){
     *{ transition:none !important; scroll-behavior:auto !important; }
@@ -721,7 +732,7 @@
         ↩️ <span class="icon-btn-label" data-i18n="returnBtn">Return</span>
       </button>
       <button class="cart-btn" id="openCart">
-        🛍 <span data-i18n="cartBtn">CART</span> <span class="cart-count" id="cartCount">0</span>
+        🛍 <span class="cart-btn-label" data-i18n="cartBtn">CART</span> <span class="cart-count" id="cartCount">0</span>
       </button>
     </div>
   </div>
@@ -853,7 +864,6 @@ const CONFIG = {
   facebook: "https://www.facebook.com/share/1BZd4LUp6r/",
   tiktok: "https://www.tiktok.com/@shopslipper03?_r=1&_t=ZS-98G2OLLOoQG",
   sheetWebAppUrl: "https://script.google.com/macros/s/AKfycbyCM3kmuzGTszngwN-FiG61cymzyhRKNlnJAMYuh82CaTBddJPEe51CtsKMeoAmoz9cfA/exec",
-  returnSheetWebAppUrl: "https://script.google.com/macros/s/AKfycbzA5jnGxIIzlqQW53EB2wqclfh_VfmWG0xFqZ6mLZL1__9xh3ZF2ldjTlj3DmhFGW4PBA/exec",
   productsCsvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQd96p5gNA5FkuPj62x-08vIkyndn8wK5R14agatf1OJbS_-GzTTyHe_v_iKMZ3rPFWhW7ZotQZDZOt/pub?gid=0&single=true&output=csv",
   showSkuToCustomers: true,
   giftProduct: { id: "GIFT-001", name: "Mystery Gift", price: 0, deliveryFee: 100 },
@@ -1976,23 +1986,6 @@ function renderDrawer(){
         <div class="field-error-msg" id="rPhoneErr">${t('enterValidPhone')}</div>
       </div>
       <div class="form-group">
-        <label>${t('emailAddress')}</label>
-        <input id="rEmail" type="email" placeholder="you@gmail.com" />
-        <div class="field-error-msg" id="rEmailErr">${t('enterValidEmail')}</div>
-      </div>
-      <div class="form-group">
-        <label>${t('deliveryAddress')}</label>
-        <textarea id="rAddress" rows="3" placeholder="${t('addressPlaceholder')}"></textarea>
-        <div class="field-error-msg" id="rAddressErr">${t('enterAddress')}</div>
-        <div class="addr-suggest" id="addrSuggest">
-          <span class="as-text"></span>
-          <span style="display:flex; gap:4px; flex-shrink:0;">
-            <button type="button" id="addrFixBtn">${t('fix')}</button>
-            <button type="button" class="as-dismiss" id="addrDismissBtn">✕</button>
-          </span>
-        </div>
-      </div>
-      <div class="form-group">
         <label>${t('returnReason')}</label>
         <textarea id="rReason" rows="3" placeholder="${t('returnReasonPlaceholder')}"></textarea>
         <div class="field-error-msg" id="rReasonErr">${t('enterReason')}</div>
@@ -2001,18 +1994,6 @@ function renderDrawer(){
     foot.innerHTML = `<button class="checkout-btn" id="submitReturnBtn">${t('submitReturn')}</button>`;
     document.getElementById('submitReturnBtn').addEventListener('click', submitReturnOrder);
     preventEnterSubmit(body);
-
-    let rAddrDebounce;
-    const rAddressField = document.getElementById('rAddress');
-    rAddressField.addEventListener('input', ()=>{
-      clearTimeout(rAddrDebounce);
-      rAddrDebounce = setTimeout(()=>checkAddressSpelling('rAddress'), 400);
-    });
-    rAddressField.addEventListener('blur', ()=>checkAddressSpelling('rAddress'));
-    document.getElementById('addrFixBtn').addEventListener('click', ()=>applyAddressCorrection('rAddress'));
-    document.getElementById('addrDismissBtn').addEventListener('click', ()=>{
-      document.getElementById('addrSuggest').classList.remove('show');
-    });
     return;
   }
 
@@ -2611,15 +2592,11 @@ async function submitReturnOrder(){
   const orderDateStr = document.getElementById('rOrderDate').value;
   const name = document.getElementById('rName').value.trim();
   const phone = document.getElementById('rPhone').value.trim();
-  const email = document.getElementById('rEmail').value.trim();
-  const address = document.getElementById('rAddress').value.trim();
   const reason = document.getElementById('rReason').value.trim();
 
   const orderIdOk = !!orderId;
   const nameOk = !!name;
   const phoneOk = !!phone && isValidPhone(phone);
-  const emailOk = !!email && isValidEmail(email);
-  const addressOk = !!address;
   const reasonOk = !!reason;
 
   let orderDateOk = !!orderDateStr;
@@ -2635,20 +2612,14 @@ async function submitReturnOrder(){
   setFieldError('rOrderDate', 'rOrderDateErr', !orderDateOk || !withinWindow);
   setFieldError('rName', 'rNameErr', !nameOk);
   setFieldError('rPhone', 'rPhoneErr', !phoneOk);
-  setFieldError('rEmail', 'rEmailErr', !emailOk);
-  setFieldError('rAddress', 'rAddressErr', !addressOk);
   setFieldError('rReason', 'rReasonErr', !reasonOk);
 
   if (orderDateOk && !withinWindow){
     document.getElementById('rOrderDateErr').textContent = t('returnWindowExpired').replace('{days}', CONFIG.returnWindowDays);
   }
 
-  if (!orderIdOk || !orderDateOk || !withinWindow || !nameOk || !phoneOk || !emailOk || !addressOk || !reasonOk){
-    let msg = t('fillAllFields');
-    if (!orderDateOk || !withinWindow) msg = t('returnWindowExpired').replace('{days}', CONFIG.returnWindowDays);
-    else if (phone && !phoneOk) msg = t('enterValidPhone');
-    else if (email && !emailOk) msg = t('enterValidEmail');
-    showToast(msg, true);
+  if (!orderIdOk || !orderDateOk || !withinWindow || !nameOk || !phoneOk || !reasonOk){
+    showToast(!orderDateOk || !withinWindow ? t('returnWindowExpired').replace('{days}', CONFIG.returnWindowDays) : t('fillAllFields'), true);
     return;
   }
 
@@ -2659,7 +2630,7 @@ async function submitReturnOrder(){
     returnId,
     orderId,
     orderDate: orderDateStr,
-    name, phone, email, address, reason,
+    name, phone, reason,
     timestamp: new Date().toISOString(),
   };
 
@@ -2668,11 +2639,8 @@ async function submitReturnOrder(){
   btn.disabled = true; btn.textContent = t('submittingReturn');
 
   try {
-    const returnUrl = (CONFIG.returnSheetWebAppUrl && CONFIG.returnSheetWebAppUrl.startsWith("http"))
-      ? CONFIG.returnSheetWebAppUrl
-      : CONFIG.sheetWebAppUrl;
-    if (returnUrl && returnUrl.startsWith("http")){
-      await fetch(returnUrl, {
+    if (CONFIG.sheetWebAppUrl && CONFIG.sheetWebAppUrl.startsWith("http")){
+      await fetch(CONFIG.sheetWebAppUrl, {
         method: "POST",
         mode: "no-cors",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
