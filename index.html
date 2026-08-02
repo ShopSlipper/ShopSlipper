@@ -853,6 +853,7 @@ const CONFIG = {
   facebook: "https://www.facebook.com/share/1BZd4LUp6r/",
   tiktok: "https://www.tiktok.com/@shopslipper03?_r=1&_t=ZS-98G2OLLOoQG",
   sheetWebAppUrl: "https://script.google.com/macros/s/AKfycbyCM3kmuzGTszngwN-FiG61cymzyhRKNlnJAMYuh82CaTBddJPEe51CtsKMeoAmoz9cfA/exec",
+  returnSheetWebAppUrl: "https://script.google.com/macros/s/AKfycbzA5jnGxIIzlqQW53EB2wqclfh_VfmWG0xFqZ6mLZL1__9xh3ZF2ldjTlj3DmhFGW4PBA/exec",
   productsCsvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQd96p5gNA5FkuPj62x-08vIkyndn8wK5R14agatf1OJbS_-GzTTyHe_v_iKMZ3rPFWhW7ZotQZDZOt/pub?gid=0&single=true&output=csv",
   showSkuToCustomers: true,
   giftProduct: { id: "GIFT-001", name: "Mystery Gift", price: 0, deliveryFee: 100 },
@@ -2667,8 +2668,11 @@ async function submitReturnOrder(){
   btn.disabled = true; btn.textContent = t('submittingReturn');
 
   try {
-    if (CONFIG.sheetWebAppUrl && CONFIG.sheetWebAppUrl.startsWith("http")){
-      await fetch(CONFIG.sheetWebAppUrl, {
+    const returnUrl = (CONFIG.returnSheetWebAppUrl && CONFIG.returnSheetWebAppUrl.startsWith("http"))
+      ? CONFIG.returnSheetWebAppUrl
+      : CONFIG.sheetWebAppUrl;
+    if (returnUrl && returnUrl.startsWith("http")){
+      await fetch(returnUrl, {
         method: "POST",
         mode: "no-cors",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
