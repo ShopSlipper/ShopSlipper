@@ -425,6 +425,12 @@
   }
   .qty span{ font-family:'JetBrains Mono',monospace; font-size:13px; min-width:14px; text-align:center; }
   .ci-price{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:13px; white-space:nowrap; }
+  .ci-right{ display:flex; flex-direction:column; align-items:flex-end; gap:10px; }
+  .ci-remove{
+    background:none; border:none; color:var(--thread); font-size:17px; font-weight:700;
+    cursor:pointer; padding:2px 0; line-height:1;
+  }
+  .ci-remove:hover{ color:#b3453a; }
   .empty-cart{ text-align:center; padding:60px 10px; color:#9ca3af; font-size:13.5px; }
 
   .drawer-foot{ border-top:2px dashed var(--ink); padding:18px 22px 24px; }
@@ -1644,6 +1650,12 @@ function changeQty(key, delta){
   saveCartToStorage();
   renderDrawer();
 }
+function removeCartItem(key){
+  cart = cart.filter(c=>c.key!==key);
+  updateCartCount();
+  saveCartToStorage();
+  renderDrawer();
+}
 function cartSubtotal(){ return cart.reduce((s,c)=> s + c.price*c.qty, 0); }
 function cartCount(){ return cart.reduce((s,c)=> s + c.qty, 0); }
 function updateCartCount(){ document.getElementById('cartCount').textContent = cartCount(); }
@@ -2140,11 +2152,17 @@ function renderDrawer(){
           <button data-key="${c.key}" data-d="1" aria-label="Increase quantity">+</button>
         </div>
       </div>
-      <div class="ci-price">${CONFIG.currency} ${c.price*c.qty}</div>
+      <div class="ci-right">
+        <div class="ci-price">${CONFIG.currency} ${c.price*c.qty}</div>
+        <button type="button" class="ci-remove" data-key="${c.key}" aria-label="Remove item">✕</button>
+      </div>
     </div>
   `).join('');
   body.querySelectorAll('.qty button').forEach(btn=>{
     btn.addEventListener('click', ()=> changeQty(btn.dataset.key, parseInt(btn.dataset.d, 10)));
+  });
+  body.querySelectorAll('.ci-remove').forEach(btn=>{
+    btn.addEventListener('click', ()=> removeCartItem(btn.dataset.key));
   });
   foot.innerHTML = `
     <div class="sum-row"><span>${t('subtotal')}</span><span class="mono">${CONFIG.currency} ${cartSubtotal()}</span></div>
