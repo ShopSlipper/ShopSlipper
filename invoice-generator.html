@@ -111,10 +111,46 @@
   }
 
   @media print{
-    body{ background:#fff; }
+    @page{ size: 4in 6in; margin: 0.16in; }
+    html, body{ background:#fff; }
     .brandbar, .lookup, .actions, .status{ display:none !important; }
-    .wrap{ padding:0; max-width:none; }
-    .invoice{ display:block !important; border:none; box-shadow:none; border-radius:0; padding:0; }
+    .wrap{ padding:0; max-width:none; margin:0; }
+
+    .invoice{
+      display:block !important; border:none; box-shadow:none; border-radius:0; padding:0;
+      font-size:8px; line-height:1.35; width:100%;
+    }
+
+    .inv-head{
+      flex-direction:column; align-items:flex-start; gap:6px;
+      border-bottom:1.5px dashed var(--ink); padding-bottom:8px; margin-bottom:8px;
+    }
+    .inv-head .from h2{ font-size:14px; margin:0 0 2px; }
+    .inv-head .from p{ font-size:7.5px; margin:1px 0; }
+    .inv-head .meta{ text-align:left; width:100%; }
+    .inv-head .meta .label{ font-size:7px; }
+    .inv-head .meta .oid{ font-size:11px; margin:1px 0 2px; }
+    .inv-head .meta .date{ font-size:7.5px; }
+
+    .inv-parties{ grid-template-columns:1fr; gap:8px; margin-bottom:10px; }
+    .inv-parties .label{ font-size:6.5px; margin-bottom:2px; }
+    .inv-parties h3{ font-size:9.5px; margin:0 0 2px; }
+    .inv-parties p{ font-size:7.5px; margin:1px 0; }
+
+    table.items{ margin-bottom:10px; }
+    table.items th{ font-size:6.5px; padding:0 3px 4px 0; }
+    table.items td{ font-size:7.5px; padding:4px 3px 4px 0; }
+    table.items td.sku{ font-size:6.5px; }
+
+    .inv-totals{ margin-bottom:10px; }
+    .inv-totals table{ min-width:0; width:100%; }
+    .inv-totals td{ font-size:7.5px; padding:2px 0; }
+    .inv-totals tr.total td{ font-size:10px; padding-top:6px; }
+
+    .inv-note{ padding:6px 8px; font-size:7px; margin-bottom:10px; }
+    .inv-note .label{ font-size:6.5px; }
+
+    .inv-foot{ font-size:6.5px; padding-top:8px; }
   }
 </style>
 </head>
