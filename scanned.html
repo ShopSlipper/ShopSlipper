@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShopSlipper — Scanned</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#28394a;
+    --paper:#eef5ee;
+    --line:#d9e6de;
+    --denim:#5b8fc7;
+    --denim-dark:#3f6c9e;
+    --green:#4caf7d;
+    --green-dark:#379764;
+    --red:#e0655b;
+    --red-dark:#c94a40;
+  }
+  *{ box-sizing:border-box; }
+  body{
+    margin:0; color:var(--ink); font-family:'Inter',system-ui,sans-serif;
+    background:
+      radial-gradient(1000px 500px at 8% -10%, rgba(143,201,160,0.28), transparent 55%),
+      radial-gradient(900px 500px at 100% 0%, rgba(91,143,199,0.22), transparent 55%),
+      linear-gradient(160deg, #eef5ee 0%, #e3edf6 45%, #dbe8f4 100%);
+    min-height:100vh;
+  }
+  .mono{ font-family:'JetBrains Mono',ui-monospace,monospace; }
+  .wrap{ max-width:640px; margin:0 auto; padding:32px 20px 80px; }
+
+  .brandbar{ display:flex; align-items:center; gap:12px; margin-bottom:28px; }
+  .brandbar .mark{
+    width:44px; height:44px; border-radius:50%; background:var(--denim); color:#fff;
+    display:flex; align-items:center; justify-content:center; font-family:'Anton',sans-serif; font-size:19px;
+  }
+  .brandbar h1{ font-family:'Anton',sans-serif; letter-spacing:.4px; font-size:20px; margin:0; }
+  .brandbar .sub{ font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:#6b7280; margin-top:1px; }
+
+  .lookup{
+    background:#fff; border:2px solid var(--ink); border-radius:16px; padding:20px;
+    display:flex; gap:10px; flex-wrap:wrap; box-shadow:0 18px 34px -22px rgba(20,24,31,0.4);
+  }
+  .lookup input{
+    flex:1; min-width:200px; border:1.5px solid var(--line); border-radius:10px; padding:14px 16px;
+    font-family:'JetBrains Mono',monospace; font-size:16px; background:var(--paper); text-transform:uppercase;
+  }
+  .lookup input:focus{ outline:2px solid var(--denim); border-color:var(--denim); }
+  .lookup button{
+    background:var(--denim); color:#fff; border:none; border-radius:10px; padding:14px 22px;
+    font-weight:700; font-size:14px; cursor:pointer; transition:background .15s ease;
+  }
+  .lookup button:hover{ background:var(--denim-dark); }
+  .lookup button:disabled{ background:#c7c7c7; cursor:not-allowed; }
+
+  .status{ margin-top:14px; font-size:13.5px; }
+  .status.error{ color:#b3453a; }
+  .status.loading{ color:#6b7280; }
+  .status.success{ color:var(--green-dark); font-weight:600; }
+
+  .card{
+    display:none; margin-top:24px; background:#fff; border:2px solid var(--ink); border-radius:18px;
+    padding:28px 26px; box-shadow:0 30px 60px -30px rgba(20,24,31,0.4);
+  }
+  .card.show{ display:block; }
+
+  .card .oid{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:20px; margin-bottom:4px; }
+  .card .label{ font-size:10.5px; text-transform:uppercase; letter-spacing:1.2px; color:#6b7280; margin:16px 0 4px; }
+  .card .label:first-of-type{ margin-top:18px; }
+  .card p{ margin:2px 0; font-size:14.5px; color:#28394a; line-height:1.5; }
+  .card .sub-line{ font-size:13px; color:#6b7280; }
+
+  table.items{ width:100%; border-collapse:collapse; margin-top:8px; }
+  table.items th{
+    text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:1px; color:#6b7280;
+    border-bottom:2px solid var(--ink); padding:0 8px 8px 0;
+  }
+  table.items td{ font-size:13.5px; padding:8px 8px 8px 0; border-bottom:1px solid var(--line); }
+  table.items td.qty{ text-align:center; font-family:'JetBrains Mono',monospace; }
+
+  .total-line{ display:flex; justify-content:space-between; margin-top:14px; font-size:16px; font-weight:700; }
+  .total-line .amt{ font-family:'JetBrains Mono',monospace; }
+
+  .decision{ display:flex; gap:12px; margin-top:26px; }
+  .decision button{
+    flex:1; border:none; border-radius:14px; padding:18px 12px; font-weight:800; font-size:16px;
+    cursor:pointer; transition:transform .1s ease, opacity .15s ease; color:#fff;
+  }
+  .decision button:active{ transform:scale(0.97); }
+  .decision button:disabled{ opacity:.5; cursor:not-allowed; }
+  .decision .handover{ background:var(--green); }
+  .decision .handover:hover{ background:var(--green-dark); }
+  .decision .failed{ background:var(--red); }
+  .decision .failed:hover{ background:var(--red-dark); }
+
+  .already-tag{
+    display:inline-block; margin-top:10px; padding:6px 12px; border-radius:999px;
+    font-size:12.5px; font-weight:700; letter-spacing:.3px;
+  }
+  .already-tag.handover{ background:#e2f4ea; color:var(--green-dark); }
+  .already-tag.failed{ background:#fbe4e2; color:var(--red-dark); }
+
+  .reset-hint{ text-align:center; margin-top:18px; font-size:12.5px; color:#9ca3af; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brandbar">
+    <div class="mark">S</div>
+    <div>
+      <h1>ShopSlipper</h1>
+      <div class="sub">Scanned — Delivery Handover</div>
+    </div>
+  </div>
+
+  <div class="lookup">
+    <input type="text" id="orderIdInput" placeholder="Scan or enter Order ID" autocomplete="off" />
+    <button type="button" id="lookupBtn">Find</button>
+  </div>
+  <div class="status" id="statusMsg"></div>
+
+  <div class="card" id="card">
+    <div class="oid mono" id="cOrderId"></div>
+    <div class="sub-line" id="cDate"></div>
+
+    <div class="label">Customer</div>
+    <p id="cName"></p>
+    <p class="sub-line" id="cPhone"></p>
+    <p class="sub-line" id="cAddress"></p>
+
+    <div class="label">Items</div>
+    <table class="items">
+      <thead><tr><th>Item</th><th>Options</th><th style="text-align:center;">Qty</th></tr></thead>
+      <tbody id="cItems"></tbody>
+    </table>
+
+    <div class="total-line"><span>Total (COD)</span><span class="amt" id="cTotal">—</span></div>
+
+    <div id="alreadyTagWrap"></div>
+
+    <div class="decision" id="decisionButtons">
+      <button type="button" class="handover" id="handoverBtn">✅ Handover</button>
+      <button type="button" class="failed" id="failedBtn">❌ Failed</button>
+    </div>
+
+    <div class="reset-hint">Scan the next order anytime — this will reset automatically.</div>
+  </div>
+</div>
+
+<script>
+const ORDERS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRhZzq7pSJWpA6PUs_K2UVL0lAQn78542JABRaLoZdgUfD6jr_IO_OuDDs4Ts9Lx4Pe0gQvjeO2vwGS/pub?gid=281007740&single=true&output=csv";
+const CONFIG = { currency: "Rs" };
+
+// Same Apps Script Web App URL used by the invoice generator
+const STATUS_UPDATE_URL = "PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE";
+const DELIVERY_FIELD = "Delivery Status"; // column this page writes to
+
+function parseCsv(text){
+  const rows = [];
+  let row = [], field = "", inQuotes = false;
+  for (let i=0;i<text.length;i++){
+    const c = text[i], next = text[i+1];
+    if (inQuotes){
+      if (c === '"' && next === '"'){ field += '"'; i++; }
+      else if (c === '"'){ inQuotes = false; }
+      else field += c;
+    } else {
+      if (c === '"') inQuotes = true;
+      else if (c === ','){ row.push(field); field = ""; }
+      else if (c === '\n' || c === '\r'){
+        if (c === '\r' && next === '\n') continue;
+        row.push(field); field = "";
+        if (row.length > 1 || row[0] !== "") rows.push(row);
+        row = [];
+      } else field += c;
+    }
+  }
+  if (field.length || row.length){ row.push(field); rows.push(row); }
+  return rows;
+}
+
+function csvToOrders(text){
+  const rows = parseCsv(text);
+  if (!rows.length) return [];
+  const header = rows[0].map(h => h.trim().toLowerCase().replace(/[^a-z0-9]/g, ''));
+  return rows.slice(1).filter(r => r.length > 1 || r[0]).map(r => {
+    const obj = {};
+    header.forEach((h,i) => obj[h] = (r[i] || "").trim());
+    return {
+      timestamp: obj['timestamp'] || obj['date'] || "",
+      orderId: obj['orderid'] || obj['order'] || obj['id'] || "",
+      name: obj['customername'] || obj['name'] || "",
+      phone: obj['phone'] || obj['phonenumber'] || "",
+      address: obj['address'] || obj['deliveryaddress'] || "",
+      items: obj['items'] || obj['products'] || "",
+      total: obj['total'] || obj['totalamount'] || "",
+      deliveryStatus: obj['deliverystatus'] || ""
+    };
+  });
+}
+
+function parseItemsString(itemsStr){
+  if (!itemsStr) return [];
+  const items = [];
+  const re = /([^,[]+?)\s*\[SKU:\s*([^\]]+)\]\s*\[([^\]]+)\]\s*\(x(\d+)\)/g;
+  let m;
+  while ((m = re.exec(itemsStr)) !== null){
+    items.push({ name: m[1].replace(/^,\s*/, '').trim(), options: m[3].trim(), qty: m[4] });
+  }
+  if (!items.length && itemsStr.trim()){
+    items.push({ name: itemsStr.trim(), options: "—", qty: "—" });
+  }
+  return items;
+}
+
+function escapeHtml(str){
+  return String(str||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+function formatMoney(v){
+  if (!v) return "—";
+  const strVal = String(v).replace(/[^0-9.]/g, '');
+  const n = Number(strVal);
+  return CONFIG.currency + " " + (isNaN(n) ? (v || "0") : n.toLocaleString());
+}
+
+function setStatus(msg, type){
+  const el = document.getElementById('statusMsg');
+  el.textContent = msg || '';
+  el.className = 'status' + (type ? ' ' + type : '');
+}
+
+let currentOrderId = null;
+
+function renderCard(order){
+  document.getElementById('cOrderId').textContent = order.orderId || "—";
+  document.getElementById('cDate').textContent = order.timestamp || "";
+  document.getElementById('cName').textContent = order.name || "—";
+  document.getElementById('cPhone').textContent = "📱 " + (order.phone || "—");
+  document.getElementById('cAddress').textContent = "📍 " + (order.address || "—");
+
+  const items = parseItemsString(order.items);
+  document.getElementById('cItems').innerHTML = items.map(it => `
+    <tr>
+      <td>${escapeHtml(it.name)}</td>
+      <td>${escapeHtml(it.options)}</td>
+      <td class="qty">${escapeHtml(it.qty)}</td>
+    </tr>
+  `).join('');
+
+  document.getElementById('cTotal').textContent = formatMoney(order.total);
+
+  const tagWrap = document.getElementById('alreadyTagWrap');
+  const decisionWrap = document.getElementById('decisionButtons');
+  const existing = (order.deliveryStatus || '').trim();
+
+  if (existing){
+    const cls = existing.toLowerCase() === 'handover' ? 'handover' : 'failed';
+    tagWrap.innerHTML = `<div class="already-tag ${cls}">Already marked: ${escapeHtml(existing)}</div>`;
+  } else {
+    tagWrap.innerHTML = '';
+  }
+
+  decisionWrap.querySelectorAll('button').forEach(b => b.disabled = false);
+  document.getElementById('card').classList.add('show');
+}
+
+async function lookupOrder(){
+  const rawInput = document.getElementById('orderIdInput').value;
+  const targetId = rawInput.replace(/\s+/g, '').toLowerCase();
+
+  if (!targetId){
+    setStatus('Please scan or enter an Order ID.', 'error');
+    return;
+  }
+  const btn = document.getElementById('lookupBtn');
+  btn.disabled = true;
+  setStatus('Fetching order…', 'loading');
+  document.getElementById('card').classList.remove('show');
+
+  try {
+    const res = await fetch(ORDERS_CSV_URL + (ORDERS_CSV_URL.includes('?') ? '&' : '?') + '_=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+    const orders = csvToOrders(text);
+    const match = orders.find(o => o.orderId.replace(/\s+/g, '').toLowerCase() === targetId);
+
+    if (!match){
+      setStatus(`No order found matching "${rawInput}".`, 'error');
+      return;
+    }
+    currentOrderId = match.orderId;
+    renderCard(match);
+    setStatus('');
+  } catch (err){
+    console.error(err);
+    setStatus('Could not load order data — please try again.', 'error');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function markDelivery(status){
+  if (!currentOrderId) return;
+
+  if (!STATUS_UPDATE_URL || STATUS_UPDATE_URL.indexOf('PASTE_YOUR') === 0){
+    setStatus('Status update URL not configured yet — ask your developer to set STATUS_UPDATE_URL.', 'error');
+    return;
+  }
+
+  document.querySelectorAll('#decisionButtons button').forEach(b => b.disabled = true);
+  setStatus('Saving…', 'loading');
+
+  try{
+    await fetch(STATUS_UPDATE_URL, {
+      method: 'POST',
+      mode: 'no-cors', // Apps Script web apps don't expose readable CORS headers by default
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ orderId: currentOrderId, status: status, field: DELIVERY_FIELD })
+    });
+    setStatus(`Marked as "${status}" ✓`, 'success');
+  } catch(err){
+    console.error(err);
+    setStatus('Could not save status — check connection and try again.', 'error');
+    document.querySelectorAll('#decisionButtons button').forEach(b => b.disabled = false);
+    return;
+  }
+
+  // Reset for next scan after a short pause so staff sees the confirmation
+  setTimeout(()=>{
+    document.getElementById('card').classList.remove('show');
+    document.getElementById('orderIdInput').value = '';
+    document.getElementById('orderIdInput').focus();
+    currentOrderId = null;
+    setStatus('');
+  }, 1100);
+}
+
+document.getElementById('lookupBtn').addEventListener('click', lookupOrder);
+document.getElementById('orderIdInput').addEventListener('keydown', (e)=>{
+  if (e.key === 'Enter'){ e.preventDefault(); lookupOrder(); }
+});
+document.getElementById('handoverBtn').addEventListener('click', ()=> markDelivery('Handover'));
+document.getElementById('failedBtn').addEventListener('click', ()=> markDelivery('Failed'));
+
+// Auto-focus so a barcode scanner can scan straight into the lookup
+document.getElementById('orderIdInput').focus();
+document.addEventListener('click', (e)=>{
+  const tag = e.target.tagName;
+  if (tag !== 'INPUT' && tag !== 'BUTTON'){
+    document.getElementById('orderIdInput').focus();
+  }
+});
+</script>
+</body>
+</html>
