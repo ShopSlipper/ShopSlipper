@@ -151,14 +151,10 @@
 </div>
 
 <script>
-// UPDATED: point this at the published CSV of the "Processing Orders" tab,
-// NOT the raw "Orders" tab — once an order is printed it has moved out of Orders.
-// Google Sheets: File > Share > Publish to web > choose the "Processing Orders" sheet > CSV.
 const ORDERS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSclnzIDnbWJ9KhDFUrA-cNDsUhIte3Np20P288ZwiannuwCtB34BDNSw5LMvpD_nTAgzG9IezAfiju/pub?gid=78980778&single=true&output=csv";
 const CONFIG = { currency: "Rs" };
 
-// Same Apps Script Web App URL used by the invoice generator
-const STATUS_UPDATE_URL = "https://script.google.com/macros/s/AKfycbzBSUtA0YH_G9GDUR1oQrgnkfjVEBsp4gXJ-Yz65votO0xkr9WoeaJFYkJwPfdqWhn0/exec";
+const STATUS_UPDATE_URL = "https://script.google.com/macros/s/AKfycbw0pDgEPJJ_LQn-1g9xku07XBixhHqPWMhGrDxRewkpyzI51ziBEk_wQoTMLy1dhWlL/exec";
 
 function parseCsv(text){
   const rows = [];
@@ -306,14 +302,11 @@ async function lookupOrder(){
   }
 }
 
-// UPDATED: sends { orderId, action } so the sheet moves the whole row
-// into "Handover Orders" or "Failed Orders" (and removes it from
-// Processing Orders / Orders wherever it's found).
 async function markDelivery(status){
   if (!currentOrderId) return;
 
-  if (!STATUS_UPDATE_URL || STATUS_UPDATE_URL.indexOf('PASTE_YOUR') === 0){
-    setStatus('Status update URL not configured yet — ask your developer to set STATUS_UPDATE_URL.', 'error');
+  if (!STATUS_UPDATE_URL){
+    setStatus('Status update URL not configured.', 'error');
     return;
   }
 
@@ -323,7 +316,7 @@ async function markDelivery(status){
   try{
     await fetch(STATUS_UPDATE_URL, {
       method: 'POST',
-      mode: 'no-cors', // Apps Script web apps don't expose readable CORS headers by default
+      mode: 'no-cors',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ orderId: currentOrderId, action: status.toLowerCase() })
     });
@@ -335,7 +328,6 @@ async function markDelivery(status){
     return;
   }
 
-  // Reset for next scan after a short pause so staff sees the confirmation
   setTimeout(()=>{
     document.getElementById('card').classList.remove('show');
     document.getElementById('orderIdInput').value = '';
@@ -352,7 +344,6 @@ document.getElementById('orderIdInput').addEventListener('keydown', (e)=>{
 document.getElementById('handoverBtn').addEventListener('click', ()=> markDelivery('Handover'));
 document.getElementById('failedBtn').addEventListener('click', ()=> markDelivery('Failed'));
 
-// Auto-focus so a barcode scanner can scan straight into the lookup
 document.getElementById('orderIdInput').focus();
 document.addEventListener('click', (e)=>{
   const tag = e.target.tagName;
