@@ -231,14 +231,21 @@ function setStatus(msg, type){
 
 function statusTags(order){
   const tags = [];
-  if (order.deliveryStatus){
-    const cls = order.deliveryStatus.toLowerCase() === 'handover' ? 'handover' : 'failed';
-    tags.push(`<span class="tag ${cls}">${escapeHtml(order.deliveryStatus)}</span>`);
-  } else if (order.status){
-    tags.push(`<span class="tag processing">${escapeHtml(order.status)}</span>`);
-  } else {
+
+  if (order.status && order.status.trim()){
+    const cls = order.status.trim().toLowerCase() === 'processing' ? 'processing' : 'pending';
+    tags.push(`<span class="tag ${cls}">${escapeHtml(order.status.trim())}</span>`);
+  }
+
+  if (order.deliveryStatus && order.deliveryStatus.trim()){
+    const cls = order.deliveryStatus.trim().toLowerCase() === 'handover' ? 'handover' : 'failed';
+    tags.push(`<span class="tag ${cls}">${escapeHtml(order.deliveryStatus.trim())}</span>`);
+  }
+
+  if (!tags.length){
     tags.push(`<span class="tag pending">Pending</span>`);
   }
+
   return tags.join('');
 }
 
