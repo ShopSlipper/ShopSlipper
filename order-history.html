@@ -57,6 +57,10 @@
   }
   .lookup button:hover{ background:var(--denim-dark); }
   .lookup button:disabled{ background:#c7c7c7; cursor:not-allowed; }
+  .lookup button#clearBtn{
+    background:#fff; color:var(--ink); border:1.5px solid var(--ink);
+  }
+  .lookup button#clearBtn:hover{ background:var(--ink); color:#fff; }
 
   .status{ margin-top:14px; font-size:13.5px; }
   .status.error{ color:#b3453a; }
@@ -130,6 +134,7 @@
   <div class="lookup">
     <input type="text" id="searchInput" placeholder="Enter phone number or email address" autocomplete="off" />
     <button type="button" id="searchBtn">Search</button>
+    <button type="button" id="clearBtn">Clear</button>
   </div>
   <div class="status" id="statusMsg"></div>
 
@@ -378,7 +383,17 @@ async function searchCustomer(){
   }
 }
 
+function clearSearch(){
+  document.getElementById('searchInput').value = '';
+  document.getElementById('summary').classList.remove('show');
+  document.getElementById('orderList').innerHTML = '';
+  document.getElementById('emptyHint').style.display = 'none';
+  setStatus('');
+  document.getElementById('searchInput').focus();
+}
+
 document.getElementById('searchBtn').addEventListener('click', searchCustomer);
+document.getElementById('clearBtn').addEventListener('click', clearSearch);
 document.getElementById('searchInput').addEventListener('keydown', (e)=>{
   if (e.key === 'Enter'){ e.preventDefault(); searchCustomer(); }
 });
