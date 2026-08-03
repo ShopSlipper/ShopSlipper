@@ -229,24 +229,27 @@ function setStatus(msg, type){
   el.className = 'status' + (type ? ' ' + type : '');
 }
 
+/**
+ * Priority-based single status tag:
+ *   1) Delivery Status = "Handover" -> Handover
+ *   2) Delivery Status = "Failed"   -> Failed
+ *   3) Status = "Processing" (and no delivery status yet) -> Processing
+ *   4) Nothing set -> Pending
+ */
 function statusTags(order){
-  const tags = [];
+  const ds = (order.deliveryStatus || '').trim().toLowerCase();
+  const st = (order.status || '').trim().toLowerCase();
 
-  if (order.status && order.status.trim()){
-    const cls = order.status.trim().toLowerCase() === 'processing' ? 'processing' : 'pending';
-    tags.push(`<span class="tag ${cls}">${escapeHtml(order.status.trim())}</span>`);
+  if (ds === 'handover'){
+    return `<span class="tag handover">Handover</span>`;
   }
-
-  if (order.deliveryStatus && order.deliveryStatus.trim()){
-    const cls = order.deliveryStatus.trim().toLowerCase() === 'handover' ? 'handover' : 'failed';
-    tags.push(`<span class="tag ${cls}">${escapeHtml(order.deliveryStatus.trim())}</span>`);
+  if (ds === 'failed'){
+    return `<span class="tag failed">Failed</span>`;
   }
-
-  if (!tags.length){
-    tags.push(`<span class="tag pending">Pending</span>`);
+  if (st === 'processing'){
+    return `<span class="tag processing">Processing</span>`;
   }
-
-  return tags.join('');
+  return `<span class="tag pending">Pending</span>`;
 }
 
 function renderResults(matches){
