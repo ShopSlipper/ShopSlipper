@@ -54,6 +54,8 @@
   }
   .lookup button:hover{ background:var(--denim-dark); }
   .lookup button:disabled{ background:#c7c7c7; cursor:not-allowed; }
+  .lookup button.btn-clear{ background:#e5e7eb; color:#374151; }
+  .lookup button.btn-clear:hover{ background:#d1d5db; }
 
   .status{ margin-top:14px; font-size:13.5px; }
   .status.error{ color:#b3453a; }
@@ -185,6 +187,7 @@
   <div class="lookup">
     <input type="text" id="orderIdInput" placeholder="Enter Order ID, e.g. SS7029074NP" autocomplete="off" />
     <button type="button" id="lookupBtn">Find Order</button>
+    <button type="button" id="clearBtn" class="btn-clear">Clear</button>
   </div>
   <div class="status" id="statusMsg"></div>
 
@@ -501,6 +504,14 @@ async function lookupOrder(){
 }
 
 document.getElementById('lookupBtn').addEventListener('click', lookupOrder);
+document.getElementById('clearBtn').addEventListener('click', ()=>{
+  document.getElementById('orderIdInput').value = '';
+  document.getElementById('orderIdInput').focus();
+  document.getElementById('invoice').classList.remove('show');
+  document.getElementById('actions').style.display = 'none';
+  setStatus('');
+  currentOrderData = null;
+});
 document.getElementById('orderIdInput').addEventListener('keydown', (e)=>{
   if (e.key === 'Enter'){ e.preventDefault(); lookupOrder(); }
 });
