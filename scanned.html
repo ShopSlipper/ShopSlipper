@@ -151,12 +151,14 @@
 </div>
 
 <script>
-const ORDERS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRhZzq7pSJWpA6PUs_K2UVL0lAQn78542JABRaLoZdgUfD6jr_IO_OuDDs4Ts9Lx4Pe0gQvjeO2vwGS/pub?gid=281007740&single=true&output=csv";
+// UPDATED: point this at the published CSV of the "Processing Orders" tab,
+// NOT the raw "Orders" tab — once an order is printed it has moved out of Orders.
+// Google Sheets: File > Share > Publish to web > choose the "Processing Orders" sheet > CSV.
+const ORDERS_CSV_URL = "PASTE_YOUR_PROCESSING_ORDERS_CSV_URL_HERE";
 const CONFIG = { currency: "Rs" };
 
 // Same Apps Script Web App URL used by the invoice generator
-const STATUS_UPDATE_URL = "https://script.google.com/macros/s/AKfycbzb41GKorM_F6MMqUmdK9rLc5NMMvY3o2BD6hcBXhiod93Ub2CRHijI5T3gWisjIsP1/exec";
-const DELIVERY_FIELD = "Delivery Status"; // column this page writes to
+const STATUS_UPDATE_URL = "https://script.google.com/macros/s/AKfycbzBSUtA0YH_G9GDUR1oQrgnkfjVEBsp4gXJ-Yz65votO0xkr9WoeaJFYkJwPfdqWhn0/exec";
 
 function parseCsv(text){
   const rows = [];
@@ -304,6 +306,9 @@ async function lookupOrder(){
   }
 }
 
+// UPDATED: sends { orderId, action } so the sheet moves the whole row
+// into "Handover Orders" or "Failed Orders" (and removes it from
+// Processing Orders / Orders wherever it's found).
 async function markDelivery(status){
   if (!currentOrderId) return;
 
@@ -320,7 +325,7 @@ async function markDelivery(status){
       method: 'POST',
       mode: 'no-cors', // Apps Script web apps don't expose readable CORS headers by default
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ orderId: currentOrderId, status: status, field: DELIVERY_FIELD })
+      body: JSON.stringify({ orderId: currentOrderId, action: status.toLowerCase() })
     });
     setStatus(`Marked as "${status}" ✓`, 'success');
   } catch(err){
