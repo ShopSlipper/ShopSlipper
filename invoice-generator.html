@@ -261,8 +261,8 @@ const CONFIG = {
   phone: "+9779747961784"
 };
 
-// Paste the Web App URL you got from Apps Script deployment here:
-const STATUS_UPDATE_URL = "https://script.google.com/macros/s/AKfycbzb41GKorM_F6MMqUmdK9rLc5NMMvY3o2BD6hcBXhiod93Ub2CRHijI5T3gWisjIsP1/exec";
+// Paste the Web App URL you got from the order-pipeline-mover.gs deployment here:
+const STATUS_UPDATE_URL = "https://script.google.com/macros/s/AKfycbzBSUtA0YH_G9GDUR1oQrgnkfjVEBsp4gXJ-Yz65votO0xkr9WoeaJFYkJwPfdqWhn0/exec";
 
 // Beautiful personalized quotes array
 const QUOTES = [
@@ -440,9 +440,10 @@ function setStatus(msg, type){
 
 let currentOrderId = null;
 
+// UPDATED: moves the row from "Orders" to "Processing Orders" in the sheet
 async function markOrderProcessing(orderId){
   if (!STATUS_UPDATE_URL || STATUS_UPDATE_URL.indexOf('PASTE_YOUR') === 0){
-    console.warn('STATUS_UPDATE_URL not configured — skipping status update.');
+    console.warn('STATUS_UPDATE_URL not configured — skipping pipeline move.');
     return;
   }
   try{
@@ -450,10 +451,10 @@ async function markOrderProcessing(orderId){
       method: 'POST',
       mode: 'no-cors', // Apps Script web apps don't return readable CORS headers by default
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ orderId: orderId, status: 'Processing', field: 'Status' })
+      body: JSON.stringify({ orderId: orderId, action: 'process' })
     });
   } catch(err){
-    console.error('Failed to update order status:', err);
+    console.error('Failed to move order to Processing:', err);
   }
 }
 
