@@ -306,7 +306,7 @@ function parseCsv(text){
 function csvToOrders(text){
   const rows = parseCsv(text);
   if (!rows.length) return [];
-  
+
   const header = rows[0].map(h => h.trim().toLowerCase().replace(/[^a-z0-9]/g, ''));
 
   return rows.slice(1).filter(r => r.length > 1 || r[0]).map(r => {
@@ -438,9 +438,9 @@ function setStatus(msg, type){
   el.className = 'status' + (type ? ' ' + type : '');
 }
 
-let currentOrderId = null;
+let currentOrderData = null;
 
-async function markOrderProcessing(orderId){
+async function markOrderProcessing(order){
   if (!STATUS_UPDATE_URL || STATUS_UPDATE_URL.indexOf('PASTE_YOUR') === 0){
     console.warn('STATUS_UPDATE_URL not configured — skipping status update.');
     return;
@@ -450,7 +450,16 @@ async function markOrderProcessing(orderId){
       method: 'POST',
       mode: 'no-cors', // Apps Script web apps don't return readable CORS headers by default
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ orderId: orderId, status: 'Processing', field: 'Status' })
+      body: JSON.stringify({
+        orderId: order.orderId,
+        action: 'processing',
+        name: order.name,
+        phone: order.phone,
+        address: order.address,
+        email: order.email,
+        items: order.items,
+        total: order.total
+      })
     });
   } catch(err){
     console.error('Failed to update order status:', err);
@@ -486,7 +495,7 @@ async function lookupOrder(){
       return;
     }
     renderInvoice(match);
-    currentOrderId = match.orderId;
+    currentOrderData = match;
     setStatus('');
   } catch (err){
     console.error(err);
@@ -502,8 +511,8 @@ document.getElementById('orderIdInput').addEventListener('keydown', (e)=>{
   if (e.key === 'Enter'){ e.preventDefault(); lookupOrder(); }
 });
 document.getElementById('printBtn').addEventListener('click', ()=>{
-  if (currentOrderId){
-    markOrderProcessing(currentOrderId);
+  if (currentOrderData){
+    markOrderProcessing(currentOrderData);
   }
   window.print();
 });
@@ -513,7 +522,7 @@ document.getElementById('newSearchBtn').addEventListener('click', ()=>{
   document.getElementById('invoice').classList.remove('show');
   document.getElementById('actions').style.display = 'none';
   setStatus('');
-  currentOrderId = null;
+  currentOrderData = null;
 });
 
 // Auto-focus the search box so a barcode scanner (which types the code
