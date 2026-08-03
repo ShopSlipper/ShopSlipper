@@ -45,7 +45,7 @@
       box-shadow: 0 18px 34px -22px rgba(20,24,31,0.4);
     }
     .lookup input {
-      flex: 1; min-width: 200px; border: 1.5px solid var(--line); border-radius: 10px;
+      flex: 1; min-width: 180px; border: 1.5px solid var(--line); border-radius: 10px;
       padding: 14px 16px; font-family: 'JetBrains Mono', monospace; font-size: 16px;
       background: var(--paper); text-transform: uppercase;
     }
@@ -56,6 +56,16 @@
     }
     .lookup button:hover { background: var(--denim-dark); }
     .lookup button:disabled { background: #c7c7c7; cursor: not-allowed; }
+    
+    /* Clear Button Styling */
+    .lookup button.btn-clear {
+      background: #e5e7eb;
+      color: #374151;
+    }
+    .lookup button.btn-clear:hover {
+      background: #d1d5db;
+    }
+
     .status { margin-top: 14px; font-size: 13.5px; }
     .status.error { color: #b3453a; }
     .status.loading { color: #6b7280; }
@@ -108,6 +118,7 @@
     <div class="lookup">
       <input type="text" id="orderIdInput" placeholder="Scan or enter Order ID" autocomplete="off" />
       <button type="button" id="lookupBtn">Find</button>
+      <button type="button" id="clearBtn" class="btn-clear">Clear</button>
     </div>
 
     <div class="status" id="statusMsg"></div>
@@ -213,6 +224,14 @@
       el.className = 'status' + (type ? ' ' + type : '');
     }
 
+    function resetLookupUI() {
+      document.getElementById('orderIdInput').value = '';
+      document.getElementById('card').classList.remove('show');
+      setStatus('');
+      currentOrderData = null;
+      document.getElementById('orderIdInput').focus();
+    }
+
     function renderCard(order){
       currentOrderData = order;
       document.getElementById('cOrderId').textContent = order.orderId || "—";
@@ -312,15 +331,13 @@
       }
 
       setTimeout(()=>{
-        document.getElementById('card').classList.remove('show');
-        document.getElementById('orderIdInput').value = '';
-        document.getElementById('orderIdInput').focus();
-        currentOrderData = null;
-        setStatus('');
+        resetLookupUI();
       }, 1100);
     }
 
     document.getElementById('lookupBtn').addEventListener('click', lookupOrder);
+    document.getElementById('clearBtn').addEventListener('click', resetLookupUI);
+
     document.getElementById('orderIdInput').addEventListener('keydown', (e)=>{
       if (e.key === 'Enter'){ e.preventDefault(); lookupOrder(); }
     });
