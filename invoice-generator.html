@@ -261,10 +261,8 @@ const CONFIG = {
   phone: "+9779747961784"
 };
 
-// Paste the Web App URL you got from the order-pipeline-mover.gs deployment here:
-const STATUS_UPDATE_URL = "https://script.google.com/macros/s/AKfycbzBSUtA0YH_G9GDUR1oQrgnkfjVEBsp4gXJ-Yz65votO0xkr9WoeaJFYkJwPfdqWhn0/exec";
+const STATUS_UPDATE_URL = "https://script.google.com/macros/s/AKfycbw0pDgEPJJ_LQn-1g9xku07XBixhHqPWMhGrDxRewkpyzI51ziBEk_wQoTMLy1dhWlL/exec";
 
-// Beautiful personalized quotes array
 const QUOTES = [
   "{name}, thank you for trusting us with something as personal as comfort. We hope this becomes a small part of your everyday peace.",
   "After a long day, may these slippers remind you, {name}, that you deserve softness too. Welcome home, every single day.",
@@ -359,19 +357,13 @@ function formatMoney(v){
   return CONFIG.currency + " " + (isNaN(n) ? (v || "0") : n.toLocaleString());
 }
 
-// Generates a personalized quote based on the customer's name
 function generatePersonalizedQuote(fullName) {
-  // Extract just the first name (e.g., "John Doe" -> "John")
   const firstName = (fullName || "Friend").trim().split(' ')[0];
-  
-  // Use the characters in their name to pick a quote consistently
   let charSum = 0;
   for (let i = 0; i < firstName.length; i++) {
     charSum += firstName.charCodeAt(i);
   }
-  
   const quoteIndex = charSum % QUOTES.length;
-  // Replace {name} placeholder with their actual first name
   return QUOTES[quoteIndex].replace('{name}', firstName);
 }
 
@@ -405,10 +397,8 @@ function renderInvoice(order){
     noteBlock.style.display = 'none';
   }
 
-  // Inject the personalized quote
   document.getElementById('invQuote').textContent = generatePersonalizedQuote(order.name);
 
-  // Render scannable barcode for the order ID
   const barcodeWrap = document.querySelector('.barcode-wrap');
   if (order.orderId && window.JsBarcode){
     try{
@@ -440,16 +430,15 @@ function setStatus(msg, type){
 
 let currentOrderId = null;
 
-// UPDATED: moves the row from "Orders" to "Processing Orders" in the sheet
 async function markOrderProcessing(orderId){
-  if (!STATUS_UPDATE_URL || STATUS_UPDATE_URL.indexOf('PASTE_YOUR') === 0){
-    console.warn('STATUS_UPDATE_URL not configured — skipping pipeline move.');
+  if (!STATUS_UPDATE_URL){
+    console.warn('STATUS_UPDATE_URL not configured.');
     return;
   }
   try{
     await fetch(STATUS_UPDATE_URL, {
       method: 'POST',
-      mode: 'no-cors', // Apps Script web apps don't return readable CORS headers by default
+      mode: 'no-cors',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ orderId: orderId, action: 'process' })
     });
@@ -483,7 +472,7 @@ async function lookupOrder(){
     const match = orders.find(o => o.orderId.replace(/\s+/g, '').toLowerCase() === targetId);
     
     if (!match){
-      setStatus(`No order found matching "${rawInput}". Check the ID and try again. (Note: Google Sheets can take 3-5 mins to publish new orders)`, 'error');
+      setStatus(`No order found matching "${rawInput}". Check the ID and try again.`, 'error');
       return;
     }
     renderInvoice(match);
@@ -517,12 +506,8 @@ document.getElementById('newSearchBtn').addEventListener('click', ()=>{
   currentOrderId = null;
 });
 
-// Auto-focus the search box so a barcode scanner (which types the code
-// then sends Enter) can scan straight into the lookup without clicking.
 document.getElementById('orderIdInput').focus();
 document.addEventListener('click', (e)=>{
-  // Re-focus after clicks elsewhere on the page, but not when the user
-  // is deliberately clicking inside another input/button.
   const tag = e.target.tagName;
   if (tag !== 'INPUT' && tag !== 'BUTTON'){
     document.getElementById('orderIdInput').focus();
