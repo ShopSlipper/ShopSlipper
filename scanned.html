@@ -56,8 +56,7 @@
     }
     .lookup button:hover { background: var(--denim-dark); }
     .lookup button:disabled { background: #c7c7c7; cursor: not-allowed; }
-    
-    /* Clear Button Styling */
+
     .lookup button.btn-clear {
       background: #e5e7eb;
       color: #374151;
@@ -97,9 +96,6 @@
     .decision .handover:hover { background: var(--green-dark); }
     .decision .failed { background: var(--red); }
     .decision .failed:hover { background: var(--red-dark); }
-    .already-tag { display: inline-block; margin-top: 10px; padding: 6px 12px; border-radius: 999px; font-size: 12.5px; font-weight: 700; letter-spacing: .3px; }
-    .already-tag.handover { background: #e2f4ea; color: var(--green-dark); }
-    .already-tag.failed { background: #fbe4e2; color: var(--red-dark); }
     .reset-hint { text-align: center; margin-top: 18px; font-size: 12.5px; color: #9ca3af; }
   </style>
 </head>
@@ -136,7 +132,6 @@
         <tbody id="cItems"></tbody>
       </table>
       <div class="total-line"><span>Total (COD)</span><span class="amt" id="cTotal">—</span></div>
-      <div id="alreadyTagWrap"></div>
       <div class="decision" id="decisionButtons">
         <button type="button" class="handover" id="handoverBtn">✅ Handover</button>
         <button type="button" class="failed" id="failedBtn">❌ Failed</button>
@@ -146,7 +141,17 @@
   </div>
 
   <script>
-    const ORDERS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSclnzIDnbWJ9KhDFUrA-cNDsUhIte3Np20P288ZwiannuwCtB34BDNSw5LMvpD_nTAgzG9IezAfiju/pub?gid=78980778&single=true&output=csv";
+    // IMPORTANT: this now points at a published CSV of the "Processing Orders"
+    // sheet, not the raw "Orders" sheet. An order only shows up here once it
+    // has actually been invoiced (moved into Processing) — which also means
+    // there's no such thing as "already marked" anymore: if it's still in
+    // Processing, it hasn't been handed over or failed yet.
+    //
+    // To get this URL: open the sheet -> File -> Share -> Publish to web ->
+    // choose the "Processing Orders" tab -> format: CSV -> Publish, then
+    // paste the resulting link below.
+    const PROCESSING_ORDERS_CSV_URL = "PASTE_YOUR_PROCESSING_ORDERS_CSV_URL_HERE";
+
     const STATUS_UPDATE_URL = "https://script.google.com/macros/s/AKfycbwlpeLl_caJdrbbJa84qUCf3LRrs6hSkqBouLwrknCev4b6AtXZo_gEyIdG9YYDXJXd/exec";
     const CONFIG = { currency: "Rs" };
 
@@ -175,6 +180,7 @@
       return rows;
     }
 
+    // Processing Orders columns: Timestamp, Order ID, Customer Name, Phone, Address, Email, Items, Total
     function csvToOrders(text){
       const rows = parseCsv(text);
       if (!rows.length) return [];
@@ -183,15 +189,14 @@
         const obj = {};
         header.forEach((h,i) => obj[h] = (r[i] || "").trim());
         return {
-          timestamp: obj['timestamp'] || obj['date'] || "",
-          orderId: obj['orderid'] || obj['order'] || obj['id'] || "",
-          name: obj['customername'] || obj['name'] || "",
-          phone: obj['phone'] || obj['phonenumber'] || "",
-          address: obj['address'] || obj['deliveryaddress'] || "",
-          email: obj['email'] || obj['emailaddress'] || "",
-          items: obj['items'] || obj['products'] || "",
-          total: obj['total'] || obj['totalamount'] || "",
-          deliveryStatus: obj['deliverystatus'] || ""
+          timestamp: obj['timestamp'] || "",
+          orderId: obj['orderid'] || "",
+          name: obj['customername'] || "",
+          phone: obj['phone'] || "",
+          address: obj['address'] || "",
+          email: obj['email'] || "",
+          items: obj['items'] || "",
+          total: obj['total'] || ""
         };
       });
     }
@@ -239,7 +244,7 @@
       document.getElementById('cName').textContent = order.name || "—";
       document.getElementById('cPhone').textContent = "📱 " + (order.phone || "—");
       document.getElementById('cAddress').textContent = "📍 " + (order.address || "—");
-      
+
       const items = parseItemsString(order.items);
       document.getElementById('cItems').innerHTML = items.map(it => `
         <tr>
@@ -248,20 +253,10 @@
           <td class="qty">${escapeHtml(it.qty)}</td>
         </tr>
       `).join('');
-      
+
       document.getElementById('cTotal').textContent = formatMoney(order.total);
-      const tagWrap = document.getElementById('alreadyTagWrap');
-      const decisionWrap = document.getElementById('decisionButtons');
-      const existing = (order.deliveryStatus || '').trim();
 
-      if (existing){
-        const cls = existing.toLowerCase() === 'handover' ? 'handover' : 'failed';
-        tagWrap.innerHTML = `<div class="already-tag ${cls}">Already marked: ${escapeHtml(existing)}</div>`;
-      } else {
-        tagWrap.innerHTML = '';
-      }
-
-      decisionWrap.querySelectorAll('button').forEach(b => b.disabled = false);
+      document.querySelectorAll('#decisionButtons button').forEach(b => b.disabled = false);
       document.getElementById('card').classList.add('show');
     }
 
@@ -272,6 +267,10 @@
         setStatus('Please scan or enter an Order ID.', 'error');
         return;
       }
+      if (!PROCESSING_ORDERS_CSV_URL || PROCESSING_ORDERS_CSV_URL.indexOf('PASTE_YOUR') === 0){
+        setStatus('PROCESSING_ORDERS_CSV_URL is not configured yet — see the comment at the top of the script.', 'error');
+        return;
+      }
 
       const btn = document.getElementById('lookupBtn');
       btn.disabled = true;
@@ -279,14 +278,14 @@
       document.getElementById('card').classList.remove('show');
 
       try {
-        const res = await fetch(ORDERS_CSV_URL + (ORDERS_CSV_URL.includes('?') ? '&' : '?') + '_=' + Date.now());
+        const res = await fetch(PROCESSING_ORDERS_CSV_URL + (PROCESSING_ORDERS_CSV_URL.includes('?') ? '&' : '?') + '_=' + Date.now());
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const text = await res.text();
         const orders = csvToOrders(text);
         const match = orders.find(o => o.orderId.replace(/\s+/g, '').toLowerCase() === targetId);
-        
+
         if (!match){
-          setStatus(`No order found matching "${rawInput}".`, 'error');
+          setStatus(`No order found in Processing matching "${rawInput}". It may not be invoiced yet, or has already been handed over / marked failed.`, 'error');
           return;
         }
 
@@ -300,6 +299,10 @@
       }
     }
 
+    // Uses a GET request (query string) instead of a no-cors POST, so the
+    // real JSON response from Apps Script can actually be read here — a
+    // rejection (e.g. "must be processed first") now shows up as an error
+    // instead of being silently treated as success.
     async function markDelivery(status){
       if (!currentOrderData || !currentOrderData.orderId) return;
       if (!STATUS_UPDATE_URL){
@@ -311,17 +314,21 @@
       setStatus('Saving…', 'loading');
 
       try {
-        await fetch(STATUS_UPDATE_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ 
-            orderId: currentOrderData.orderId, 
-            action: status.toLowerCase(),
-            items: currentOrderData.items || "",
-            email: currentOrderData.email || ""
-          })
+        const params = new URLSearchParams({
+          orderId: currentOrderData.orderId,
+          action: status.toLowerCase(),
+          items: currentOrderData.items || "",
+          email: currentOrderData.email || ""
         });
+        const res = await fetch(STATUS_UPDATE_URL + '?' + params.toString());
+        const result = await res.json();
+
+        if (result.status !== 'success'){
+          setStatus(result.message || 'Could not save status.', 'error');
+          document.querySelectorAll('#decisionButtons button').forEach(b => b.disabled = false);
+          return;
+        }
+
         setStatus(`Marked as "${status}" ✓`, 'success');
       } catch(err){
         console.error(err);
