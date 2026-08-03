@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ShopSlipper — Order History</title>
+<title>ShopSlipper — Track My Order</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
@@ -30,9 +30,9 @@
     min-height:100vh;
   }
   .mono{ font-family:'JetBrains Mono',ui-monospace,monospace; }
-  .wrap{ max-width:720px; margin:0 auto; padding:32px 20px 80px; }
+  .wrap{ max-width:640px; margin:0 auto; padding:32px 20px 80px; }
 
-  .brandbar{ display:flex; align-items:center; gap:12px; margin-bottom:28px; }
+  .brandbar{ display:flex; align-items:center; gap:12px; margin-bottom:10px; }
   .brandbar .mark{
     width:44px; height:44px; border-radius:50%; background:var(--denim); color:#fff;
     display:flex; align-items:center; justify-content:center; font-family:'Anton',sans-serif; font-size:19px;
@@ -41,6 +41,8 @@
   .brandbar .mark img{ width:100%; height:100%; object-fit:cover; display:block; }
   .brandbar h1{ font-family:'Anton',sans-serif; letter-spacing:.4px; font-size:20px; margin:0; }
   .brandbar .sub{ font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:#6b7280; margin-top:1px; }
+
+  .intro{ font-size:14px; color:#4b5563; margin-bottom:20px; line-height:1.6; }
 
   .lookup{
     background:#fff; border:2px solid var(--ink); border-radius:16px; padding:20px;
@@ -63,58 +65,41 @@
   .status.loading{ color:#6b7280; }
   .status.success{ color:var(--green-dark); font-weight:600; }
 
-  .summary{
-    display:none; margin-top:24px; background:#fff; border:2px solid var(--ink); border-radius:16px;
-    padding:20px 22px; box-shadow:0 18px 34px -22px rgba(20,24,31,0.4);
-  }
-  .summary.show{ display:block; }
-  .summary h2{ font-size:18px; margin:0 0 4px; }
-  .summary .sub-line{ font-size:13px; color:#6b7280; margin:2px 0; }
-  .summary .stats{ display:flex; gap:20px; margin-top:14px; flex-wrap:wrap; }
-  .summary .stat{ }
-  .summary .stat .num{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:20px; }
-  .summary .stat .lbl{ font-size:11px; text-transform:uppercase; letter-spacing:.8px; color:#6b7280; }
-
-  .order-list{ margin-top:20px; }
+  .order-list{ margin-top:24px; }
   .order-card{
-    background:#fff; border:1.5px solid var(--line); border-radius:14px; padding:16px 18px;
-    margin-bottom:12px; cursor:pointer; transition:border-color .15s ease, box-shadow .15s ease;
+    background:#fff; border:2px solid var(--ink); border-radius:16px; padding:20px 22px;
+    margin-bottom:14px; box-shadow:0 18px 34px -22px rgba(20,24,31,0.4);
   }
-  .order-card:hover{ border-color:var(--denim); box-shadow:0 12px 26px -20px rgba(20,24,31,0.5); }
-  .order-card.expanded{ border-color:var(--denim); }
   .oc-top{ display:flex; justify-content:space-between; align-items:baseline; gap:10px; flex-wrap:wrap; }
-  .oc-oid{ font-weight:700; font-size:15px; }
-  .oc-date{ font-size:11.5px; color:#9ca3af; }
-  .oc-summary{ font-size:13.5px; color:#4b5563; margin-top:6px; }
-  .oc-bottom{ display:flex; justify-content:space-between; align-items:center; margin-top:10px; flex-wrap:wrap; gap:8px; }
-  .oc-total{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:14.5px; }
-  .oc-tags{ display:flex; gap:6px; flex-wrap:wrap; }
+  .oc-oid{ font-weight:700; font-size:16px; }
+  .oc-date{ font-size:12px; color:#9ca3af; }
 
-  .tag{
-    display:inline-block; padding:4px 10px; border-radius:999px;
-    font-size:11.5px; font-weight:700; letter-spacing:.2px;
+  .oc-status-banner{
+    margin-top:12px; padding:10px 14px; border-radius:10px; font-size:13.5px; font-weight:700;
+    display:flex; align-items:center; gap:8px;
   }
-  .tag.handover{ background:#e2f4ea; color:var(--green-dark); }
-  .tag.failed{ background:#fbe4e2; color:var(--red-dark); }
-  .tag.processing{ background:#fdf1dc; color:var(--amber-dark); }
-  .tag.pending{ background:#eef2f6; color:#6b7280; }
+  .oc-status-banner.received{ background:#eef2f6; color:#4b5563; }
+  .oc-status-banner.preparing{ background:#fdf1dc; color:var(--amber-dark); }
+  .oc-status-banner.delivered{ background:#e2f4ea; color:var(--green-dark); }
+  .oc-status-banner.attempt-failed{ background:#fbe4e2; color:var(--red-dark); }
 
-  .oc-detail{
-    display:none; margin-top:14px; padding-top:14px; border-top:1px dashed var(--line);
-  }
-  .oc-detail.show{ display:block; }
-  .oc-detail .label{ font-size:10.5px; text-transform:uppercase; letter-spacing:1px; color:#6b7280; margin-bottom:6px; }
-  .oc-detail p{ margin:2px 0; font-size:13.5px; color:#4b5563; }
+  .oc-detail{ margin-top:14px; }
+  .oc-detail .label{ font-size:10.5px; text-transform:uppercase; letter-spacing:1px; color:#6b7280; margin-bottom:4px; }
+  .oc-detail p{ margin:2px 0 12px; font-size:13.5px; color:#4b5563; }
 
-  table.items{ width:100%; border-collapse:collapse; margin-top:8px; }
+  table.items{ width:100%; border-collapse:collapse; margin-top:4px; }
   table.items th{
     text-align:left; font-size:10px; text-transform:uppercase; letter-spacing:.8px; color:#6b7280;
     border-bottom:1.5px solid var(--ink); padding:0 6px 6px 0;
   }
-  table.items td{ font-size:13px; padding:7px 6px 7px 0; border-bottom:1px solid var(--line); }
+  table.items td{ font-size:13px; padding:8px 6px 8px 0; border-bottom:1px solid var(--line); }
   table.items td.qty{ text-align:center; font-family:'JetBrains Mono',monospace; }
 
+  .oc-total{ display:flex; justify-content:space-between; margin-top:10px; font-size:15px; font-weight:700; }
+  .oc-total .amt{ font-family:'JetBrains Mono',monospace; }
+
   .empty-hint{ text-align:center; margin-top:40px; color:#9ca3af; font-size:13.5px; }
+  .privacy-note{ text-align:center; margin-top:30px; font-size:11.5px; color:#9ca3af; line-height:1.6; }
 </style>
 </head>
 <body>
@@ -123,28 +108,21 @@
     <div class="mark"><img src="https://raw.githubusercontent.com/ShopSlipper/ShopSlipper/main/WhatsApp%20Image%202026-07-20%20at%202.17.32%20PM.jpeg" alt="ShopSlipper logo"></div>
     <div>
       <h1>ShopSlipper</h1>
-      <div class="sub">Order History Lookup</div>
+      <div class="sub">Track My Order</div>
     </div>
   </div>
+  <div class="intro">Enter the phone number or email you used when ordering to see your order status and details.</div>
 
   <div class="lookup">
-    <input type="text" id="searchInput" placeholder="Enter phone number or email address" autocomplete="off" />
-    <button type="button" id="searchBtn">Search</button>
+    <input type="text" id="searchInput" placeholder="Your phone number or email" autocomplete="off" />
+    <button type="button" id="searchBtn">Track Order</button>
   </div>
   <div class="status" id="statusMsg"></div>
 
-  <div class="summary" id="summary">
-    <h2 id="sumName"></h2>
-    <div class="sub-line" id="sumPhone"></div>
-    <div class="sub-line" id="sumEmail"></div>
-    <div class="stats">
-      <div class="stat"><div class="num" id="sumCount">0</div><div class="lbl">Orders</div></div>
-      <div class="stat"><div class="num" id="sumTotal">—</div><div class="lbl">Total Spent</div></div>
-    </div>
-  </div>
-
   <div class="order-list" id="orderList"></div>
-  <div class="empty-hint" id="emptyHint" style="display:none;">No orders found for that phone number or email.</div>
+  <div class="empty-hint" id="emptyHint" style="display:none;">We couldn't find any orders for that phone number or email. Please double check and try again.</div>
+
+  <div class="privacy-note">For your privacy, please enter your full phone number or email exactly as used when ordering.</div>
 </div>
 
 <script>
@@ -191,7 +169,6 @@ function csvToOrders(text){
       email: obj['email'] || obj['emailaddress'] || "",
       items: obj['items'] || obj['products'] || "",
       total: obj['total'] || obj['totalamount'] || "",
-      note: obj['note'] || obj['notes'] || "",
       status: obj['status'] || "",
       deliveryStatus: obj['deliverystatus'] || ""
     };
@@ -204,10 +181,10 @@ function parseItemsString(itemsStr){
   const re = /([^,[]+?)\s*\[SKU:\s*([^\]]+)\]\s*\[([^\]]+)\]\s*\(x(\d+)\)/g;
   let m;
   while ((m = re.exec(itemsStr)) !== null){
-    items.push({ name: m[1].replace(/^,\s*/, '').trim(), sku: m[2].trim(), options: m[3].trim(), qty: m[4] });
+    items.push({ name: m[1].replace(/^,\s*/, '').trim(), options: m[3].trim(), qty: m[4] });
   }
   if (!items.length && itemsStr.trim()){
-    items.push({ name: itemsStr.trim(), sku: "—", options: "—", qty: "—" });
+    items.push({ name: itemsStr.trim(), options: "—", qty: "—" });
   }
   return items;
 }
@@ -229,78 +206,52 @@ function setStatus(msg, type){
   el.className = 'status' + (type ? ' ' + type : '');
 }
 
-function statusTags(order){
-  const tags = [];
+// Translate internal status columns into a single friendly customer-facing banner
+function friendlyStatus(order){
+  const delivery = (order.deliveryStatus || '').trim().toLowerCase();
+  const status = (order.status || '').trim().toLowerCase();
 
-  if (order.status && order.status.trim()){
-    const cls = order.status.trim().toLowerCase() === 'processing' ? 'processing' : 'pending';
-    tags.push(`<span class="tag ${cls}">${escapeHtml(order.status.trim())}</span>`);
+  if (delivery === 'handover'){
+    return { cls: 'delivered', text: '✅ Delivered' };
   }
-
-  if (order.deliveryStatus && order.deliveryStatus.trim()){
-    const cls = order.deliveryStatus.trim().toLowerCase() === 'handover' ? 'handover' : 'failed';
-    tags.push(`<span class="tag ${cls}">${escapeHtml(order.deliveryStatus.trim())}</span>`);
+  if (delivery === 'failed'){
+    return { cls: 'attempt-failed', text: '⚠️ Delivery attempt unsuccessful — we will contact you to reschedule' };
   }
-
-  if (!tags.length){
-    tags.push(`<span class="tag pending">Pending</span>`);
+  if (status === 'processing'){
+    return { cls: 'preparing', text: '📦 Being prepared for delivery' };
   }
-
-  return tags.join('');
+  return { cls: 'received', text: '🕒 Order received' };
 }
 
 function renderResults(matches){
   const listEl = document.getElementById('orderList');
   const emptyHint = document.getElementById('emptyHint');
-  const summary = document.getElementById('summary');
 
   if (!matches.length){
     listEl.innerHTML = '';
-    summary.classList.remove('show');
     emptyHint.style.display = 'block';
     return;
   }
   emptyHint.style.display = 'none';
 
-  // Sort newest first when timestamps look sortable
   const sorted = matches.slice().sort((a,b) => {
     const da = new Date(a.timestamp), db = new Date(b.timestamp);
     if (!isNaN(da) && !isNaN(db)) return db - da;
     return 0;
   });
 
-  const custName = sorted.find(o => o.name)?.name || 'Customer';
-  const custPhone = sorted.find(o => o.phone)?.phone || '—';
-  const custEmail = sorted.find(o => o.email)?.email || '—';
-  const totalSpent = sorted.reduce((sum, o) => {
-    const n = Number(String(o.total).replace(/[^0-9.]/g, ''));
-    return sum + (isNaN(n) ? 0 : n);
-  }, 0);
-
-  document.getElementById('sumName').textContent = custName;
-  document.getElementById('sumPhone').textContent = "📱 " + custPhone;
-  document.getElementById('sumEmail').textContent = custEmail !== '—' ? "📧 " + custEmail : '';
-  document.getElementById('sumCount').textContent = sorted.length;
-  document.getElementById('sumTotal').textContent = CONFIG.currency + " " + totalSpent.toLocaleString();
-  summary.classList.add('show');
-
-  listEl.innerHTML = sorted.map((o, idx) => {
-    const itemsSummary = parseItemsString(o.items).map(it => `${it.name} x${it.qty}`).join(', ');
+  listEl.innerHTML = sorted.map(o => {
+    const fs = friendlyStatus(o);
     return `
-      <div class="order-card" data-idx="${idx}">
+      <div class="order-card">
         <div class="oc-top">
           <span class="oc-oid mono">${escapeHtml(o.orderId)}</span>
           <span class="oc-date">${escapeHtml(o.timestamp)}</span>
         </div>
-        <div class="oc-summary">${escapeHtml(itemsSummary || 'No items listed')}</div>
-        <div class="oc-bottom">
-          <span class="oc-total">${formatMoney(o.total)}</span>
-          <div class="oc-tags">${statusTags(o)}</div>
-        </div>
-        <div class="oc-detail" id="detail-${idx}">
+        <div class="oc-status-banner ${fs.cls}">${fs.text}</div>
+        <div class="oc-detail">
           <div class="label">Delivery Address</div>
           <p>${escapeHtml(o.address || '—')}</p>
-          ${o.note ? `<div class="label">Note</div><p>${escapeHtml(o.note)}</p>` : ''}
           <div class="label">Items</div>
           <table class="items">
             <thead><tr><th>Item</th><th>Options</th><th class="qty">Qty</th></tr></thead>
@@ -311,37 +262,22 @@ function renderResults(matches){
             </tbody>
           </table>
         </div>
+        <div class="oc-total"><span>Total (Cash on Delivery)</span><span class="amt">${formatMoney(o.total)}</span></div>
       </div>
     `;
   }).join('');
-
-  listEl.querySelectorAll('.order-card').forEach(card => {
-    card.addEventListener('click', () => {
-      const idx = card.getAttribute('data-idx');
-      const detail = document.getElementById('detail-' + idx);
-      const isOpen = detail.classList.contains('show');
-      // Close any other open detail
-      listEl.querySelectorAll('.oc-detail.show').forEach(d => d.classList.remove('show'));
-      listEl.querySelectorAll('.order-card.expanded').forEach(c => c.classList.remove('expanded'));
-      if (!isOpen){
-        detail.classList.add('show');
-        card.classList.add('expanded');
-      }
-    });
-  });
 }
 
 async function searchCustomer(){
   const rawInput = document.getElementById('searchInput').value.trim();
   if (!rawInput){
-    setStatus('Enter a phone number or email to search.', 'error');
+    setStatus('Please enter your phone number or email.', 'error');
     return;
   }
 
   const btn = document.getElementById('searchBtn');
   btn.disabled = true;
-  setStatus('Searching…', 'loading');
-  document.getElementById('summary').classList.remove('show');
+  setStatus('Looking up your orders…', 'loading');
   document.getElementById('orderList').innerHTML = '';
   document.getElementById('emptyHint').style.display = 'none';
 
@@ -356,20 +292,22 @@ async function searchCustomer(){
     let matches = [];
 
     if (isEmailish){
-      matches = orders.filter(o => o.email && o.email.toLowerCase().includes(rawInput.toLowerCase()));
-    } else if (digitsOnly.length >= 4){
-      matches = orders.filter(o => o.phone && o.phone.replace(/[^0-9]/g, '').includes(digitsOnly));
+      // Exact email match (case-insensitive) — avoids exposing others' orders via partial match
+      matches = orders.filter(o => o.email && o.email.toLowerCase() === rawInput.toLowerCase());
+    } else if (digitsOnly.length >= 7){
+      // Exact phone match on digits only — avoids exposing others' orders via partial digit match
+      matches = orders.filter(o => o.phone && o.phone.replace(/[^0-9]/g, '') === digitsOnly);
     } else {
-      setStatus('Enter at least 4 digits of a phone number, or a valid email.', 'error');
+      setStatus('Please enter your full phone number or a valid email address.', 'error');
       btn.disabled = false;
       return;
     }
 
     renderResults(matches);
-    setStatus(matches.length ? `${matches.length} order${matches.length > 1 ? 's' : ''} found.` : '', matches.length ? 'success' : '');
+    setStatus(matches.length ? `Found ${matches.length} order${matches.length > 1 ? 's' : ''}.` : '', matches.length ? 'success' : '');
   } catch (err){
     console.error(err);
-    setStatus('Could not load order data — please try again.', 'error');
+    setStatus('Could not load your orders right now — please try again in a moment.', 'error');
   } finally {
     btn.disabled = false;
   }
@@ -379,7 +317,6 @@ document.getElementById('searchBtn').addEventListener('click', searchCustomer);
 document.getElementById('searchInput').addEventListener('keydown', (e)=>{
   if (e.key === 'Enter'){ e.preventDefault(); searchCustomer(); }
 });
-document.getElementById('searchInput').focus();
 </script>
 </body>
 </html>
