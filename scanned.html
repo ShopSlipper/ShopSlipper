@@ -117,7 +117,7 @@
   </div>
 
   <div class="lookup">
-    <input type="text" id="orderIdInput" placeholder="Enter Order ID" autocomplete="off" />
+    <input type="text" id="orderIdInput" placeholder="Scan or enter Order ID" autocomplete="off" />
     <button type="button" id="lookupBtn">Find</button>
   </div>
   <div class="status" id="statusMsg"></div>
@@ -155,7 +155,7 @@ const ORDERS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRhZzq7p
 const CONFIG = { currency: "Rs" };
 
 // Same Apps Script Web App URL used by the invoice generator
-const STATUS_UPDATE_URL = "https://script.google.com/macros/s/AKfycbzb41GKorM_F6MMqUmdK9rLc5NMMvY3o2BD6hcBXhiod93Ub2CRHijI5T3gWisjIsP1/exec";
+const STATUS_UPDATE_URL = "PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE";
 const DELIVERY_FIELD = "Delivery Status"; // column this page writes to
 
 function parseCsv(text){
@@ -195,6 +195,7 @@ function csvToOrders(text){
       name: obj['customername'] || obj['name'] || "",
       phone: obj['phone'] || obj['phonenumber'] || "",
       address: obj['address'] || obj['deliveryaddress'] || "",
+      email: obj['email'] || obj['emailaddress'] || "",
       items: obj['items'] || obj['products'] || "",
       total: obj['total'] || obj['totalamount'] || "",
       deliveryStatus: obj['deliverystatus'] || ""
@@ -315,23 +316,12 @@ async function markDelivery(status){
   setStatus('Saving…', 'loading');
 
   try{
-    const res = await fetch(STATUS_UPDATE_URL, {
+    await fetch(STATUS_UPDATE_URL, {
       method: 'POST',
-      body: JSON.stringify({
-        orderId: currentOrderId,
-        status: status,
-        field: DELIVERY_FIELD,
-        timeField: DELIVERY_FIELD + ' Time'
-      })
+      mode: 'no-cors', // Apps Script web apps don't expose readable CORS headers by default
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ orderId: currentOrderId, status: status, field: DELIVERY_FIELD })
     });
-    const result = await res.json();
-
-    if (!result.success){
-      setStatus('Could not save: ' + (result.error || 'unknown error'), 'error');
-      document.querySelectorAll('#decisionButtons button').forEach(b => b.disabled = false);
-      return;
-    }
-
     setStatus(`Marked as "${status}" ✓`, 'success');
   } catch(err){
     console.error(err);
