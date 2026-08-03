@@ -315,12 +315,23 @@ async function markDelivery(status){
   setStatus('Saving…', 'loading');
 
   try{
-    await fetch(STATUS_UPDATE_URL, {
+    const res = await fetch(STATUS_UPDATE_URL, {
       method: 'POST',
-      mode: 'no-cors', // Apps Script web apps don't expose readable CORS headers by default
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ orderId: currentOrderId, status: status, field: DELIVERY_FIELD })
+      body: JSON.stringify({
+        orderId: currentOrderId,
+        status: status,
+        field: DELIVERY_FIELD,
+        timeField: DELIVERY_FIELD + ' Time'
+      })
     });
+    const result = await res.json();
+
+    if (!result.success){
+      setStatus('Could not save: ' + (result.error || 'unknown error'), 'error');
+      document.querySelectorAll('#decisionButtons button').forEach(b => b.disabled = false);
+      return;
+    }
+
     setStatus(`Marked as "${status}" ✓`, 'success');
   } catch(err){
     console.error(err);
