@@ -19,6 +19,8 @@
     --red-dark:#c94a40;
     --amber:#d9a441;
     --amber-dark:#b5822d;
+    --grey:#8a94a3;
+    --grey-dark:#5f6b7a;
   }
   *{ box-sizing:border-box; }
   body{
@@ -100,6 +102,7 @@
   }
   .tag.handover{ background:#e2f4ea; color:var(--green-dark); }
   .tag.failed{ background:#fbe4e2; color:var(--red-dark); }
+  .tag.cancelled{ background:#e9ebef; color:var(--grey-dark); }
   .tag.processing{ background:#fdf1dc; color:var(--amber-dark); }
   .tag.pending{ background:#eef2f6; color:#6b7280; }
 
@@ -119,6 +122,14 @@
   table.items td.qty{ text-align:center; font-family:'JetBrains Mono',monospace; }
 
   .empty-hint{ text-align:center; margin-top:40px; color:#9ca3af; font-size:13.5px; }
+
+  .cancel-btn{
+    margin-top:14px; background:#fff; color:var(--red-dark); border:1.5px solid var(--red-dark);
+    border-radius:8px; padding:9px 16px; font-size:13px; font-weight:700; cursor:pointer;
+    transition:background .15s ease, color .15s ease;
+  }
+  .cancel-btn:hover:not(:disabled){ background:var(--red-dark); color:#fff; }
+  .cancel-btn:disabled{ opacity:.6; cursor:not-allowed; }
 </style>
 </head>
 <body>
@@ -154,6 +165,7 @@
 
 <script>
 const ORDERS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRhZzq7pSJWpA6PUs_K2UVL0lAQn78542JABRaLoZdgUfD6jr_IO_OuDDs4Ts9Lx4Pe0gQvjeO2vwGS/pub?gid=281007740&single=true&output=csv";
+const STATUS_UPDATE_URL = "https://script.google.com/macros/s/AKfycbzb41GKorM_F6MMqUmdK9rLc5NMMvY3o2BD6hcBXhiod93Ub2CRHijI5T3gWisjIsP1/exec";
 const CONFIG = { currency: "Rs" };
 
 function parseCsv(text){
@@ -236,10 +248,11 @@ function setStatus(msg, type){
 
 /**
  * Priority-based single status tag:
- *   1) Delivery Status = "Handover" -> Handover
- *   2) Delivery Status = "Failed"   -> Failed
- *   3) Status = "Processing" (and no delivery status yet) -> Processing
- *   4) Nothing set -> Pending
+ *   1) Delivery Status = "Handover"  -> Handover
+ *   2) Delivery Status = "Cancelled" -> Cancelled (customer/order cancelled)
+ *   3) Delivery Status = "Failed"    -> Failed (delivery attempt failed)
+ *   4) Status = "Processing" (and no delivery status yet) -> Processing
+ *   5) Nothing set -> Pending
  */
 function statusTags(order){
   const ds = (order.deliveryStatus || '').trim().toLowerCase();
@@ -247,6 +260,9 @@ function statusTags(order){
 
   if (ds === 'handover'){
     return `<span class="tag handover">Handover</span>`;
+  }
+  if (ds === 'cancelled' || ds === 'canceled'){
+    return `<span class="tag cancelled">Cancelled</span>`;
   }
   if (ds === 'failed'){
     return `<span class="tag failed">Failed</span>`;
@@ -256,6 +272,13 @@ function statusTags(order){
   }
   return `<span class="tag pending">Pending</span>`;
 }
+
+function canCancel(order){
+  const ds = (order.deliveryStatus || '').trim().toLowerCase();
+  return ds !== 'handover' && ds !== 'cancelled' && ds !== 'canceled';
+}
+
+let currentOrders = [];
 
 function renderResults(matches){
   const listEl = document.getElementById('orderList');
@@ -281,6 +304,8 @@ function renderResults(matches){
   const custPhone = sorted.find(o => o.phone)?.phone || '—';
   const custEmail = sorted.find(o => o.email)?.email || '—';
   const totalSpent = sorted.reduce((sum, o) => {
+    const ds = (o.deliveryStatus || '').trim().toLowerCase();
+    if (ds === 'cancelled' || ds === 'canceled' || ds === 'failed') return sum;
     const n = Number(String(o.total).replace(/[^0-9.]/g, ''));
     return sum + (isNaN(n) ? 0 : n);
   }, 0);
@@ -291,6 +316,8 @@ function renderResults(matches){
   document.getElementById('sumCount').textContent = sorted.length;
   document.getElementById('sumTotal').textContent = CONFIG.currency + " " + totalSpent.toLocaleString();
   summary.classList.add('show');
+
+  currentOrders = sorted;
 
   listEl.innerHTML = sorted.map((o, idx) => {
     const itemsSummary = parseItemsString(o.items).map(it => `${it.name} x${it.qty}`).join(', ');
@@ -318,10 +345,19 @@ function renderResults(matches){
               `).join('')}
             </tbody>
           </table>
+          ${canCancel(o) ? `<button type="button" class="cancel-btn" data-cancel-idx="${idx}">Cancel Order</button>` : ''}
         </div>
       </div>
     `;
   }).join('');
+
+  listEl.querySelectorAll('.cancel-btn').forEach(btn => {
+    btn.addEventListener('click', (evt) => {
+      evt.stopPropagation();
+      const idx = btn.getAttribute('data-cancel-idx');
+      handleCancelOrder(idx, btn);
+    });
+  });
 
   listEl.querySelectorAll('.order-card').forEach(card => {
     card.addEventListener('click', () => {
@@ -337,6 +373,45 @@ function renderResults(matches){
       }
     });
   });
+}
+
+async function handleCancelOrder(idx, btn){
+  const order = currentOrders[idx];
+  if (!order) return;
+
+  const confirmed = confirm(`Cancel order ${order.orderId}? This will mark it as Cancelled and cannot be undone from here.`);
+  if (!confirmed) return;
+
+  btn.disabled = true;
+  btn.textContent = 'Cancelling…';
+
+  try {
+    const res = await fetch(STATUS_UPDATE_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        orderId: order.orderId,
+        status: 'Cancelled',
+        field: 'Delivery Status',
+        timeField: 'Delivery Status Time'
+      })
+    });
+    const result = await res.json();
+
+    if (result.success){
+      order.deliveryStatus = 'Cancelled';
+      setStatus(`Order ${order.orderId} cancelled.`, 'success');
+      renderResults(currentOrders);
+    } else {
+      btn.disabled = false;
+      btn.textContent = 'Cancel Order';
+      setStatus('Could not cancel: ' + (result.error || 'unknown error'), 'error');
+    }
+  } catch (err){
+    console.error(err);
+    btn.disabled = false;
+    btn.textContent = 'Cancel Order';
+    setStatus('Could not reach server — please try again.', 'error');
+  }
 }
 
 async function searchCustomer(){
