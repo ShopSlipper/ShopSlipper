@@ -58,6 +58,7 @@
   .status{ margin-top:14px; font-size:13.5px; }
   .status.error{ color:#b3453a; }
   .status.loading{ color:#6b7280; }
+  .status.success{ color:#379764; font-weight:600; }
 
   .invoice{
     display:none; margin-top:28px; background:#fff; border:2px solid var(--ink); border-radius:18px;
@@ -114,6 +115,7 @@
   }
   .actions button.primary{ background:var(--ink); color:#fff; }
   .actions button:hover{ background:var(--ink); color:#fff; }
+  .actions button:disabled{ opacity:.6; cursor:not-allowed; }
 
   @media (max-width:640px){
     .inv-head{ flex-direction:column; }
@@ -261,7 +263,7 @@ const CONFIG = {
   phone: "+9779747961784"
 };
 
-// Paste the Web App URL you got from Apps Script deployment here:
+// Apps Script Web App URL (deployed from apps-script.gs)
 const STATUS_UPDATE_URL = "https://script.google.com/macros/s/AKfycbwlpeLl_caJdrbbJa84qUCf3LRrs6hSkqBouLwrknCev4b6AtXZo_gEyIdG9YYDXJXd/exec";
 
 // Beautiful personalized quotes array
@@ -361,17 +363,12 @@ function formatMoney(v){
 
 // Generates a personalized quote based on the customer's name
 function generatePersonalizedQuote(fullName) {
-  // Extract just the first name (e.g., "John Doe" -> "John")
   const firstName = (fullName || "Friend").trim().split(' ')[0];
-  
-  // Use the characters in their name to pick a quote consistently
   let charSum = 0;
   for (let i = 0; i < firstName.length; i++) {
     charSum += firstName.charCodeAt(i);
   }
-  
   const quoteIndex = charSum % QUOTES.length;
-  // Replace {name} placeholder with their actual first name
   return QUOTES[quoteIndex].replace('{name}', firstName);
 }
 
@@ -405,10 +402,8 @@ function renderInvoice(order){
     noteBlock.style.display = 'none';
   }
 
-  // Inject the personalized quote
   document.getElementById('invQuote').textContent = generatePersonalizedQuote(order.name);
 
-  // Render scannable barcode for the order ID
   const barcodeWrap = document.querySelector('.barcode-wrap');
   if (order.orderId && window.JsBarcode){
     try{
@@ -440,29 +435,28 @@ function setStatus(msg, type){
 
 let currentOrderData = null;
 
+// Uses a GET request (query string) instead of a no-cors POST, so the
+// real JSON response from Apps Script can actually be read here.
 async function markOrderProcessing(order){
-  if (!STATUS_UPDATE_URL || STATUS_UPDATE_URL.indexOf('PASTE_YOUR') === 0){
-    console.warn('STATUS_UPDATE_URL not configured — skipping status update.');
-    return;
+  if (!STATUS_UPDATE_URL){
+    return { status: 'error', message: 'STATUS_UPDATE_URL not configured' };
   }
   try{
-    await fetch(STATUS_UPDATE_URL, {
-      method: 'POST',
-      mode: 'no-cors', // Apps Script web apps don't return readable CORS headers by default
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({
-        orderId: order.orderId,
-        action: 'processing',
-        name: order.name,
-        phone: order.phone,
-        address: order.address,
-        email: order.email,
-        items: order.items,
-        total: order.total
-      })
+    const params = new URLSearchParams({
+      orderId: order.orderId || '',
+      action: 'processing',
+      name: order.name || '',
+      phone: order.phone || '',
+      address: order.address || '',
+      email: order.email || '',
+      items: order.items || '',
+      total: order.total || ''
     });
+    const res = await fetch(STATUS_UPDATE_URL + '?' + params.toString());
+    return await res.json();
   } catch(err){
     console.error('Failed to update order status:', err);
+    return { status: 'error', message: err.toString() };
   }
 }
 
@@ -510,9 +504,20 @@ document.getElementById('lookupBtn').addEventListener('click', lookupOrder);
 document.getElementById('orderIdInput').addEventListener('keydown', (e)=>{
   if (e.key === 'Enter'){ e.preventDefault(); lookupOrder(); }
 });
-document.getElementById('printBtn').addEventListener('click', ()=>{
+document.getElementById('printBtn').addEventListener('click', async ()=>{
   if (currentOrderData){
-    markOrderProcessing(currentOrderData);
+    const btn = document.getElementById('printBtn');
+    btn.disabled = true;
+    const original = btn.textContent;
+    btn.textContent = 'Saving…';
+    const result = await markOrderProcessing(currentOrderData);
+    btn.disabled = false;
+    btn.textContent = original;
+    if (result.status !== 'success'){
+      setStatus('Could not save to Processing Orders: ' + (result.message || 'unknown error') + ' — printing anyway, but please check the sheet.', 'error');
+    } else {
+      setStatus('Saved to Processing Orders ✓', 'success');
+    }
   }
   window.print();
 });
@@ -529,8 +534,6 @@ document.getElementById('newSearchBtn').addEventListener('click', ()=>{
 // then sends Enter) can scan straight into the lookup without clicking.
 document.getElementById('orderIdInput').focus();
 document.addEventListener('click', (e)=>{
-  // Re-focus after clicks elsewhere on the page, but not when the user
-  // is deliberately clicking inside another input/button.
   const tag = e.target.tagName;
   if (tag !== 'INPUT' && tag !== 'BUTTON'){
     document.getElementById('orderIdInput').focus();
