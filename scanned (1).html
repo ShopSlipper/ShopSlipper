@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>ShopSlipper — Delivery Status</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#28394a;
+    --paper:#eef5ee;
+    --line:#d9e6de;
+    --denim:#5b8fc7;
+    --denim-dark:#3f6c9e;
+    --thread:#e08a7d;
+    --mustard:#8fc9a0;
+    --green:#379764;
+    --red:#b3453a;
+    --amber:#c9922f;
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body{
+    margin:0; color:var(--ink); font-family:'Inter',system-ui,sans-serif;
+    background:
+      radial-gradient(1000px 500px at 8% -10%, rgba(143,201,160,0.28), transparent 55%),
+      radial-gradient(900px 500px at 100% 0%, rgba(91,143,199,0.22), transparent 55%),
+      linear-gradient(160deg, #eef5ee 0%, #e3edf6 45%, #dbe8f4 100%);
+    min-height:100vh;
+  }
+  .mono{ font-family:'JetBrains Mono',ui-monospace,monospace; }
+  .wrap{ max-width:480px; margin:0 auto; padding:24px 16px 60px; }
+
+  .brandbar{ display:flex; align-items:center; gap:12px; margin-bottom:22px; }
+  .brandbar .mark{
+    width:40px; height:40px; border-radius:50%; background:var(--denim); color:#fff;
+    display:flex; align-items:center; justify-content:center; font-family:'Anton',sans-serif; font-size:17px;
+    overflow:hidden; flex-shrink:0;
+  }
+  .brandbar .mark img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .brandbar h1{ font-family:'Anton',sans-serif; letter-spacing:.4px; font-size:18px; margin:0; }
+  .brandbar .sub{ font-size:10.5px; letter-spacing:1.5px; text-transform:uppercase; color:#6b7280; margin-top:1px; }
+
+  .card{
+    background:#fff; border:2px solid var(--ink); border-radius:16px; padding:20px;
+    box-shadow:0 18px 34px -22px rgba(20,24,31,0.4); margin-bottom:16px;
+  }
+
+  .lookup{ display:flex; gap:8px; }
+  .lookup input{
+    flex:1; min-width:0; border:1.5px solid var(--line); border-radius:10px; padding:12px 14px;
+    font-family:'JetBrains Mono',monospace; font-size:14px; background:var(--paper); text-transform:uppercase;
+  }
+  .lookup input:focus{ outline:2px solid var(--denim); border-color:var(--denim); }
+  .lookup button{
+    background:var(--denim); color:#fff; border:none; border-radius:10px; padding:12px 18px;
+    font-weight:700; font-size:14px; cursor:pointer;
+  }
+
+  .status{ margin-top:12px; font-size:13.5px; }
+  .status.error{ color:var(--red); }
+  .status.loading{ color:#6b7280; }
+  .status.success{ color:var(--green); font-weight:600; }
+
+  .order-oid{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:18px; margin-bottom:10px; }
+  .order-row{ display:flex; gap:8px; font-size:13.5px; margin:4px 0; color:#374151; }
+  .order-row .k{ color:#9ca3af; min-width:64px; flex-shrink:0; }
+
+  .actions{ display:none; flex-direction:column; gap:10px; margin-top:6px; }
+  .actions.show{ display:flex; }
+  .actions button{
+    border:2px solid var(--ink); border-radius:14px; padding:16px; font-weight:700; font-size:15.5px;
+    cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; background:#fff; color:var(--ink);
+  }
+  .actions button.delivered{ background:var(--green); border-color:var(--green); color:#fff; }
+  .actions button.postponed{ background:var(--amber); border-color:var(--amber); color:#fff; }
+  .actions button.failed{ background:var(--red); border-color:var(--red); color:#fff; }
+  .actions button:active{ transform:scale(0.98); }
+  .actions button:disabled{ opacity:.55; cursor:not-allowed; transform:none; }
+
+  .postpone-panel{ display:none; margin-top:6px; background:var(--paper); border:1.5px dashed var(--amber); border-radius:12px; padding:14px; }
+  .postpone-panel.show{ display:block; }
+  .postpone-panel label{ font-size:11.5px; text-transform:uppercase; letter-spacing:.8px; color:#6b7280; display:block; margin-bottom:6px; }
+  .postpone-panel input[type=date]{
+    width:100%; border:1.5px solid var(--line); border-radius:10px; padding:10px 12px; font-size:14.5px;
+    font-family:'JetBrains Mono',monospace; background:#fff; margin-bottom:10px;
+  }
+  .postpone-panel .row{ display:flex; gap:8px; }
+  .postpone-panel button{ flex:1; border-radius:10px; border:1.5px solid var(--ink); padding:11px; font-weight:700; font-size:13.5px; cursor:pointer; }
+  .postpone-panel button.confirm{ background:var(--amber); border-color:var(--amber); color:#fff; }
+  .postpone-panel button.cancel{ background:#fff; color:var(--ink); }
+
+  .result{ display:none; text-align:center; padding:30px 10px; }
+  .result.show{ display:block; }
+  .result .icon{ font-size:52px; margin-bottom:10px; }
+  .result h2{ font-family:'Anton',sans-serif; font-size:20px; margin:0 0 6px; }
+  .result p{ color:#6b7280; font-size:13.5px; margin:0; }
+  .result.delivered .icon{ color:var(--green); }
+  .result.postponed .icon{ color:var(--amber); }
+  .result.failed .icon{ color:var(--red); }
+
+  .newlookup{
+    margin-top:18px; width:100%; border:1.5px solid var(--ink); background:#fff; color:var(--ink);
+    border-radius:999px; padding:11px; font-weight:700; font-size:13.5px; cursor:pointer;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brandbar">
+    <div class="mark"><img src="https://raw.githubusercontent.com/ShopSlipper/ShopSlipper/main/WhatsApp%20Image%202026-07-20%20at%202.17.32%20PM.jpeg" alt="ShopSlipper logo"></div>
+    <div>
+      <h1>ShopSlipper</h1>
+      <div class="sub">Delivery Status</div>
+    </div>
+  </div>
+
+  <div class="card" id="lookupCard">
+    <div class="lookup">
+      <input type="text" id="orderIdInput" placeholder="Order ID, e.g. SS7029074NP" autocomplete="off" />
+      <button type="button" id="lookupBtn">Go</button>
+    </div>
+    <div class="status" id="statusMsg"></div>
+  </div>
+
+  <div class="card" id="orderCard" style="display:none;">
+    <div class="order-oid mono" id="orderOid"></div>
+    <div class="order-row"><span class="k">Customer</span><span id="orderName"></span></div>
+    <div class="order-row"><span class="k">Phone</span><span id="orderPhone"></span></div>
+    <div class="order-row"><span class="k">Address</span><span id="orderAddress"></span></div>
+    <div class="order-row"><span class="k">Total</span><span id="orderTotal"></span></div>
+
+    <div class="actions" id="actionButtons">
+      <button type="button" class="delivered" id="btnDelivered">✅ Delivered</button>
+      <button type="button" class="postponed" id="btnPostponed">📅 Postponed</button>
+      <button type="button" class="failed" id="btnFailed">❌ Failed</button>
+    </div>
+
+    <div class="postpone-panel" id="postponePanel">
+      <label for="postponeDate">Reschedule to</label>
+      <input type="date" id="postponeDate">
+      <div class="row">
+        <button type="button" class="cancel" id="postponeCancel">Cancel</button>
+        <button type="button" class="confirm" id="postponeConfirm">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card result" id="resultCard">
+    <div class="icon" id="resultIcon"></div>
+    <h2 id="resultTitle"></h2>
+    <p id="resultSub"></p>
+    <button type="button" class="newlookup" id="newLookupBtn">Scan Next Order</button>
+  </div>
+</div>
+
+<script>
+// Same published CSV as the invoice generator — used to show the rider who they're delivering to
+const ORDERS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSclnzIDnbWJ9KhDFUrA-cNDsUhIte3Np20P288ZwiannuwCtB34BDNSw5LMvpD_nTAgzG9IezAfiju/pub?gid=0&single=true&output=csv";
+const CONFIG = { currency: "Rs" };
+
+// TODO: paste the Web App URL from the NEW Apps Script bound to the "Delivery Status" spreadsheet
+const DELIVERY_STATUS_URL = "PASTE_DELIVERY_STATUS_WEBAPP_URL_HERE";
+
+function parseCsv(text){
+  const rows = [];
+  let row = [], field = "", inQuotes = false;
+  for (let i=0;i<text.length;i++){
+    const c = text[i], next = text[i+1];
+    if (inQuotes){
+      if (c === '"' && next === '"'){ field += '"'; i++; }
+      else if (c === '"'){ inQuotes = false; }
+      else field += c;
+    } else {
+      if (c === '"') inQuotes = true;
+      else if (c === ','){ row.push(field); field = ""; }
+      else if (c === '\n' || c === '\r'){
+        if (c === '\r' && next === '\n') continue;
+        row.push(field); field = "";
+        if (row.length > 1 || row[0] !== "") rows.push(row);
+        row = [];
+      } else field += c;
+    }
+  }
+  if (field.length || row.length){ row.push(field); rows.push(row); }
+  return rows;
+}
+
+function csvToOrders(text){
+  const rows = parseCsv(text);
+  if (!rows.length) return [];
+  const header = rows[0].map(h => h.trim().toLowerCase().replace(/[^a-z0-9]/g, ''));
+  return rows.slice(1).filter(r => r.length > 1 || r[0]).map(r => {
+    const obj = {};
+    header.forEach((h,i) => obj[h] = (r[i] || "").trim());
+    return {
+      orderId: obj['orderid'] || obj['order'] || obj['id'] || "",
+      name: obj['customername'] || obj['name'] || "",
+      phone: obj['phone'] || obj['phonenumber'] || "",
+      address: obj['address'] || obj['deliveryaddress'] || "",
+      total: obj['total'] || obj['totalamount'] || ""
+    };
+  });
+}
+
+function formatMoney(v){
+  if (!v) return "—";
+  const strVal = String(v).replace(/[^0-9.]/g, '');
+  const n = Number(strVal);
+  return CONFIG.currency + " " + (isNaN(n) ? (v || "0") : n.toLocaleString());
+}
+
+function setStatus(msg, type){
+  const el = document.getElementById('statusMsg');
+  el.textContent = msg || '';
+  el.className = 'status' + (type ? ' ' + type : '');
+}
+
+let currentOrder = null;
+
+async function lookupOrder(idOverride){
+  const rawInput = idOverride !== undefined ? idOverride : document.getElementById('orderIdInput').value;
+  const targetId = rawInput.replace(/\s+/g, '').toLowerCase();
+  if (!targetId){ setStatus('Enter or scan an Order ID.', 'error'); return; }
+
+  setStatus('Loading order…', 'loading');
+  document.getElementById('orderCard').style.display = 'none';
+
+  try{
+    const res = await fetch(ORDERS_CSV_URL + (ORDERS_CSV_URL.includes('?') ? '&' : '?') + '_=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+    const orders = csvToOrders(text);
+    const match = orders.find(o => o.orderId.replace(/\s+/g, '').toLowerCase() === targetId);
+    if (!match){
+      setStatus(`No order found for "${rawInput}".`, 'error');
+      return;
+    }
+    currentOrder = match;
+    document.getElementById('orderOid').textContent = match.orderId;
+    document.getElementById('orderName').textContent = match.name || '—';
+    document.getElementById('orderPhone').textContent = match.phone || '—';
+    document.getElementById('orderAddress').textContent = match.address || '—';
+    document.getElementById('orderTotal').textContent = formatMoney(match.total);
+    document.getElementById('orderCard').style.display = 'block';
+    document.getElementById('actionButtons').classList.add('show');
+    document.getElementById('postponePanel').classList.remove('show');
+    setStatus('');
+  } catch(err){
+    console.error(err);
+    setStatus('Could not load order data — try again.', 'error');
+  }
+}
+
+async function submitStatus(status, extra){
+  if (!currentOrder) return;
+  const buttons = document.querySelectorAll('#actionButtons button, .postpone-panel button');
+  buttons.forEach(b => b.disabled = true);
+
+  try{
+    const params = new URLSearchParams({
+      orderId: currentOrder.orderId || '',
+      status: status,
+      name: currentOrder.name || '',
+      phone: currentOrder.phone || '',
+      address: currentOrder.address || '',
+      total: currentOrder.total || '',
+      postponeDate: (extra && extra.postponeDate) || ''
+    });
+    const res = await fetch(DELIVERY_STATUS_URL + '?' + params.toString());
+    const data = await res.json();
+    if (data.status !== 'success'){
+      throw new Error(data.message || 'Sheet update failed');
+    }
+    showResult(status, extra);
+  } catch(err){
+    console.error(err);
+    setStatus('Could not save status: ' + err.message, 'error');
+    buttons.forEach(b => b.disabled = false);
+  }
+}
+
+function showResult(status, extra){
+  document.getElementById('orderCard').style.display = 'none';
+  const card = document.getElementById('resultCard');
+  card.className = 'card result show ' + status;
+  const icon = { delivered: '✅', postponed: '📅', failed: '❌' }[status];
+  const title = { delivered: 'Marked Delivered', postponed: 'Marked Postponed', failed: 'Marked Failed' }[status];
+  const sub = status === 'postponed'
+    ? 'Rescheduled to ' + (extra && extra.postponeDate ? extra.postponeDate : '—')
+    : currentOrder.orderId + ' updated in the Delivery Status sheet.';
+  document.getElementById('resultIcon').textContent = icon;
+  document.getElementById('resultTitle').textContent = title;
+  document.getElementById('resultSub').textContent = sub;
+}
+
+document.getElementById('lookupBtn').addEventListener('click', () => lookupOrder());
+document.getElementById('orderIdInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter'){ e.preventDefault(); lookupOrder(); }
+});
+
+document.getElementById('btnDelivered').addEventListener('click', () => submitStatus('delivered'));
+document.getElementById('btnFailed').addEventListener('click', () => submitStatus('failed'));
+
+document.getElementById('btnPostponed').addEventListener('click', () => {
+  const panel = document.getElementById('postponePanel');
+  const dateInput = document.getElementById('postponeDate');
+  if (!dateInput.value){
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    dateInput.value = tomorrow.toISOString().slice(0,10);
+  }
+  panel.classList.add('show');
+});
+document.getElementById('postponeCancel').addEventListener('click', () => {
+  document.getElementById('postponePanel').classList.remove('show');
+});
+document.getElementById('postponeConfirm').addEventListener('click', () => {
+  const dateVal = document.getElementById('postponeDate').value;
+  if (!dateVal){ alert('Pick a date first.'); return; }
+  submitStatus('postponed', { postponeDate: dateVal });
+});
+
+document.getElementById('newLookupBtn').addEventListener('click', () => {
+  currentOrder = null;
+  document.getElementById('resultCard').classList.remove('show');
+  document.getElementById('orderIdInput').value = '';
+  document.getElementById('orderIdInput').focus();
+  setStatus('');
+  const url = new URL(window.location.href);
+  url.searchParams.delete('order');
+  window.history.replaceState({}, '', url);
+});
+
+// Auto-load from the QR link's ?order= param
+const params = new URLSearchParams(window.location.search);
+const preId = params.get('order');
+if (preId){
+  document.getElementById('orderIdInput').value = preId;
+  lookupOrder(preId);
+} else {
+  document.getElementById('orderIdInput').focus();
+}
+</script>
+</body>
+</html>
