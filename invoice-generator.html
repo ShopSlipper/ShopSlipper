@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.12.3/JsBarcode.all.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 <style>
   :root{
     --ink:#28394a;
@@ -76,8 +77,11 @@
   .inv-head .meta .oid{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:18px; margin:2px 0 10px; }
   .inv-head .meta .date{ font-size:12.5px; color:#4b5563; }
 
-  .barcode-wrap{ text-align:right; margin-top:8px; height:44px; }
-  .barcode-wrap svg{ max-width:220px; width:220px; height:44px; }
+  .codes-wrap{ display:flex; align-items:flex-end; justify-content:flex-end; gap:14px; margin-top:8px; }
+  .code-block{ text-align:center; }
+  .code-block .code-label{ font-size:7.5px; text-transform:uppercase; letter-spacing:.6px; color:#9ca3af; margin-top:2px; }
+  .code-block.qr svg{ width:44px; height:44px; display:block; }
+  .code-block.barcode svg{ max-width:220px; width:220px; height:44px; display:block; }
 
   .inv-parties{ display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:26px; }
   .inv-parties .label{ font-size:10.5px; text-transform:uppercase; letter-spacing:1.2px; color:#6b7280; margin-bottom:6px; }
@@ -122,6 +126,7 @@
   @media (max-width:640px){
     .inv-head{ flex-direction:column; }
     .inv-head .meta{ text-align:left; }
+    .codes-wrap{ justify-content:flex-start; }
     .inv-parties{ grid-template-columns:1fr; }
     .invoice{ padding:24px 18px; }
   }
@@ -147,8 +152,10 @@
     .inv-head .meta .label{ font-size:7px; }
     .inv-head .meta .oid{ font-size:11px; margin:1px 0 2px; }
     .inv-head .meta .date{ font-size:7.5px; }
-    .barcode-wrap{ margin-top:4px; height:22px; }
-    .barcode-wrap svg{ max-width:150px; width:150px; height:22px; }
+    .codes-wrap{ margin-top:4px; justify-content:flex-start; gap:8px; }
+    .code-block .code-label{ font-size:5.5px; }
+    .code-block.qr svg{ width:26px; height:26px; }
+    .code-block.barcode svg{ max-width:150px; width:150px; height:22px; }
 
     .inv-parties{ grid-template-columns:1fr; gap:8px; margin-bottom:10px; }
     .inv-parties .label{ font-size:6.5px; margin-bottom:2px; }
@@ -203,8 +210,14 @@
         <div class="label">Invoice For Order</div>
         <div class="oid mono" id="invOrderId"></div>
         <div class="date" id="invDate"></div>
-        <div class="barcode-wrap">
-          <svg id="invBarcode" width="220" height="44"></svg>
+        <div class="codes-wrap">
+          <div class="code-block qr">
+            <svg id="invQr" width="44" height="44"></svg>
+            <div class="code-label">Scan&nbsp;to&nbsp;update</div>
+          </div>
+          <div class="code-block barcode">
+            <svg id="invBarcode" width="220" height="44"></svg>
+          </div>
         </div>
       </div>
     </div>
@@ -268,6 +281,9 @@ const CONFIG = {
 
 // Apps Script Web App URL (deployed from apps-script.gs)
 const STATUS_UPDATE_URL = "https://script.google.com/macros/s/AKfycbwlpeLl_caJdrbbJa84qUCf3LRrs6hSkqBouLwrknCev4b6AtXZo_gEyIdG9YYDXJXd/exec";
+
+// Where the rider's QR code points — the scan/handover page
+const RIDER_SCAN_BASE_URL = "https://shopslipper.github.io/ShopSlipper/scanned.html";
 
 // Beautiful personalized quotes array
 const QUOTES = [
@@ -407,7 +423,7 @@ function renderInvoice(order){
 
   document.getElementById('invQuote').textContent = generatePersonalizedQuote(order.name);
 
-  const barcodeWrap = document.querySelector('.barcode-wrap');
+  const barcodeWrap = document.querySelector('.code-block.barcode');
   if (order.orderId && window.JsBarcode){
     try{
       JsBarcode("#invBarcode", order.orderId, {
@@ -424,6 +440,25 @@ function renderInvoice(order){
     }
   } else {
     barcodeWrap.style.display = 'none';
+  }
+
+  // Rider QR code: links to the scan/handover page with this order pre-loaded
+  const qrWrap = document.querySelector('.code-block.qr');
+  if (order.orderId && window.qrcode){
+    try{
+      const scanUrl = RIDER_SCAN_BASE_URL + "?order=" + encodeURIComponent(order.orderId);
+      const qr = qrcode(0, 'M');
+      qr.addData(scanUrl);
+      qr.make();
+      document.getElementById('invQr').outerHTML = qr.createSvgTag({ cellSize: 3, margin: 0 })
+        .replace('<svg ', '<svg id="invQr" ');
+      qrWrap.style.display = '';
+    } catch(e){
+      console.error('QR render failed', e);
+      qrWrap.style.display = 'none';
+    }
+  } else {
+    qrWrap.style.display = 'none';
   }
 
   document.getElementById('invoice').classList.add('show');
