@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShopSlipper — Return Receiving</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#28394a;
+    --paper:#eef5ee;
+    --line:#d9e6de;
+    --denim:#5b8fc7;
+    --denim-dark:#3f6c9e;
+    --thread:#e08a7d;
+    --mustard:#8fc9a0;
+    --good:#379764;
+    --bad:#b3453a;
+  }
+  *{ box-sizing:border-box; }
+  body{
+    margin:0; color:var(--ink); font-family:'Inter',system-ui,sans-serif;
+    background:
+      radial-gradient(1000px 500px at 8% -10%, rgba(143,201,160,0.28), transparent 55%),
+      radial-gradient(900px 500px at 100% 0%, rgba(91,143,199,0.22), transparent 55%),
+      linear-gradient(160deg, #eef5ee 0%, #e3edf6 45%, #dbe8f4 100%);
+    min-height:100vh;
+  }
+  .mono{ font-family:'JetBrains Mono',ui-monospace,monospace; }
+  .wrap{ max-width:820px; margin:0 auto; padding:32px 20px 80px; }
+
+  .brandbar{ display:flex; align-items:center; gap:12px; margin-bottom:28px; }
+  .brandbar .mark{
+    width:44px; height:44px; border-radius:50%; background:var(--denim); color:#fff;
+    display:flex; align-items:center; justify-content:center; font-family:'Anton',sans-serif; font-size:19px;
+    overflow:hidden; flex-shrink:0;
+  }
+  .brandbar .mark img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .brandbar h1{ font-family:'Anton',sans-serif; letter-spacing:.4px; font-size:20px; margin:0; }
+  .brandbar .sub{ font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:#6b7280; margin-top:1px; }
+
+  .lookup{
+    background:#fff; border:2px solid var(--ink); border-radius:16px; padding:20px;
+    display:flex; gap:10px; flex-wrap:wrap; box-shadow:0 18px 34px -22px rgba(20,24,31,0.4);
+  }
+  .lookup input{
+    flex:1; min-width:200px; border:1.5px solid var(--line); border-radius:10px; padding:12px 14px;
+    font-family:'JetBrains Mono',monospace; font-size:14px; background:var(--paper); text-transform:uppercase;
+  }
+  .lookup input:focus{ outline:2px solid var(--denim); border-color:var(--denim); }
+  .lookup button{
+    background:var(--denim); color:#fff; border:none; border-radius:10px; padding:12px 22px;
+    font-weight:700; font-size:14px; cursor:pointer; transition:background .15s ease;
+  }
+  .lookup button:hover{ background:var(--denim-dark); }
+  .lookup button:disabled{ background:#c7c7c7; cursor:not-allowed; }
+  .lookup button.btn-clear{ background:#e5e7eb; color:#374151; }
+  .lookup button.btn-clear:hover{ background:#d1d5db; }
+
+  .status{ margin-top:14px; font-size:13.5px; }
+  .status.error{ color:var(--bad); }
+  .status.loading{ color:#6b7280; }
+  .status.success{ color:var(--good); font-weight:600; }
+
+  .card{
+    display:none; margin-top:28px; background:#fff; border:2px solid var(--ink); border-radius:18px;
+    padding:36px 34px; box-shadow:0 30px 60px -30px rgba(20,24,31,0.4);
+  }
+  .card.show{ display:block; }
+  .card .sec-label{ font-size:10.5px; text-transform:uppercase; letter-spacing:1.2px; color:#6b7280; margin-bottom:14px; }
+
+  .detail-grid{ display:grid; grid-template-columns:auto 1fr; gap:10px 20px; font-size:14px; margin-bottom:8px; }
+  .detail-grid .k{ color:#6b7280; }
+  .detail-grid .v{ font-weight:700; }
+  .detail-grid .v.mono{ font-size:15px; }
+
+  .divider{ border:none; border-top:2px dashed var(--ink); margin:24px 0; }
+
+  label{ display:block; font-size:10.5px; text-transform:uppercase; letter-spacing:1.2px; color:#6b7280; margin:16px 0 6px; font-weight:700; }
+  input[type=text].field, textarea{
+    width:100%; border:1.5px solid var(--line); border-radius:10px; padding:12px 14px;
+    font-family:'Inter',sans-serif; font-size:14px; background:var(--paper); color:var(--ink);
+  }
+  input[type=text].field:focus, textarea:focus{ outline:2px solid var(--denim); border-color:var(--denim); }
+  textarea{ resize:vertical; }
+
+  .actions{ display:flex; gap:10px; margin-top:20px; flex-wrap:wrap; }
+  .actions button{
+    flex:1; min-width:160px; border:1.5px solid var(--ink); background:#fff; color:var(--ink);
+    border-radius:999px; padding:13px 20px; font-weight:700; font-size:13.5px; cursor:pointer;
+    transition:all .15s ease;
+  }
+  .actions button.receive{ background:var(--good); border-color:var(--good); color:#fff; }
+  .actions button.receive:hover{ background:#2c7a51; }
+  .actions button.decline{ background:var(--bad); border-color:var(--bad); color:#fff; }
+  .actions button.decline:hover{ background:#953a31; }
+  .actions button:disabled{ opacity:.5; cursor:not-allowed; }
+
+  .note{ font-size:12px; color:#6b7280; margin-top:10px; }
+
+  .action-msg{ margin-top:14px; font-size:13.5px; }
+  .action-msg.error{ color:var(--bad); }
+  .action-msg.success{ color:var(--good); font-weight:600; }
+
+  .foot-link{ display:block; text-align:center; font-size:12.5px; color:#6b7280; margin-top:22px; text-decoration:none; }
+  .foot-link:hover{ color:var(--denim-dark); }
+
+  @media (max-width:640px){
+    .card{ padding:24px 20px; }
+    .detail-grid{ grid-template-columns:1fr; gap:2px 0; }
+    .detail-grid .k{ margin-top:8px; font-size:11px; text-transform:uppercase; letter-spacing:.6px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brandbar">
+    <div class="mark"><img src="https://raw.githubusercontent.com/ShopSlipper/ShopSlipper/main/WhatsApp%20Image%202026-07-20%20at%202.17.32%20PM.jpeg" alt="ShopSlipper logo"></div>
+    <div>
+      <h1>ShopSlipper</h1>
+      <div class="sub">Return Receiving</div>
+    </div>
+  </div>
+
+  <div class="lookup">
+    <input type="text" id="rtnIdInput" placeholder="Enter Rtn Order ID, e.g. RT1234567NP" autocomplete="off" />
+    <button type="button" id="findBtn">Find Return</button>
+    <button type="button" id="clearBtn" class="btn-clear">Clear</button>
+  </div>
+  <div class="status" id="lookupMsg"></div>
+
+  <div class="card" id="resultCard">
+    <div class="sec-label">Details &amp; Return Reason</div>
+    <div class="detail-grid">
+      <div class="k">Rtn Order ID</div><div class="v mono" id="rRtnId"></div>
+      <div class="k">Order ID</div><div class="v mono" id="rOrderId"></div>
+      <div class="k">Name</div><div class="v" id="rName"></div>
+      <div class="k">Phone</div><div class="v mono" id="rPhone"></div>
+      <div class="k">Accepted on</div><div class="v" id="rAccepted"></div>
+    </div>
+
+    <label for="locationInput">Location (pickup address / area)</label>
+    <input type="text" class="field" id="locationInput" placeholder="Defaults to the address on file">
+
+    <label for="reasonInput">Return reason</label>
+    <textarea id="reasonInput" rows="3" placeholder="Why is the customer returning this?"></textarea>
+
+    <hr class="divider">
+    <div class="actions">
+      <button class="receive" id="receiveBtn">Mark Received</button>
+      <button class="decline" id="declineBtn">Decline Return</button>
+    </div>
+    <p class="note">"Decline Return" is for cases where the item never came back — it moves this record to Request Declined.</p>
+    <div class="action-msg" id="actionMsg"></div>
+  </div>
+
+  <a class="foot-link" href="return-checker.html">&larr; Back to Return Request Checker</a>
+</div>
+
+<script>
+const CONFIG = {
+  API_URL: 'https://script.google.com/macros/s/AKfycbwEuJFENgZnxQv9uvSPeUavIsBYmvMted4Ljdchydv6UdboqPd74_a5lnvVjsTWpo06/exec'
+};
+
+let currentRow = null;
+const $ = id => document.getElementById(id);
+
+$('findBtn').addEventListener('click', findReturn);
+$('clearBtn').addEventListener('click', clearAll);
+$('rtnIdInput').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); findReturn(); } });
+$('receiveBtn').addEventListener('click', () => act('receive'));
+$('declineBtn').addEventListener('click', () => act('decline_return'));
+
+function setStatus(msg, type){
+  const el = $('lookupMsg');
+  el.textContent = msg || '';
+  el.className = 'status' + (type ? ' ' + type : '');
+}
+
+function clearAll(){
+  $('rtnIdInput').value = '';
+  $('rtnIdInput').focus();
+  $('resultCard').classList.remove('show');
+  setStatus('');
+  currentRow = null;
+}
+
+async function findReturn(){
+  const rtnId = $('rtnIdInput').value.trim();
+  setStatus('');
+  $('resultCard').classList.remove('show');
+  if (!rtnId) { setStatus('Please enter a Rtn Order ID.', 'error'); return; }
+
+  const btn = $('findBtn');
+  btn.disabled = true;
+  const original = btn.textContent;
+  btn.textContent = 'Searching...';
+  setStatus('Fetching return data…', 'loading');
+
+  try {
+    const res = await fetch(`${CONFIG.API_URL}?tab=Request Accepted&_=${Date.now()}`);
+    const data = await res.json();
+    const row = (data.rows || []).find(r => String(r['Rtn Order ID']).trim().toLowerCase() === rtnId.toLowerCase());
+
+    if (!row) {
+      setStatus(`No accepted return found for "${rtnId}".`, 'error');
+      return;
+    }
+
+    currentRow = row;
+    showResult(row);
+    setStatus('');
+  } catch (err) {
+    setStatus('Could not reach the sheet. Check the API_URL and try again.', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = original;
+  }
+}
+
+function showResult(row){
+  $('resultCard').classList.add('show');
+  $('rRtnId').textContent = row['Rtn Order ID'];
+  $('rOrderId').textContent = row['Order ID'];
+  $('rName').textContent = row['Name'];
+  $('rPhone').textContent = row['Phone'];
+  const accepted = new Date(row['Accepted Date']);
+  $('rAccepted').textContent = isNaN(accepted) ? (row['Accepted Date'] || '—') : accepted.toLocaleString();
+  $('locationInput').value = row['Address'] || '';
+  $('reasonInput').value = '';
+  $('actionMsg').textContent = '';
+  $('actionMsg').className = 'action-msg';
+}
+
+async function act(action){
+  if (!currentRow) return;
+  $('receiveBtn').disabled = true;
+  $('declineBtn').disabled = true;
+  $('actionMsg').textContent = 'Updating sheet…';
+  $('actionMsg').className = 'action-msg';
+
+  try {
+    const res = await fetch(CONFIG.API_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        action,
+        rtnOrderId: currentRow['Rtn Order ID'],
+        location: $('locationInput').value.trim(),
+        reason: $('reasonInput').value.trim()
+      })
+    });
+    const data = await res.json();
+    if (data.error) {
+      $('actionMsg').textContent = data.error;
+      $('actionMsg').className = 'action-msg error';
+    } else {
+      const msg = action === 'receive' ? 'Marked as received.' : 'Marked as declined — item never returned.';
+      $('actionMsg').textContent = msg;
+      $('actionMsg').className = 'action-msg success';
+      setTimeout(clearAll, 2200);
+    }
+  } catch (err) {
+    $('actionMsg').textContent = 'Something went wrong. Try again.';
+    $('actionMsg').className = 'action-msg error';
+  } finally {
+    $('receiveBtn').disabled = false;
+    $('declineBtn').disabled = false;
+  }
+}
+
+$('rtnIdInput').focus();
+</script>
+</body>
+</html>
