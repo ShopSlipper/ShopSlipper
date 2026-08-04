@@ -442,9 +442,10 @@ function renderInvoice(order){
   }
 
   // Rider QR code: links to the scan/handover page with this order pre-loaded.
-  // cellSize is bumped up so the underlying SVG has more resolution before
-  // being scaled to the larger on-screen/print size — keeps it crisp and
-  // easy for a phone camera to lock onto.
+  // Built as solid filled <rect> modules (not a stroked path) — path-stroke
+  // QR renders can print as a blank/near-invisible box because thin 1px
+  // strokes get lost when the browser rasterizes for print/PDF. Filled
+  // squares with shape-rendering:crispEdges print reliably at any size.
   const qrWrap = document.querySelector('.code-block.qr');
   if (order.orderId && window.qrcode){
     try{
@@ -452,8 +453,27 @@ function renderInvoice(order){
       const qr = qrcode(0, 'M');
       qr.addData(scanUrl);
       qr.make();
-      document.getElementById('invQr').outerHTML = qr.createSvgTag({ cellSize: 5, margin: 1 })
-        .replace('<svg ', '<svg id="invQr" ');
+
+      const count = qr.getModuleCount();
+      const quiet = 2;      // quiet-zone modules around the code, helps scanners lock on
+      const cell = 4;       // internal unit size — final on-screen size is controlled by CSS
+      const size = (count + quiet * 2) * cell;
+
+      let rects = '';
+      for (let row = 0; row < count; row++){
+        for (let col = 0; col < count; col++){
+          if (qr.isDark(row, col)){
+            rects += `<rect x="${(col + quiet) * cell}" y="${(row + quiet) * cell}" width="${cell}" height="${cell}"/>`;
+          }
+        }
+      }
+
+      const svg = `<svg id="invQr" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" shape-rendering="crispEdges">`
+        + `<rect width="100%" height="100%" fill="#ffffff"/>`
+        + `<g fill="#000000">${rects}</g>`
+        + `</svg>`;
+
+      document.getElementById('invQr').outerHTML = svg;
       qrWrap.style.display = '';
     } catch(e){
       console.error('QR render failed', e);
