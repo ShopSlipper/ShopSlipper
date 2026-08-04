@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShopSlipper — Return Status Checker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --teal-900:#0c3335;
+    --teal-700:#134a4d;
+    --teal-500:#1c6b6f;
+    --brand-navy:#16305c;
+    --blue-600:#4a7fe0;
+    --blue-700:#3268c9;
+    --ok-600:#1a8f5c;
+    --ok-100:#e4f7ee;
+    --bad-600:#c93b3b;
+    --bad-100:#fbe9e9;
+    --neutral-600:#5b6b6c;
+    --neutral-100:#eef3f2;
+    --ink:#132323;
+    --paper:#ffffff;
+    --line:#dde6e5;
+    --input-bg:#eef2e6;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background:linear-gradient(135deg,#e6f4ec 0%,#e7f0e9 30%,#e4eef4 70%,#e9eff8 100%);
+    color:var(--ink);
+    min-height:100vh;
+    padding:56px 20px 80px;
+  }
+  .wrap{max-width:790px;margin:0 auto;}
+  .brand{display:flex;align-items:center;gap:14px;margin-bottom:36px;}
+  .brand .mark{
+    width:52px;height:52px;border-radius:50%;
+    flex-shrink:0;object-fit:cover;
+    box-shadow:0 0 0 1px rgba(0,0,0,0.06);
+  }
+  .brand h1{
+    font-family:'Poppins',sans-serif;
+    font-weight:800;
+    font-size:26px;
+    margin:0;
+    letter-spacing:0.2px;
+    color:var(--brand-navy);
+  }
+  .brand p{
+    margin:2px 0 0;
+    font-family:'Poppins',sans-serif;
+    font-weight:600;
+    font-size:11px;
+    letter-spacing:2px;
+    color:#8a97a6;
+    text-transform:uppercase;
+  }
+
+  .card{
+    background:var(--paper);
+    border:2px solid #0d1b1c;
+    border-radius:16px;
+    box-shadow:0 4px 0 rgba(13,27,28,0.05);
+    padding:24px;
+  }
+  .search-row{display:flex;gap:10px;}
+  input[type=text]{
+    flex:1;
+    font-family:'JetBrains Mono','Consolas',monospace;
+    font-size:14px;
+    letter-spacing:0.3px;
+    padding:14px 16px;
+    border:1.5px solid var(--blue-600);
+    border-radius:10px;
+    background:var(--input-bg);
+    color:#3d4a3a;
+    outline:none;
+    transition:border-color .15s, box-shadow .15s;
+  }
+  input[type=text]::placeholder{color:#7a8577;}
+  input[type=text]:focus{border-color:var(--blue-600);box-shadow:0 0 0 3px rgba(74,127,224,0.15);}
+  button{
+    font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size:14.5px;font-weight:700;border:none;border-radius:10px;
+    padding:0 22px;cursor:pointer;transition:filter .15s,transform .05s;
+  }
+  button:active{transform:translateY(1px);}
+  .btn-primary{background:var(--blue-600);color:#fff;}
+  .btn-primary:hover{filter:brightness(1.06);}
+  .btn-primary:disabled{background:#a9c0e6;cursor:wait;}
+  .btn-ghost{background:#e7e9ea;color:#3a4344;}
+  .btn-ghost:hover{filter:brightness(0.97);}
+
+  .settings-toggle{
+    margin-top:14px;font-size:12.5px;color:var(--neutral-600);
+    cursor:pointer;user-select:none;display:inline-flex;align-items:center;gap:5px;
+  }
+  .settings-toggle:hover{color:var(--teal-700);}
+  .settings{
+    display:none;margin-top:14px;padding-top:16px;border-top:1px solid var(--line);
+    grid-template-columns:1fr 1fr;gap:12px 14px;
+  }
+  .settings.open{display:grid;}
+  .field{display:flex;flex-direction:column;gap:5px;}
+  .field.full{grid-column:1/-1;}
+  .field label{font-size:11px;font-weight:700;letter-spacing:0.4px;color:var(--neutral-600);text-transform:uppercase;}
+  .field input{
+    font-family:'Consolas','SFMono-Regular',monospace;font-size:12.5px;
+    padding:9px 10px;border:1.5px solid var(--line);border-radius:7px;background:#fbfdfc;
+  }
+  .settings-save{grid-column:1/-1;display:flex;justify-content:flex-end;gap:8px;margin-top:2px;}
+  .settings-save button{padding:8px 16px;font-size:12.5px;}
+
+  .msg{margin-top:18px;font-size:13.5px;padding:12px 14px;border-radius:9px;line-height:1.5;}
+  .msg.error{background:var(--bad-100);color:var(--bad-600);}
+  .msg.info{background:var(--neutral-100);color:var(--neutral-600);}
+
+  .result{margin-top:20px;display:none;}
+  .result.show{display:block;}
+  .status-banner{
+    display:flex;align-items:center;gap:10px;
+    padding:14px 16px;border-radius:10px;margin-bottom:16px;
+  }
+  .status-banner .dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+  .status-banner .text strong{display:block;font-size:14.5px;}
+  .status-banner .text span{font-size:12px;opacity:0.85;}
+  .status-accepted{background:var(--ok-100);color:var(--ok-600);}
+  .status-accepted .dot{background:var(--ok-600);}
+  .status-rejected{background:var(--bad-100);color:var(--bad-600);}
+  .status-rejected .dot{background:var(--bad-600);}
+  .status-pending{background:#fff6e0;color:#946c00;}
+  .status-pending .dot{background:#c98e00;}
+  .status-none{background:var(--neutral-100);color:var(--neutral-600);}
+  .status-none .dot{background:var(--neutral-600);}
+
+  .actions{display:flex;gap:10px;margin-bottom:16px;}
+  .actions button{padding:11px 18px;font-size:13.5px;}
+  .btn-accept{background:var(--ok-600);color:#fff;}
+  .btn-accept:hover{filter:brightness(1.08);}
+  .btn-accept:disabled{background:#9fcdb6;cursor:wait;}
+
+  .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .panel{border:1px solid var(--line);border-radius:10px;padding:14px 16px;}
+  .panel h3{margin:0 0 10px;font-size:11px;letter-spacing:0.6px;text-transform:uppercase;color:var(--teal-700);}
+  .row{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:5px 0;border-bottom:1px solid #f1f4f3;}
+  .row:last-child{border-bottom:none;}
+  .row .k{color:var(--neutral-600);}
+  .row .v{font-weight:600;text-align:right;}
+  @media(max-width:600px){.detail-grid{grid-template-columns:1fr;}.settings{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">
+    <img class="mark" src="https://github.com/ShopSlipper/ShopSlipper/blob/main/WhatsApp%20Image%202026-07-20%20at%202.17.32%20PM.jpeg?raw=true" alt="ShopSlipper logo">
+    <div>
+      <h1>ShopSlipper</h1>
+      <p>Return Status Checker</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="search-row">
+      <input type="text" id="orderId" placeholder="ENTER ORDER ID, E.G. SS7029074NP" autocomplete="off">
+      <button class="btn-primary" id="searchBtn">Check Return</button>
+      <button class="btn-ghost" id="clearBtn">Clear</button>
+    </div>
+
+    <div class="settings-toggle" id="settingsToggle">⚙ Sheet connection settings</div>
+    <div class="settings" id="settings">
+      <div class="field full">
+        <label>Google Sheets API Key</label>
+        <input type="text" id="apiKey" placeholder="AIza...">
+      </div>
+      <div class="field">
+        <label>Delivery Status — Sheet ID</label>
+        <input type="text" id="deliverySheetId" value="1sXvdRM8JdmB18j4XzQoTSoctYOcR1olB-E7Sl_im7po">
+      </div>
+      <div class="field">
+        <label>Delivery Status — Tab name</label>
+        <input type="text" id="deliveryTab" value="Delivered">
+      </div>
+      <div class="field">
+        <label>Return Request — Sheet ID</label>
+        <input type="text" id="reqSheetId" value="1Ykxy2zfd6mQWH4wg_h2vrhInW9lyDMZnfyUW1RVBEak">
+      </div>
+      <div class="field full">
+        <label>Return Request — Web App URL (for Process / Mark Received)</label>
+        <input type="text" id="reqWebAppUrl" value="https://script.google.com/macros/s/AKfycbylsFxIJ-k3lTGF9A7jhA7jdz6L4PsI3KZ2MSTI-KsweRN2K0r_HTReD30hSR7SLuf9/exec">
+      </div>
+      <div class="settings-save">
+        <button class="btn-ghost" id="saveSettings">Save in this browser</button>
+      </div>
+    </div>
+
+    <div id="msgBox"></div>
+
+    <div class="result" id="result">
+      <div class="status-banner" id="statusBanner">
+        <div class="dot"></div>
+        <div class="text"><strong id="statusTitle"></strong><span id="statusSub"></span></div>
+      </div>
+      <div class="actions" id="actions"></div>
+      <div class="detail-grid">
+        <div class="panel">
+          <h3>Delivery Record</h3>
+          <div id="deliveryPanel"></div>
+        </div>
+        <div class="panel">
+          <h3>Return Request</h3>
+          <div id="returnPanel"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const WINDOW_HOURS = 72;
+const REQ_TABS = ['Return Request','Request Accepted','Request Declined','Return Received'];
+
+// --- settings persistence (this file is meant to be hosted on your own domain,
+// so localStorage just remembers your API key/sheet IDs/URLs in your own browser) ---
+function loadSettings(){
+  try{
+    const saved = JSON.parse(localStorage.getItem('rsc_settings') || '{}');
+    if(saved.apiKey) $('apiKey').value = saved.apiKey;
+    if(saved.deliverySheetId) $('deliverySheetId').value = saved.deliverySheetId;
+    if(saved.deliveryTab) $('deliveryTab').value = saved.deliveryTab;
+    if(saved.reqSheetId) $('reqSheetId').value = saved.reqSheetId;
+    if(saved.reqWebAppUrl) $('reqWebAppUrl').value = saved.reqWebAppUrl;
+  }catch(e){}
+}
+function saveSettings(){
+  const data = {
+    apiKey: $('apiKey').value.trim(),
+    deliverySheetId: $('deliverySheetId').value.trim(),
+    deliveryTab: $('deliveryTab').value.trim(),
+    reqSheetId: $('reqSheetId').value.trim(),
+    reqWebAppUrl: $('reqWebAppUrl').value.trim(),
+  };
+  localStorage.setItem('rsc_settings', JSON.stringify(data));
+  showMsg('Settings saved in this browser.', 'info');
+}
+loadSettings();
+
+$('settingsToggle').addEventListener('click', () => {
+  $('settings').classList.toggle('open');
+});
+$('saveSettings').addEventListener('click', saveSettings);
+$('clearBtn').addEventListener('click', () => {
+  $('orderId').value='';
+  $('result').classList.remove('show');
+  $('msgBox').innerHTML='';
+  $('actions').innerHTML='';
+  $('orderId').focus();
+});
+$('orderId').addEventListener('keydown', e => { if(e.key==='Enter') runSearch(); });
+$('searchBtn').addEventListener('click', runSearch);
+
+function showMsg(text, type){
+  $('msgBox').innerHTML = `<div class="msg ${type}">${text}</div>`;
+}
+
+async function fetchSheet(sheetId, tab, apiKey){
+  const range = encodeURIComponent(`${tab}!A:Z`);
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`;
+  const res = await fetch(url);
+  if(!res.ok){
+    const body = await res.json().catch(()=>({}));
+    const reason = body?.error?.message || `HTTP ${res.status}`;
+    throw new Error(reason);
+  }
+  const data = await res.json();
+  return data.values || [];
+}
+
+function rowsToObjects(rows){
+  if(rows.length < 2) return [];
+  const headers = rows[0].map(h => h.trim());
+  return rows.slice(1).map(r => {
+    const obj = {};
+    headers.forEach((h,i) => obj[h] = (r[i] ?? '').toString().trim());
+    return obj;
+  });
+}
+
+function parseDate(str){
+  if(!str) return null;
+  // handles "8/4/2026 6:20:08" and "2026-08-04"
+  const d = new Date(str.replace(/-/g,'/'));
+  return isNaN(d.getTime()) ? null : d;
+}
+
+// Apps Script web apps don't handle CORS preflight for JSON content-type,
+// so we send as text/plain — the script already does JSON.parse(e.postData.contents).
+async function callReqAction(action, orderId){
+  const url = $('reqWebAppUrl').value.trim();
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action, orderId })
+  });
+  const data = await res.json().catch(() => { throw new Error('Unexpected response from the script'); });
+  if(data.result !== 'success') throw new Error(data.error || 'Action failed');
+  return data;
+}
+
+async function runSearch(){
+  const orderId = $('orderId').value.trim();
+  const apiKey = $('apiKey').value.trim();
+  const deliverySheetId = $('deliverySheetId').value.trim();
+  const deliveryTab = $('deliveryTab').value.trim();
+  const reqSheetId = $('reqSheetId').value.trim();
+
+  $('result').classList.remove('show');
+  $('msgBox').innerHTML='';
+  $('actions').innerHTML='';
+
+  if(!orderId){ showMsg('Enter an Order ID to search.', 'error'); return; }
+  if(!apiKey){ showMsg('Add your Google Sheets API key under Sheet connection settings first.', 'error'); $('settings').classList.add('open'); return; }
+
+  $('searchBtn').disabled = true;
+  $('searchBtn').textContent = 'Searching…';
+
+  try{
+    const [deliveryRows, ...reqTabRows] = await Promise.all([
+      fetchSheet(deliverySheetId, deliveryTab, apiKey),
+      ...REQ_TABS.map(tab => fetchSheet(reqSheetId, tab, apiKey))
+    ]);
+
+    const deliveries = rowsToObjects(deliveryRows);
+    const delivery = deliveries.find(d => (d['Order ID']||'').toUpperCase() === orderId.toUpperCase());
+
+    let stage = null, record = null;
+    for(let i=0; i<REQ_TABS.length; i++){
+      const rows = rowsToObjects(reqTabRows[i]);
+      const rec = rows.find(r => (r['Order ID']||'').toUpperCase() === orderId.toUpperCase());
+      if(rec){ stage = REQ_TABS[i]; record = rec; break; }
+    }
+
+    if(!delivery && !stage){
+      showMsg(`No record found for Order ID "${orderId}" in either sheet.`, 'error');
+      return;
+    }
+
+    renderResult(orderId, delivery, stage, record);
+
+  }catch(err){
+    showMsg(`Couldn't load sheet data: ${err.message}. Check that the API key is valid, the Sheets API is enabled, and both sheets are shared as "Anyone with the link can view".`, 'error');
+  }finally{
+    $('searchBtn').disabled = false;
+    $('searchBtn').textContent = 'Check Return';
+  }
+}
+
+function renderResult(orderId, delivery, stage, record){
+  const banner = $('statusBanner');
+  const title = $('statusTitle');
+  const sub = $('statusSub');
+  const deliveryPanel = $('deliveryPanel');
+  const returnPanel = $('returnPanel');
+  const actions = $('actions');
+
+  banner.className = 'status-banner';
+  actions.innerHTML = '';
+
+  // Delivery panel
+  if(delivery){
+    deliveryPanel.innerHTML = `
+      <div class="row"><span class="k">Order ID</span><span class="v">${delivery['Order ID']||'—'}</span></div>
+      <div class="row"><span class="k">Delivered</span><span class="v">${delivery['Timestamp']||'—'}</span></div>
+      <div class="row"><span class="k">Customer</span><span class="v">${delivery['Customer Name']||'—'}</span></div>
+      <div class="row"><span class="k">Phone</span><span class="v">${delivery['Phone']||'—'}</span></div>
+      <div class="row"><span class="k">Total</span><span class="v">${delivery['Total']||'—'}</span></div>
+    `;
+  } else {
+    deliveryPanel.innerHTML = `<div class="row"><span class="k">No delivery record found for this Order ID.</span></div>`;
+  }
+
+  // Return panel
+  if(record){
+    returnPanel.innerHTML = `
+      <div class="row"><span class="k">Return Order ID</span><span class="v">${record['Rtn Order ID']||'—'}</span></div>
+      <div class="row"><span class="k">Requested</span><span class="v">${record['Date']||'—'}</span></div>
+      <div class="row"><span class="k">Reason</span><span class="v">${record['Reason']||'—'}</span></div>
+      <div class="row"><span class="k">Location</span><span class="v">${record['Location']||'—'}</span></div>
+      <div class="row"><span class="k">Currently in</span><span class="v">${stage}</span></div>
+    `;
+  } else {
+    returnPanel.innerHTML = `<div class="row"><span class="k">No return request found for this Order ID.</span></div>`;
+  }
+
+  // Status banner + action buttons, based on which tab the order currently sits in
+  if(!stage){
+    banner.classList.add('status-none');
+    title.textContent = 'Delivered — No Return Requested';
+    sub.textContent = delivery ? `Delivered ${delivery['Timestamp']}` : '';
+  } else if(stage === 'Return Request'){
+    banner.classList.add('status-pending');
+    title.textContent = 'Return Request Pending';
+    let previewHours = '';
+    if(delivery){
+      const deliveredAt = parseDate(delivery['Timestamp']);
+      const requestedAt = parseDate(record['Date']);
+      if(deliveredAt && requestedAt){
+        const h = (requestedAt - deliveredAt) / (1000*60*60);
+        previewHours = ` — requested ${h.toFixed(1)}h after delivery`;
+      }
+    }
+    sub.textContent = `Not yet processed${previewHours}.`;
+    actions.innerHTML = `<button class="btn-accept" id="processBtn">Process Return</button>`;
+    $('processBtn').addEventListener('click', () => runAction('process', orderId, 'Processing…'));
+  } else if(stage === 'Request Accepted'){
+    banner.classList.add('status-accepted');
+    title.textContent = 'Return Accepted — Awaiting Physical Receipt';
+    sub.textContent = 'Requested within the 72-hour window. Mark it received once the item is in hand.';
+    actions.innerHTML = `<button class="btn-accept" id="receiveBtn">Mark Return Received</button>`;
+    $('receiveBtn').addEventListener('click', () => runAction('receive', orderId, 'Marking received…'));
+  } else if(stage === 'Request Declined'){
+    banner.classList.add('status-rejected');
+    title.textContent = 'Return Declined — Window Expired';
+    sub.textContent = 'This request was made more than 72 hours after delivery.';
+  } else if(stage === 'Return Received'){
+    banner.classList.add('status-accepted');
+    title.textContent = 'Return Received — Complete';
+    sub.textContent = 'This return has been fully processed.';
+  }
+
+  $('result').classList.add('show');
+}
+
+async function runAction(action, orderId, busyText){
+  const btn = action === 'process' ? $('processBtn') : $('receiveBtn');
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = busyText;
+  $('msgBox').innerHTML = '';
+  try{
+    const data = await callReqAction(action, orderId);
+    if(action === 'process'){
+      showMsg(`Processed — moved to "${data.decision}" (${data.hours}h after delivery).`, 'info');
+    } else {
+      showMsg('Marked as received.', 'info');
+    }
+    await runSearch(); // refresh the view from the sheets
+  }catch(err){
+    showMsg(`Action failed: ${err.message}`, 'error');
+    btn.disabled = false;
+    btn.textContent = originalText;
+  }
+}
+</script>
+</body>
+</html>
