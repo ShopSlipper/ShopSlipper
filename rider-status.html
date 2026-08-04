@@ -54,10 +54,13 @@
   }
   .lookup input:focus{ outline:2px solid var(--denim); border-color:var(--denim); }
   .lookup button{
-    background:var(--denim); color:#fff; border:none; border-radius:10px; padding:12px 20px;
+    border:none; border-radius:10px; padding:12px 20px;
     font-weight:700; font-size:14px; cursor:pointer;
   }
-  .lookup button:hover{ background:var(--denim-dark); }
+  .lookup .btn-find{ background:var(--denim); color:#fff; }
+  .lookup .btn-find:hover{ background:var(--denim-dark); }
+  .lookup .btn-clear{ background:var(--line); color:var(--ink); }
+  .lookup .btn-clear:hover{ background:#c8dcd0; }
 
   .status{ margin-top:14px; font-size:13.5px; }
   .status.error{ color:var(--red); }
@@ -141,7 +144,8 @@
   <div class="card" id="lookupCard" style="display:none;">
     <div class="lookup">
       <input type="text" id="orderIdInput" placeholder="Enter Order ID" autocomplete="off" />
-      <button type="button" id="lookupBtn">Find</button>
+      <button type="button" id="lookupBtn" class="btn-find">Find</button>
+      <button type="button" id="clearBtn" class="btn-clear">Clear</button>
     </div>
     <div class="status" id="lookupStatus"></div>
   </div>
@@ -203,8 +207,6 @@
 const ORDERS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSclnzIDnbWJ9KhDFUrA-cNDsUhIte3Np20P288ZwiannuwCtB34BDNSw5LMvpD_nTAgzG9IezAfiju/pub?gid=0&single=true&output=csv";
 const CONFIG = { currency: "Rs" };
 
-// Same Apps Script Web App URL used by the invoice generator.
-// It expects: ?status=delivered|postponed|failed&orderId=...&name=...&phone=...&address=...&total=...[&postponeDate=YYYY-MM-DD]
 const STATUS_UPDATE_URL = "https://script.google.com/macros/s/AKfycbwBJjhETeYBrMJmfuJlbzgwpKRgULWbS0TbJ7FS-yATupIzwDPZzp4JtgKxti0298K6Lg/exec";
   
 function parseCsv(text){
@@ -430,6 +432,14 @@ document.getElementById('lookupBtn').addEventListener('click', ()=>{
   }
   loadOrder(val);
 });
+
+document.getElementById('clearBtn').addEventListener('click', ()=>{
+  const input = document.getElementById('orderIdInput');
+  input.value = '';
+  document.getElementById('lookupStatus').textContent = '';
+  input.focus();
+});
+
 document.getElementById('orderIdInput')?.addEventListener('keydown', (e)=>{
   if (e.key === 'Enter'){ e.preventDefault(); document.getElementById('lookupBtn').click(); }
 });
