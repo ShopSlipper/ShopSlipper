@@ -224,11 +224,11 @@ function showResult(row){
   $('rRtnId').textContent = row['Rtn Order ID'];
   $('rOrderId').textContent = row['Order ID'];
   $('rName').textContent = row['Name'];
-  $('rPhone').textContent = row['Phone'];
-  const accepted = new Date(row['Accepted Date']);
-  $('rAccepted').textContent = isNaN(accepted) ? (row['Accepted Date'] || '—') : accepted.toLocaleString();
-  $('locationInput').value = row['Address'] || '';
-  $('reasonInput').value = '';
+  $('rPhone').textContent = row['Number'];
+  const accepted = new Date(row['Status Date']);
+  $('rAccepted').textContent = isNaN(accepted) ? (row['Status Date'] || '—') : accepted.toLocaleString();
+  $('locationInput').value = row['Location'] || '';
+  $('reasonInput').value = row['Reason'] || '';
   $('actionMsg').textContent = '';
   $('actionMsg').className = 'action-msg';
 }
