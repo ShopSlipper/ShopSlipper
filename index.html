@@ -948,6 +948,7 @@ const I18N = {
     returnWindowNote: "Returns are only accepted within {days} days of your order date.",
     orderIdField: "Order ID",
     enterOrderId: "Please enter your order ID.",
+    invalidOrderIdFormat: "Order ID must look like SS1234567NP.",
     orderDateField: "Order Date",
     enterValidOrderDate: "Please enter the date you placed the order.",
     fullName: "Full Name",
@@ -959,7 +960,10 @@ const I18N = {
     enterReason: "Please tell us why you're returning this.",
     submitReturn: "Submit Return Request",
     submittingReturn: "Submitting...",
+    verifyingOrder: "Verifying order...",
     returnWindowExpired: "Returns are only accepted within {days} days of the order date.",
+    orderNotFound: "We couldn't find that order — please check your Order ID.",
+    orderVerifyError: "Couldn't verify that order right now — please try again.",
     claimGiftTitle: "Claim Your Mystery Gift",
     freeProduct: "Free product",
     deliveryAddress: "Delivery Address",
@@ -1063,6 +1067,7 @@ const I18N = {
     returnWindowNote: "फिर्ता अर्डर मिति देखि {days} दिनभित्र मात्र स्वीकार गरिन्छ।",
     orderIdField: "अर्डर आईडी",
     enterOrderId: "कृपया आफ्नो अर्डर आईडी राख्नुहोस्।",
+    invalidOrderIdFormat: "अर्डर आईडी SS1234567NP जस्तो हुनुपर्छ।",
     orderDateField: "अर्डर गरेको मिति",
     enterValidOrderDate: "कृपया अर्डर गरेको मिति राख्नुहोस्।",
     fullName: "पूरा नाम",
@@ -1074,7 +1079,10 @@ const I18N = {
     enterReason: "कृपया फिर्ताको कारण लेख्नुहोस्।",
     submitReturn: "फिर्ता अनुरोध पठाउनुहोस्",
     submittingReturn: "पठाइँदैछ...",
+    verifyingOrder: "अर्डर जाँच गरिँदैछ...",
     returnWindowExpired: "फिर्ता अर्डर मिति देखि {days} दिनभित्र मात्र स्वीकार गरिन्छ।",
+    orderNotFound: "त्यो अर्डर फेला परेन — कृपया आफ्नो अर्डर आईडी जाँच गर्नुहोस्।",
+    orderVerifyError: "अर्डर जाँच गर्न सकिएन — कृपया फेरि प्रयास गर्नुहोस्।",
     claimGiftTitle: "आफ्नो सप्रराइज उपहार लिनुहोस्",
     freeProduct: "निःशुल्क सामान",
     deliveryAddress: "डेलिभरी ठेगाना",
@@ -2488,6 +2496,9 @@ function isValidPhone(phone){
 function isValidEmail(email){
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
+function isValidOrderIdFormat(orderId){
+  return /^SS\d{7}NP$/i.test((orderId || '').trim());
+}
 
 async function submitOrder(){
   if (isSubmittingOrder) return;
@@ -2633,6 +2644,26 @@ async function submitGiftOrder(){
   }
 }
 
+async function verifyOrderExists(orderId){
+  // Looks up the order in the same product/order sheet backend used for placing
+  // orders, via the Apps Script web app (which should support a GET/POST lookup
+  // action). Falls back gracefully if the backend doesn't support verification.
+  if (!CONFIG.sheetWebAppUrl || !CONFIG.sheetWebAppUrl.startsWith("http")){
+    return { checked: false };
+  }
+  try {
+    const url = `${CONFIG.sheetWebAppUrl}?action=lookupOrder&orderId=${encodeURIComponent(orderId)}`;
+    const res = await fetch(url, { method: "GET" });
+    if (!res.ok) return { checked: false };
+    const data = await res.json().catch(()=>null);
+    if (!data || typeof data.found === 'undefined') return { checked: false };
+    return { checked: true, found: !!data.found };
+  } catch (err){
+    console.warn('Order verification lookup failed', err);
+    return { checked: false };
+  }
+}
+
 async function submitReturnOrder(){
   if (isSubmittingReturn) return;
 
@@ -2644,7 +2675,8 @@ async function submitReturnOrder(){
   const address = document.getElementById('rAddress').value.trim();
   const reason = document.getElementById('rReason').value.trim();
 
-  const orderIdOk = !!orderId;
+  const orderIdPresent = !!orderId;
+  const orderIdFormatOk = orderIdPresent && isValidOrderIdFormat(orderId);
   const nameOk = !!name;
   const phoneOk = !!phone && isValidPhone(phone);
   const emailOk = !!email && isValidEmail(email);
@@ -2660,7 +2692,8 @@ async function submitReturnOrder(){
     withinWindow = diffDays >= -1 && diffDays <= CONFIG.returnWindowDays;
   }
 
-  setFieldError('rOrderId', 'rOrderIdErr', !orderIdOk);
+  setFieldError('rOrderId', 'rOrderIdErr', !orderIdPresent || !orderIdFormatOk);
+  document.getElementById('rOrderIdErr').textContent = !orderIdPresent ? t('enterOrderId') : t('invalidOrderIdFormat');
   setFieldError('rOrderDate', 'rOrderDateErr', !orderDateOk || !withinWindow);
   setFieldError('rName', 'rNameErr', !nameOk);
   setFieldError('rPhone', 'rPhoneErr', !phoneOk);
@@ -2672,12 +2705,29 @@ async function submitReturnOrder(){
     document.getElementById('rOrderDateErr').textContent = t('returnWindowExpired').replace('{days}', CONFIG.returnWindowDays);
   }
 
-  if (!orderIdOk || !orderDateOk || !withinWindow || !nameOk || !phoneOk || !emailOk || !addressOk || !reasonOk){
+  if (!orderIdPresent || !orderIdFormatOk || !orderDateOk || !withinWindow || !nameOk || !phoneOk || !emailOk || !addressOk || !reasonOk){
     let msg = t('fillAllFields');
-    if (!orderDateOk || !withinWindow) msg = t('returnWindowExpired').replace('{days}', CONFIG.returnWindowDays);
+    if (!orderIdPresent) msg = t('enterOrderId');
+    else if (!orderIdFormatOk) msg = t('invalidOrderIdFormat');
+    else if (!orderDateOk || !withinWindow) msg = t('returnWindowExpired').replace('{days}', CONFIG.returnWindowDays);
     else if (phone && !phoneOk) msg = t('enterValidPhone');
     else if (email && !emailOk) msg = t('enterValidEmail');
     showToast(msg, true);
+    return;
+  }
+
+  isSubmittingReturn = true;
+  const btn = document.getElementById('submitReturnBtn');
+  btn.disabled = true; btn.textContent = t('verifyingOrder');
+
+  // Confirm the order actually exists before accepting the return request.
+  const verification = await verifyOrderExists(orderId);
+  if (verification.checked && verification.found === false){
+    setFieldError('rOrderId', 'rOrderIdErr', true);
+    document.getElementById('rOrderIdErr').textContent = t('orderNotFound');
+    showToast(t('orderNotFound'), true);
+    btn.disabled = false; btn.textContent = t('submitReturn');
+    isSubmittingReturn = false;
     return;
   }
 
@@ -2692,9 +2742,7 @@ async function submitReturnOrder(){
     timestamp: new Date().toISOString(),
   };
 
-  isSubmittingReturn = true;
-  const btn = document.getElementById('submitReturnBtn');
-  btn.disabled = true; btn.textContent = t('submittingReturn');
+  btn.textContent = t('submittingReturn');
 
   try {
     const returnUrl = (CONFIG.returnSheetWebAppUrl && CONFIG.returnSheetWebAppUrl.startsWith("http"))
