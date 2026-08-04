@@ -215,12 +215,13 @@ function showResult(row){
   $('resultCard').classList.add('show');
   $('rOrderId').textContent = row['Order ID'];
   $('rName').textContent = row['Name'];
-  $('rPhone').textContent = row['Phone'];
+  $('rPhone').textContent = row['Number'];
 
-  const orderDate = new Date(row['Order Date']);
-  const reqDate = new Date(row['Timestamp']);
-  $('rOrderDate').textContent = isNaN(orderDate) ? (row['Order Date'] || '—') : orderDate.toLocaleString();
-  $('rReqDate').textContent = isNaN(reqDate) ? (row['Timestamp'] || '—') : reqDate.toLocaleString();
+  // "Receive Date" holds the customer's ORDER DATE (as written by the return form)
+  const orderDate = new Date(row['Receive Date']);
+  const reqDate = new Date(row['Date']);
+  $('rOrderDate').textContent = isNaN(orderDate) ? (row['Receive Date'] || '—') : orderDate.toLocaleString();
+  $('rReqDate').textContent = isNaN(reqDate) ? (row['Date'] || '—') : reqDate.toLocaleString();
 
   const hours = Math.round((reqDate - orderDate) / 36e5);
   $('rElapsed').textContent = isFinite(hours) ? `${hours} hours` : '—';
