@@ -113,6 +113,21 @@
     background:var(--amber); color:#fff; border:none; border-radius:10px; padding:10px 18px; font-weight:700; font-size:13.5px; cursor:pointer;
   }
 
+  .reason-block{
+    display:none; margin-top:12px; flex-direction:column; gap:10px;
+  }
+  .reason-block.show{ display:flex; }
+  .reason-block textarea{
+    border:1.5px solid var(--line); border-radius:10px; padding:10px 12px; font-size:14px;
+    font-family:inherit; resize:vertical; background:var(--paper); color:var(--ink);
+  }
+  .reason-block textarea:focus{ outline:2px solid var(--denim); border-color:var(--denim); }
+  .reason-block button{
+    background:var(--red); color:#fff; border:none; border-radius:10px; padding:10px 18px;
+    font-weight:700; font-size:13.5px; cursor:pointer; align-self:flex-start;
+  }
+  .reason-block button:disabled{ opacity:.5; cursor:not-allowed; }
+
   .result{
     text-align:center; padding:14px; border-radius:12px; font-weight:700; font-size:15px; margin-top:16px; display:none;
   }
@@ -187,10 +202,22 @@
         <span class="ic">❌</span><span>Failed</span>
       </button>
     </div>
+
+    <!-- Postponed: date + optional reason -->
     <div class="postpone-date" id="postponeDateRow">
       <input type="date" id="postponeDateInput" />
-      <button type="button" id="confirmPostponeBtn">Confirm</button>
     </div>
+    <div class="reason-block" id="postponeReasonBlock">
+      <textarea id="postponeReasonInput" rows="2" placeholder="Reason for postponing (optional)"></textarea>
+      <button type="button" id="confirmPostponeBtn">Confirm Postponed</button>
+    </div>
+
+    <!-- Failed: required reason -->
+    <div class="reason-block" id="failedReasonBlock">
+      <textarea id="failedReasonInput" rows="2" placeholder="Reason for failed delivery (required)"></textarea>
+      <button type="button" id="confirmFailedBtn">Confirm Failed</button>
+    </div>
+
     <div class="result" id="resultMsg"></div>
   </div>
 
@@ -204,9 +231,9 @@ const ORDERS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSclnzID
 const CONFIG = { currency: "Rs" };
 
 // Same Apps Script Web App URL used by the invoice generator.
-// It expects: ?status=delivered|postponed|failed&orderId=...&name=...&phone=...&address=...&total=...[&postponeDate=YYYY-MM-DD]
+// It expects: ?status=delivered|postponed|failed&orderId=...&name=...&phone=...&address=...&total=...[&postponeDate=YYYY-MM-DD][&reason=...]
 const STATUS_UPDATE_URL = "https://script.google.com/macros/s/AKfycbwBJjhETeYBrMJmfuJlbzgwpKRgULWbS0TbJ7FS-yATupIzwDPZzp4JtgKxti0298K6Lg/exec";
-  
+
 function parseCsv(text){
   const rows = [];
   let row = [], field = "", inQuotes = false;
@@ -362,6 +389,12 @@ function setButtonsDisabled(disabled){
   document.querySelectorAll('.status-btn').forEach(b => b.disabled = disabled);
 }
 
+function hideAllSubBlocks(){
+  document.getElementById('postponeDateRow').classList.remove('show');
+  document.getElementById('postponeReasonBlock').classList.remove('show');
+  document.getElementById('failedReasonBlock').classList.remove('show');
+}
+
 function showResult(ok, msg){
   const el = document.getElementById('resultMsg');
   el.textContent = msg;
@@ -372,10 +405,14 @@ document.querySelectorAll('.status-btn').forEach(btn => {
   btn.addEventListener('click', async ()=>{
     const status = btn.dataset.status;
 
+    document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('chosen'));
+    btn.classList.add('chosen');
+    document.getElementById('resultMsg').className = 'result';
+
     if (status === 'postponed'){
-      document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('chosen'));
-      btn.classList.add('chosen');
+      hideAllSubBlocks();
       document.getElementById('postponeDateRow').classList.add('show');
+      document.getElementById('postponeReasonBlock').classList.add('show');
       const dateInput = document.getElementById('postponeDateInput');
       if (!dateInput.value){
         const t = new Date(Date.now() + 86400000);
@@ -384,16 +421,22 @@ document.querySelectorAll('.status-btn').forEach(btn => {
       return;
     }
 
-    document.getElementById('postponeDateRow').classList.remove('show');
-    document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('chosen'));
-    btn.classList.add('chosen');
+    if (status === 'failed'){
+      hideAllSubBlocks();
+      document.getElementById('failedReasonBlock').classList.add('show');
+      document.getElementById('failedReasonInput').focus();
+      return;
+    }
+
+    // delivered — no reason needed, submit right away
+    hideAllSubBlocks();
     setButtonsDisabled(true);
 
     const result = await sendStatus(status);
     setButtonsDisabled(false);
 
     if (result.status === 'success'){
-      showResult(true, '✓ Marked as ' + status.charAt(0).toUpperCase() + status.slice(1) + ' and saved to the sheet.');
+      showResult(true, '✓ Marked as Delivered and saved to the sheet.');
     } else {
       showResult(false, 'Could not save: ' + (result.message || 'unknown error'));
     }
@@ -402,6 +445,7 @@ document.querySelectorAll('.status-btn').forEach(btn => {
 
 document.getElementById('confirmPostponeBtn').addEventListener('click', async ()=>{
   const dateVal = document.getElementById('postponeDateInput').value;
+  const reasonVal = document.getElementById('postponeReasonInput').value.trim();
   if (!dateVal){
     showResult(false, 'Please pick a postpone date.');
     return;
@@ -409,13 +453,34 @@ document.getElementById('confirmPostponeBtn').addEventListener('click', async ()
   setButtonsDisabled(true);
   document.getElementById('confirmPostponeBtn').disabled = true;
 
-  const result = await sendStatus('postponed', { postponeDate: dateVal });
+  const result = await sendStatus('postponed', { postponeDate: dateVal, reason: reasonVal });
 
   setButtonsDisabled(false);
   document.getElementById('confirmPostponeBtn').disabled = false;
 
   if (result.status === 'success'){
     showResult(true, '✓ Postponed to ' + dateVal + ' and saved to the sheet.');
+  } else {
+    showResult(false, 'Could not save: ' + (result.message || 'unknown error'));
+  }
+});
+
+document.getElementById('confirmFailedBtn').addEventListener('click', async ()=>{
+  const reasonVal = document.getElementById('failedReasonInput').value.trim();
+  if (!reasonVal){
+    showResult(false, 'Please enter a reason for the failed delivery.');
+    return;
+  }
+  setButtonsDisabled(true);
+  document.getElementById('confirmFailedBtn').disabled = true;
+
+  const result = await sendStatus('failed', { reason: reasonVal });
+
+  setButtonsDisabled(false);
+  document.getElementById('confirmFailedBtn').disabled = false;
+
+  if (result.status === 'success'){
+    showResult(true, '✓ Marked as Failed and saved to the sheet.');
   } else {
     showResult(false, 'Could not save: ' + (result.message || 'unknown error'));
   }
@@ -442,7 +507,9 @@ document.getElementById('newLookupBtn').addEventListener('click', ()=>{
   showCard('lookupCard', true);
   document.getElementById('lookupStatus').textContent = '';
   document.getElementById('resultMsg').className = 'result';
-  document.getElementById('postponeDateRow').classList.remove('show');
+  hideAllSubBlocks();
+  document.getElementById('postponeReasonInput').value = '';
+  document.getElementById('failedReasonInput').value = '';
   document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('chosen'));
 });
 
