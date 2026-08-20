@@ -72,8 +72,12 @@ tr:last-child td{border-bottom:0}
 .checkRow{display:flex;align-items:center;gap:8px;padding-top:6px}
 .skuRow{display:flex;gap:8px;align-items:center}
 .skuRow input{flex:1;font-family:monospace;background:var(--soft)}
-.imgPreviewWrap{display:flex;gap:12px;align-items:center}
-.imgPreview{width:64px;height:64px;border-radius:12px;object-fit:cover;background:var(--soft);border:1px solid var(--line)}
+.imgUploadRow{display:flex;gap:14px;align-items:flex-start}
+.imgPreview{width:76px;height:76px;border-radius:12px;object-fit:cover;background:var(--soft);border:1px solid var(--line);flex-shrink:0}
+.imgUploadCol{flex:1;display:flex;flex-direction:column;gap:8px}
+.uploadStatus{font-size:12px;color:var(--muted)}
+.uploadStatus.err{color:var(--danger)}
+.urlToggle{font-size:12px;color:var(--gold);text-decoration:underline;cursor:pointer;width:fit-content}
 .colorRow{display:flex;gap:8px;align-items:center}
 .colorRow input[type=color]{width:44px;height:44px;padding:2px;border-radius:11px}
 .formFoot{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
@@ -220,20 +224,26 @@ tr:last-child td{border-bottom:0}
     <label>Sizes (comma-separated, leave blank if not applicable)</label>
     <input id="f_sizes" placeholder="e.g. 38,39,40,41,42 or S,M,L">
    </div>
-   <div class="field">
-    <label>Image URL</label>
-    <input id="f_image" placeholder="https://..." oninput="updateImgPreview()">
+   <div class="field full">
+    <label>Product photo</label>
+    <div class="imgUploadRow">
+     <img id="f_preview" class="imgPreview" src="" alt="">
+     <div class="imgUploadCol">
+      <input type="file" id="f_imageFile" accept="image/*" style="display:none" onchange="handleImageUpload(this.files[0])">
+      <button type="button" class="btn light sm" style="width:fit-content" onclick="document.querySelector('#f_imageFile').click()">📷 Upload photo</button>
+      <span class="uploadStatus" id="uploadStatus"></span>
+      <span class="urlToggle" id="urlToggle" onclick="toggleUrlField()">or paste an image URL instead</span>
+      <input id="f_image" placeholder="https://..." oninput="updateImgPreview()" style="display:none">
+     </div>
+    </div>
    </div>
    <div class="field">
-    <label>Preview</label>
-    <div class="imgPreviewWrap"><img id="f_preview" class="imgPreview" src="" alt=""></div>
-   </div>
-   <div class="field">
-    <label>Dominant color (used by image search)</label>
+    <label>Dominant color</label>
     <div class="colorRow">
      <input id="f_color" type="color" value="#cccccc" oninput="f_colorHex.value=f_color.value">
      <input id="f_colorHex" placeholder="#cccccc" oninput="syncColorHex()">
     </div>
+    <span style="font-size:11px;color:var(--muted)">Auto-filled from the photo. Only used for the storefront's "search by image" feature — it doesn't change how the product looks.</span>
    </div>
    <div class="field">
     <div class="checkRow"><input type="checkbox" id="f_new"><label for="f_new">Mark as "New arrival"</label></div>
@@ -274,6 +284,7 @@ const ADMIN_KEY  = "shopslipper2026";              // must match ADMIN_KEY in Co
  casual visitors out but isn't real security.
 ================================================*/
 const CAT_CODES = {Slides:"SLD",Everyday:"EVD",Sandals:"SND",Home:"HOM"};
+const MAX_UPLOAD_DIM = 1200; // photos are resized to fit within this before upload
 
 let products = [];
 let orders = [];
@@ -471,10 +482,81 @@ function syncColorHex(){
  let v = document.querySelector("#f_colorHex").value.trim();
  if(/^#[0-9a-fA-F]{6}$/.test(v)) document.querySelector("#f_color").value = v;
 }
+function toggleUrlField(){
+ const urlField = document.querySelector("#f_image");
+ const showing = urlField.style.display !== "none";
+ urlField.style.display = showing ? "none" : "block";
+ document.querySelector("#urlToggle").textContent = showing ? "or paste an image URL instead" : "hide URL field";
+}
+
+/* Reads the average color of an image element into a #rrggbb hex string —
+   reused for both the auto-fill-on-upload color and the storefront's
+   "search by image" feature, so the two stay consistent. */
+function averageColorOf(img){
+ const c = document.createElement("canvas"); c.width=30; c.height=30;
+ const ctx = c.getContext("2d"); ctx.drawImage(img,0,0,30,30);
+ const data = ctx.getImageData(0,0,30,30).data;
+ let r=0,g=0,b=0,n=0;
+ for(let i=0;i<data.length;i+=4){ r+=data[i]; g+=data[i+1]; b+=data[i+2]; n++; }
+ r=Math.round(r/n); g=Math.round(g/n); b=Math.round(b/n);
+ return "#"+[r,g,b].map(v=>v.toString(16).padStart(2,"0")).join("");
+}
+
+/* Resizes the chosen photo down to MAX_UPLOAD_DIM (keeps it a
+   reasonably small upload), uploads it to your Drive via the
+   Apps Script backend, and fills in the Image + Color fields
+   with the result. */
+function handleImageUpload(file){
+ if(!file) return;
+ const status = document.querySelector("#uploadStatus");
+ status.classList.remove("err");
+ status.textContent = "Preparing photo…";
+ const reader = new FileReader();
+ reader.onload = e => {
+  const img = new Image();
+  img.onload = async () => {
+   let w = img.width, h = img.height;
+   if(w > MAX_UPLOAD_DIM || h > MAX_UPLOAD_DIM){
+    const scale = MAX_UPLOAD_DIM / Math.max(w,h);
+    w = Math.round(w*scale); h = Math.round(h*scale);
+   }
+   const canvas = document.createElement("canvas");
+   canvas.width = w; canvas.height = h;
+   canvas.getContext("2d").drawImage(img,0,0,w,h);
+   const dataUrl = canvas.toDataURL("image/jpeg",0.85);
+   const base64 = dataUrl.split(",")[1];
+   document.querySelector("#f_colorHex").value = averageColorOf(img);
+   document.querySelector("#f_color").value = averageColorOf(img);
+   status.textContent = "Uploading…";
+   try{
+    const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({
+     action:"uploadImage", key:ADMIN_KEY, data:base64,
+     filename:(file.name||"product").replace(/[^a-zA-Z0-9.\-_]/g,"_"),
+     mimeType:"image/jpeg"
+    })});
+    const data = await res.json();
+    if(!data.success) throw new Error(data.error || "upload failed");
+    document.querySelector("#f_image").value = data.url;
+    updateImgPreview();
+    status.textContent = "Uploaded ✓";
+    setTimeout(()=>{ if(status.textContent==="Uploaded ✓") status.textContent=""; }, 2500);
+   }catch(err){
+    status.classList.add("err");
+    status.textContent = "Couldn't upload — try again or paste a URL instead.";
+   }
+  };
+  img.src = e.target.result;
+ };
+ reader.readAsDataURL(file);
+}
 
 function openForm(id){
  editingId = id;
  document.querySelector("#formTitle").textContent = id ? "Edit product" : "Add product";
+ document.querySelector("#uploadStatus").textContent = "";
+ document.querySelector("#uploadStatus").classList.remove("err");
+ document.querySelector("#f_image").style.display = "none";
+ document.querySelector("#urlToggle").textContent = "or paste an image URL instead";
  if(id){
   const p = products.find(x=>x.id===id);
   document.querySelector("#f_name").value = p.name;
@@ -519,7 +601,7 @@ async function saveProduct(){
  const sizes = document.querySelector("#f_sizes").value.trim();
 
  if(!name || !category || !price || !image){
-  toast("Please fill in name, category, price and image");
+  toast("Please fill in name, category, price and a photo");
   return;
  }
  const btn = document.querySelector("#saveBtn");
