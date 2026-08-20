@@ -136,7 +136,13 @@ select{width:100%;height:48px;border:1px solid var(--line);background:#fff;borde
 .pdSuggest .eyebrow{margin-bottom:10px}
 .pdSuggest h3{font-family:var(--serif);font-weight:600;font-size:19px;margin-bottom:16px}
 .pdSuggestGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
-@media(max-width:700px){.pdWrap{grid-template-columns:1fr}.pdSuggestGrid{grid-template-columns:repeat(2,1fr)}}
+/* Widened from 700px so the two-column product modal stacks to one
+   column any time the browser window (or the modal itself, capped at
+   920px wide) is narrower than 920px — not just on phone-sized
+   screens. Previously a merely narrow desktop window kept the
+   two-column layout and clipped the info panel, forcing horizontal
+   scrolling to see price/color/size/Add to cart. */
+@media(max-width:920px){.pdWrap{grid-template-columns:1fr}.pdSuggestGrid{grid-template-columns:repeat(2,1fr)}}
 .formGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .field{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}.field.full{grid-column:1/-1}
 .field label{font-size:12px;font-weight:700}.field input,.field textarea,.field select{border:1px solid var(--line);border-radius:11px;padding:12px;outline:none;width:100%}
@@ -401,6 +407,12 @@ async function loadProducts(){
   document.querySelector("#products").innerHTML = `<div class="loadingMsg">Couldn't load products. Check SCRIPT_URL is set correctly in index.html.</div>`;
   return;
  }
+ // Drop any cart items whose product no longer exists (deleted from the
+ // catalog, etc). Without this, the cart badge can show a count for items
+ // that never render in the drawer, since the drawer silently skips them.
+ const beforeCount = cart.length;
+ cart = cart.filter(i => products.some(p => p.id === i.id));
+ if(cart.length !== beforeCount) save();
  categories();renderProducts();updateCart();
 }
 
@@ -551,7 +563,10 @@ function updateCart(){
  else el.innerHTML=cart.map(i=>{const p=products.find(x=>x.id===i.id);if(!p)return "";return `<div class="cartItem"><img src="${p.image}" alt="" onerror="this.style.display='none'"><div><h4>${p.name}${i.size?` <small style="color:var(--muted)">(${i.size})</small>`:""}</h4><small>${money(p.price)}</small><div class="qty"><button onclick="changeQty(${p.id},${i.size?`'${i.size}'`:null},-1)">−</button><b>${i.qty}</b><button onclick="changeQty(${p.id},${i.size?`'${i.size}'`:null},1)">+</button></div><button class="remove" onclick="removeItem(${p.id},${i.size?`'${i.size}'`:null})">Remove</button></div><b>${money(p.price*i.qty)}</b></div>`}).join("");
  const sub=cart.reduce((s,i)=>{const p=products.find(x=>x.id===i.id);return p?s+p.price*i.qty:s},0);
  document.querySelector("#subtotal").textContent=money(sub);document.querySelector("#total").textContent=money(sub+(sub>0&&sub<2000?120:0));
- document.querySelector("#delivery").textContent=sub>=2000?"Free":"Rs. 120";
+ // Match the Total line's logic: no delivery fee shown when the cart is
+ // genuinely empty (sub===0), Rs.120 below the free-delivery threshold,
+ // Free at or above it.
+ document.querySelector("#delivery").textContent = sub<=0 ? "Rs. 0" : (sub<2000 ? "Rs. 120" : "Free");
 }
 function openCart(){document.querySelector("#drawer").classList.add("open");updateCart()}
 function closeCart(){document.querySelector("#drawer").classList.remove("open")}
