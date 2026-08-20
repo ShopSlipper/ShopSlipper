@@ -42,8 +42,9 @@ header{background:rgba(248,246,241,.9);backdrop-filter:blur(18px);border-bottom:
 .btn.sm{padding:8px 13px;font-size:12px}
 main{padding:34px 0 80px}
 .tabs{display:flex;gap:8px;margin-bottom:20px}
-.tabBtn{padding:9px 16px;border-radius:999px;background:#fff;border:1px solid var(--line);font-size:13px;font-weight:600}
+.tabBtn{padding:9px 16px;border-radius:999px;background:#fff;border:1px solid var(--line);font-size:13px;font-weight:600;position:relative}
 .tabBtn.active{background:#111;color:#fff;border-color:#111}
+.tabDot{position:absolute;top:-3px;right:-3px;background:var(--danger);color:#fff;min-width:17px;height:17px;padding:0 4px;border-radius:999px;font-size:10px;font-weight:700;display:none;place-items:center;border:2px solid var(--bg)}
 .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px;margin-bottom:22px}
 .panelHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px}
 .panelHead h2{font-family:var(--serif);font-weight:600;font-size:19px}
@@ -61,6 +62,7 @@ tr:last-child td{border-bottom:0}
 .oldp{text-decoration:line-through;color:#a9a49a;font-size:11.5px}
 .emptyMsg{text-align:center;color:var(--muted);padding:40px 10px;font-size:13.5px}
 .statusTag{padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700;background:var(--soft)}
+.unreadTag{padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700;background:var(--danger);color:#fff}
 .formGrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .field{display:flex;flex-direction:column;gap:6px}
 .field.full{grid-column:1/-1}
@@ -82,6 +84,23 @@ tr:last-child td{border-bottom:0}
 .modalBox{background:#fff;border-radius:22px;width:min(560px,100%);max-height:90vh;overflow:auto;padding:26px}
 .modalBox h3{font-family:var(--serif);font-weight:600;font-size:19px;margin-bottom:16px}
 @media(max-width:700px){.formGrid{grid-template-columns:1fr}.field.full{grid-column:auto}table,thead,tbody,th,td,tr{display:block}thead{display:none}td{border:0;padding:4px 8px}tr{border-bottom:1px solid var(--line);padding:10px 0}}
+
+/* ---- Chat tab ---- */
+.chatSessionRow{cursor:pointer}
+.chatSessionRow:hover td{background:var(--soft)}
+.chatModalBox{width:min(480px,100%);padding:0;display:flex;flex-direction:column;max-height:85vh}
+.chatModalHead{padding:20px 22px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:flex-start}
+.chatModalHead h3{margin-bottom:2px}
+.chatModalHead small{color:var(--muted);font-size:12px}
+.chatThread{flex:1;overflow:auto;padding:16px 20px;display:flex;flex-direction:column;gap:10px;background:var(--bg);min-height:200px}
+.chatBubble{max-width:80%;padding:10px 13px;border-radius:16px;font-size:13.5px;line-height:1.4}
+.chatBubble.customer{align-self:flex-start;background:#fff;border:1px solid var(--line);border-bottom-left-radius:4px}
+.chatBubble.staff{align-self:flex-end;background:#111;color:#fff;border-bottom-right-radius:4px}
+.chatBubble small{display:block;margin-top:4px;font-size:10px;opacity:.6}
+.chatReplyRow{display:flex;gap:8px;padding:14px 20px;border-top:1px solid var(--line)}
+.chatReplyRow input{flex:1;border:1px solid var(--line);border-radius:999px;padding:11px 15px;outline:none;font-size:13.5px}
+.chatReplyRow input:focus{border-color:var(--text)}
+.chatSendBtn{width:42px;height:42px;border-radius:50%;background:#111;color:#fff;font-size:16px;flex-shrink:0}
 </style>
 </head>
 <body>
@@ -121,6 +140,7 @@ tr:last-child td{border-bottom:0}
   <div class="tabs">
    <button class="tabBtn active" id="tab-products" onclick="switchTab('products')">Products</button>
    <button class="tabBtn" id="tab-orders" onclick="switchTab('orders')">Orders</button>
+   <button class="tabBtn" id="tab-chat" onclick="switchTab('chat')">Chat<span class="tabDot" id="chatTabDot">0</span></button>
   </div>
 
   <div class="panel" id="panel-products">
@@ -146,6 +166,18 @@ tr:last-child td{border-bottom:0}
    </table>
    </div>
    <div class="emptyMsg" id="emptyOrders" style="display:none">No orders yet.</div>
+  </div>
+
+  <div class="panel" id="panel-chat" style="display:none">
+   <div class="panelHead"><h2>Chat <span style="color:var(--muted);font-weight:400" id="chatCountLabel"></span></h2></div>
+   <div class="note">Customers message you from the chat bubble on your site. Click a conversation below to reply — replies appear for the customer within a few seconds.</div>
+   <div style="overflow:auto">
+   <table>
+    <thead><tr><th>Customer</th><th>Last message</th><th>When</th><th>Status</th></tr></thead>
+    <tbody id="chatRows"></tbody>
+   </table>
+   </div>
+   <div class="emptyMsg" id="emptyChat" style="display:none">No conversations yet.</div>
   </div>
  </div>
 </main>
@@ -214,6 +246,21 @@ tr:last-child td{border-bottom:0}
  </div>
 </div>
 
+<!-- Chat reply modal -->
+<div class="modalBg" id="chatModal" onclick="if(event.target===this)closeChatThread()">
+ <div class="modalBox chatModalBox">
+  <div class="chatModalHead">
+   <div><h3 id="chatModalName">Customer</h3><small id="chatModalPhone"></small></div>
+   <button class="iconBtn" onclick="closeChatThread()">×</button>
+  </div>
+  <div class="chatThread" id="chatThread"></div>
+  <form class="chatReplyRow" onsubmit="sendStaffReply(event)">
+   <input id="chatReplyInput" placeholder="Type a reply…" autocomplete="off">
+   <button class="chatSendBtn" aria-label="Send">➤</button>
+  </form>
+ </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -230,7 +277,9 @@ const CAT_CODES = {Slides:"SLD",Everyday:"EVD",Sandals:"SND",Home:"HOM"};
 
 let products = [];
 let orders = [];
+let chatSessions = [];
 let editingId = null;
+let activeChatSessionId = null;
 
 function tryLogin(){
  const val = document.querySelector("#gatePass").value;
@@ -255,28 +304,43 @@ if(sessionStorage.getItem("ss-admin-ok")==="1"){
 function switchTab(t){
  document.querySelector("#panel-products").style.display = t==="products" ? "block":"none";
  document.querySelector("#panel-orders").style.display = t==="orders" ? "block":"none";
+ document.querySelector("#panel-chat").style.display = t==="chat" ? "block":"none";
  document.querySelector("#tab-products").classList.toggle("active", t==="products");
  document.querySelector("#tab-orders").classList.toggle("active", t==="orders");
+ document.querySelector("#tab-chat").classList.toggle("active", t==="chat");
 }
 
 async function loadAll(){
  document.querySelector("#sourceNote").textContent = "Loading products and orders from your Google Sheet…";
  try{
-  const [pRes, oRes] = await Promise.all([
+  const [pRes, oRes, cRes] = await Promise.all([
    fetch(`${SCRIPT_URL}?action=products`),
-   fetch(`${SCRIPT_URL}?action=orders&key=${encodeURIComponent(ADMIN_KEY)}`)
+   fetch(`${SCRIPT_URL}?action=orders&key=${encodeURIComponent(ADMIN_KEY)}`),
+   fetch(`${SCRIPT_URL}?action=chatSessions&key=${encodeURIComponent(ADMIN_KEY)}`)
   ]);
   const pData = await pRes.json();
   const oData = await oRes.json();
-  if(pData.error || oData.error) throw new Error(pData.error || oData.error);
+  const cData = await cRes.json();
+  if(pData.error || oData.error || cData.error) throw new Error(pData.error || oData.error || cData.error);
   products = pData.products || [];
   orders = (oData.orders || []).reverse();
+  chatSessions = cData.sessions || [];
   document.querySelector("#sourceNote").innerHTML = `Connected to your Google Sheet — <b>${products.length}</b> products, <b>${orders.length}</b> orders. Changes here save straight to the Sheet.`;
   render();
   renderOrders();
+  renderChatSessions();
  }catch(err){
   document.querySelector("#sourceNote").innerHTML = `Couldn't reach the Sheet. Check <code>SCRIPT_URL</code> is set correctly in admin.html and that the Apps Script is deployed with "Anyone" access.`;
  }
+}
+// Keep the Chat tab reasonably fresh even when it's not the active tab
+setInterval(()=>{ if(sessionStorage.getItem("ss-admin-ok")==="1") refreshChatSessions(); }, 15000);
+async function refreshChatSessions(){
+ try{
+  const res = await fetch(`${SCRIPT_URL}?action=chatSessions&key=${encodeURIComponent(ADMIN_KEY)}`);
+  const data = await res.json();
+  if(data.sessions){ chatSessions = data.sessions; renderChatSessions(); }
+ }catch(err){}
 }
 
 function money(n){return "Rs. "+Number(n).toLocaleString("en-IN")}
@@ -321,6 +385,67 @@ function renderOrders(){
    <td><span class="statusTag">${o.status||"New"}</span></td>
   </tr>`;
  }).join("");
+}
+
+/* ================== Chat tab ================== */
+function escapeHtml(s){ const d=document.createElement("div"); d.textContent=s||""; return d.innerHTML; }
+function renderChatSessions(){
+ const rows = document.querySelector("#chatRows");
+ document.querySelector("#chatCountLabel").textContent = `(${chatSessions.length})`;
+ document.querySelector("#emptyChat").style.display = chatSessions.length ? "none" : "block";
+ const totalUnread = chatSessions.reduce((s,c)=>s+(c.unread||0),0);
+ const dot = document.querySelector("#chatTabDot");
+ if(totalUnread>0){ dot.style.display="grid"; dot.textContent = totalUnread>9?"9+":totalUnread; }
+ else dot.style.display="none";
+
+ rows.innerHTML = chatSessions.map(c=>`
+  <tr class="chatSessionRow" onclick="openChatThread('${c.sessionId}')">
+   <td><b>${escapeHtml(c.name)||"Anonymous visitor"}</b>${c.phone?`<br><small style="color:var(--muted)">${escapeHtml(c.phone)}</small>`:""}</td>
+   <td style="max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(c.lastText)}</td>
+   <td>${c.lastTime ? new Date(c.lastTime).toLocaleString() : ""}</td>
+   <td>${c.unread>0 ? `<span class="unreadTag">${c.unread} new</span>` : `<span class="statusTag">Replied</span>`}</td>
+  </tr>`).join("");
+}
+async function openChatThread(sessionId){
+ activeChatSessionId = sessionId;
+ const session = chatSessions.find(c=>c.sessionId===sessionId);
+ document.querySelector("#chatModalName").textContent = (session && session.name) || "Customer";
+ document.querySelector("#chatModalPhone").textContent = (session && session.phone) || "";
+ document.querySelector("#chatThread").innerHTML = `<div style="text-align:center;color:var(--muted);font-size:12.5px;padding:20px">Loading…</div>`;
+ document.querySelector("#chatModal").classList.add("open");
+ await loadChatThread(sessionId);
+}
+async function loadChatThread(sessionId){
+ try{
+  const res = await fetch(`${SCRIPT_URL}?action=chatMessages&sessionId=${encodeURIComponent(sessionId)}`);
+  const data = await res.json();
+  const el = document.querySelector("#chatThread");
+  const msgs = data.messages || [];
+  el.innerHTML = msgs.length
+   ? msgs.map(m=>`<div class="chatBubble ${m.from}"><span>${escapeHtml(m.text)}</span><small>${m.time||""}</small></div>`).join("")
+   : `<div style="text-align:center;color:var(--muted);font-size:12.5px;padding:20px">No messages yet.</div>`;
+  el.scrollTop = el.scrollHeight;
+ }catch(err){
+  document.querySelector("#chatThread").innerHTML = `<div style="text-align:center;color:var(--muted);font-size:12.5px;padding:20px">Couldn't load messages.</div>`;
+ }
+}
+function closeChatThread(){
+ document.querySelector("#chatModal").classList.remove("open");
+ activeChatSessionId = null;
+ refreshChatSessions();
+}
+async function sendStaffReply(e){
+ e.preventDefault();
+ const input = document.querySelector("#chatReplyInput");
+ const text = input.value.trim();
+ if(!text || !activeChatSessionId) return;
+ input.value="";
+ try{
+  await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"sendChatMessage",key:ADMIN_KEY,sessionId:activeChatSessionId,message:text})});
+  await loadChatThread(activeChatSessionId);
+ }catch(err){
+  toast("Couldn't send — check your connection and try again.");
+ }
 }
 
 function nextId(){
