@@ -148,6 +148,29 @@ footer .logo span{color:var(--gold)}
 .copy{border-top:1px solid #1e332e;margin-top:40px;padding-top:20px;font-size:12px;color:#5f7a75}
 .toast{position:fixed;left:50%;bottom:25px;transform:translate(-50%,20px);background:#111;color:#fff;padding:12px 18px;border-radius:999px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:100}
 .toast.show{opacity:1;transform:translate(-50%,0)}
+.chatFab{position:fixed;right:22px;bottom:22px;width:58px;height:58px;border-radius:50%;background:#111;color:#fff;font-size:23px;display:grid;place-items:center;box-shadow:0 10px 30px rgba(20,20,20,.28);z-index:80;transition:.2s transform}
+.chatFab:hover{transform:translateY(-3px)}
+.chatFabBadge{position:absolute;top:-3px;right:-3px;background:var(--danger);color:#fff;min-width:20px;height:20px;padding:0 5px;border-radius:50%;font-size:11px;font-weight:700;display:none;place-items:center;border:2px solid #fff}
+.chatWidget{position:fixed;right:22px;bottom:92px;width:min(370px,calc(100vw - 32px));max-height:min(540px,calc(100vh - 130px));background:#fff;border-radius:22px;box-shadow:0 24px 60px rgba(20,30,28,.28);display:none;flex-direction:column;overflow:hidden;z-index:80;border:1px solid var(--line)}
+.chatWidget.open{display:flex}
+.chatHead{display:flex;justify-content:space-between;align-items:center;padding:16px 18px;background:#111;color:#fff;flex-shrink:0}
+.chatHead div b{font-family:var(--serif);font-size:15px;display:block;font-weight:600}
+.chatHead div small{color:#cfe3dc;opacity:.75;font-size:11px}
+.chatHead .close{background:rgba(255,255,255,.15);color:#fff}
+.chatStartForm{padding:18px}
+.chatStartForm p{font-size:12.5px;color:var(--muted);margin-bottom:14px}
+.chatThreadWrap{display:flex;flex-direction:column;flex:1;min-height:0}
+.chatMessages{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:10px;background:var(--bg)}
+.chatEmpty{color:var(--muted);font-size:12.5px;text-align:center;padding:30px 10px}
+.chatBubble{max-width:80%;padding:10px 13px;border-radius:16px;font-size:13.5px;line-height:1.4}
+.chatBubble.me{align-self:flex-end;background:#111;color:#fff;border-bottom-right-radius:4px}
+.chatBubble.staff{align-self:flex-start;background:#fff;border:1px solid var(--line);border-bottom-left-radius:4px}
+.chatBubble small{display:block;margin-top:4px;font-size:10px;opacity:.6}
+.chatInputRow{display:flex;gap:8px;padding:12px;border-top:1px solid var(--line);background:#fff;flex-shrink:0}
+.chatInputRow input{flex:1;border:1px solid var(--line);border-radius:999px;padding:11px 15px;outline:none;font-size:13.5px}
+.chatInputRow input:focus{border-color:var(--text)}
+.chatSendBtn{width:42px;height:42px;border-radius:50%;background:#111;color:#fff;font-size:16px;flex-shrink:0}
+@media(max-width:650px){.chatFab{right:14px;bottom:14px;width:52px;height:52px;font-size:20px}.chatWidget{right:8px;bottom:78px}}
 @media(max-width:900px){.grid{grid-template-columns:repeat(3,1fr)}.features{grid-template-columns:repeat(2,1fr)}.footerGrid{grid-template-columns:2fr 1fr 1fr}.introInner{flex-direction:column;align-items:flex-start}.introInner p{text-align:left}}
 @media(max-width:650px){
  .navlinks{display:none}
@@ -332,6 +355,30 @@ footer .logo span{color:var(--gold)}
 </div>
 
 <div class="toast" id="toast"></div>
+
+<button class="chatFab" id="chatFab" onclick="openChat()" aria-label="Chat with us">
+ 💬<span class="chatFabBadge" id="chatFabBadge">0</span>
+</button>
+
+<div class="chatWidget" id="chatWidget">
+ <div class="chatHead">
+  <div><b>Chat with us</b><small>We usually reply within a few hours</small></div>
+  <button class="close" onclick="closeChat()">×</button>
+ </div>
+ <form id="chatStartForm" class="chatStartForm" onsubmit="startChatWithInfo(event)">
+  <p>Tell us a little about you so our team can get back to you.</p>
+  <div class="field"><label>Name</label><input required name="name" placeholder="Your name"></div>
+  <div class="field"><label>Phone (optional)</label><input name="phone" placeholder="98XXXXXXXX"></div>
+  <button class="btn" style="width:100%">Start chat</button>
+ </form>
+ <div class="chatThreadWrap" id="chatThreadWrap" style="display:none">
+  <div class="chatMessages" id="chatMessages"></div>
+  <form class="chatInputRow" onsubmit="sendChatMessage(event)">
+   <input id="chatInput" placeholder="Type a message…" autocomplete="off">
+   <button class="chatSendBtn" aria-label="Send">➤</button>
+  </form>
+ </div>
+</div>
 
 <script>
 /* ================== CONFIG — set this to your Apps Script Web App URL ================== */
@@ -595,6 +642,101 @@ async function submitReturn(e){
 
 function toggleWish(b){b.classList.toggle("active");b.textContent=b.classList.contains("active")?"♥":"♡"}
 let toastTimer;function toast(t){const e=document.querySelector("#toast");e.textContent=t;e.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>e.classList.remove("show"),1800)}
+
+/* ================== Live chat widget ==================
+   Each visitor gets a random session ID (stored in their browser).
+   Messages they send are posted to your Apps Script backend
+   (action: "sendChatMessage"). The widget polls the backend
+   (action: "chatMessages") every few seconds for staff replies —
+   your staff answer from wherever your backend stores messages
+   (e.g. a "Messages" sheet), and those replies show up here.
+   See the note at the end of this file for the matching
+   Apps Script code to add on the backend. */
+let chatSessionId = localStorage.getItem("shopslipper-chat-id");
+let chatInfo = JSON.parse(localStorage.getItem("shopslipper-chat-info")||"null");
+let chatMessages = JSON.parse(localStorage.getItem("shopslipper-chat-msgs")||"[]");
+let chatUnread = 0, chatPollStarted = false;
+
+function ensureChatSession(){
+ if(!chatSessionId){
+  chatSessionId = "C"+Date.now().toString(36).toUpperCase()+Math.random().toString(36).slice(2,6).toUpperCase();
+  localStorage.setItem("shopslipper-chat-id", chatSessionId);
+ }
+ startChatPolling();
+}
+function startChatPolling(){
+ if(chatPollStarted) return;
+ chatPollStarted = true;
+ fetchChatMessages();
+ setInterval(fetchChatMessages, 8000);
+}
+function openChat(){
+ ensureChatSession();
+ document.querySelector("#chatWidget").classList.add("open");
+ chatUnread = 0; updateChatFabBadge();
+ if(!chatInfo){
+  document.querySelector("#chatStartForm").style.display="block";
+  document.querySelector("#chatThreadWrap").style.display="none";
+ }else{
+  document.querySelector("#chatStartForm").style.display="none";
+  document.querySelector("#chatThreadWrap").style.display="flex";
+  renderChatMessages();
+ }
+}
+function closeChat(){ document.querySelector("#chatWidget").classList.remove("open"); }
+function startChatWithInfo(e){
+ e.preventDefault();
+ const form = new FormData(e.target);
+ chatInfo = { name: form.get("name"), phone: form.get("phone") };
+ localStorage.setItem("shopslipper-chat-info", JSON.stringify(chatInfo));
+ document.querySelector("#chatStartForm").style.display="none";
+ document.querySelector("#chatThreadWrap").style.display="flex";
+ renderChatMessages();
+}
+function escapeHtml(s){ const d=document.createElement("div"); d.textContent=s||""; return d.innerHTML; }
+function renderChatMessages(){
+ const el = document.querySelector("#chatMessages");
+ if(!chatMessages.length){
+  el.innerHTML = `<div class="chatEmpty">Say hello! Our team will reply here shortly.</div>`;
+ }else{
+  el.innerHTML = chatMessages.map(m=>`<div class="chatBubble ${m.from==='staff'?'staff':'me'}"><span>${escapeHtml(m.text)}</span><small>${m.time||""}</small></div>`).join("");
+ }
+ el.scrollTop = el.scrollHeight;
+}
+async function sendChatMessage(e){
+ e.preventDefault();
+ const input = document.querySelector("#chatInput");
+ const text = input.value.trim();
+ if(!text) return;
+ chatMessages.push({from:"customer", text, time:new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})});
+ localStorage.setItem("shopslipper-chat-msgs", JSON.stringify(chatMessages));
+ renderChatMessages(); input.value="";
+ try{
+  await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"sendChatMessage",sessionId:chatSessionId,name:chatInfo?.name||"",phone:chatInfo?.phone||"",message:text})});
+ }catch(err){ /* message stays visible locally; will sync again on next poll */ }
+}
+async function fetchChatMessages(){
+ if(!chatSessionId) return;
+ try{
+  const res = await fetch(`${SCRIPT_URL}?action=chatMessages&sessionId=${encodeURIComponent(chatSessionId)}`);
+  const data = await res.json();
+  if(data && Array.isArray(data.messages)){
+   const isOpen = document.querySelector("#chatWidget").classList.contains("open");
+   const prevCount = chatMessages.length;
+   chatMessages = data.messages;
+   localStorage.setItem("shopslipper-chat-msgs", JSON.stringify(chatMessages));
+   if(isOpen) renderChatMessages();
+   else if(chatMessages.length > prevCount){ chatUnread += (chatMessages.length - prevCount); updateChatFabBadge(); }
+  }
+ }catch(err){ /* backend not reachable yet — ignore, will retry on next poll */ }
+}
+function updateChatFabBadge(){
+ const b = document.querySelector("#chatFabBadge");
+ if(chatUnread>0){ b.style.display="grid"; b.textContent = chatUnread>9?"9+":chatUnread; }
+ else b.style.display="none";
+}
+if(chatSessionId) startChatPolling();
+/* ======================================================== */
 
 loadProducts();
 </script>
