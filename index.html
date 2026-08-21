@@ -7,14 +7,14 @@
 <meta name="description" content="Shop comfortable everyday slippers with fast delivery across Nepal.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#eef6f2;--card:#fffefe;--text:#182220;--muted:#6f8582;
   --line:#dbe9e3;--accent:#111;--soft:#e6f2ee;--danger:#b5493e;
   --gold:#4f8f9c;--sage:#7cae9a;--sky:#8fb8d8;
   --radius:20px;--shadow:0 20px 50px rgba(20,40,38,.08);
-  --serif:'Fraunces',Georgia,serif;
+  --serif:'Inter',system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
@@ -113,7 +113,16 @@ select{width:100%;height:48px;border:1px solid var(--line);background:#fff;borde
 .modalBox{background:#fff;border-radius:24px;width:min(620px,100%);max-height:90vh;overflow:auto;padding:28px}
 .modalBox h2,.cartHead h2{font-family:var(--serif);font-weight:600}
 .modalHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
-.productModalBox{max-width:920px;padding:0;overflow:hidden}
+/* FIX: the base .modalBox rule above sets width:min(620px,100%). Since
+   .productModalBox only overrode max-width (920px) and never set its
+   own width, the browser kept using the 620px width from .modalBox on
+   any screen wider than 620px — so the two-column product layout was
+   being squeezed into a 620px-wide box instead of the intended
+   920px-wide one. That's what caused the info panel (price, size,
+   Add to cart) to get cramped and clipped, forcing an internal
+   horizontal scrollbar on desktop. Setting width explicitly here
+   fixes it. */
+.productModalBox{width:min(920px,94vw);max-width:920px;padding:0;overflow:hidden}
 .productModalClose{position:absolute;right:18px;top:18px;z-index:2;background:#fff;width:38px;height:38px;border-radius:50%;box-shadow:0 4px 12px rgba(20,18,10,.15)}
 .pdWrap{display:grid;grid-template-columns:1fr 1fr}
 .pdImg{aspect-ratio:1/1;background:#efece3;position:relative}
@@ -261,8 +270,8 @@ footer .logo span{color:var(--gold)}
   </div>
   <div class="returnPolicy">
    <div class="eyebrow">Our policy</div>
-   <h2>Easy 7-day returns</h2>
-   <p>Not the right fit? Return any unused item in its original packaging within 7 days of delivery for a full refund or exchange — no questions asked.</p>
+   <h2>Easy 3-day returns</h2>
+   <p>Not the right fit? Return any unused item in its original packaging within 3 days of delivery for a full refund or exchange — no questions asked.</p>
    <div class="returnSteps">
     <div><b>1</b><span>Find the order ID from your order confirmation</span></div>
     <div><b>2</b><span>Fill in the return form with your order ID</span></div>
@@ -332,6 +341,7 @@ footer .logo span{color:var(--gold)}
     <div class="field full"><label>Order ID</label><input required name="orderId" id="returnOrderId" placeholder="SS123456NP" pattern="^[Ss]{2}[0-9]{6}[Nn][Pp]$" title="Format: SS123456NP" style="text-transform:uppercase"></div>
     <div class="field"><label>Full name</label><input required name="name" placeholder="Your name"></div>
     <div class="field"><label>Phone</label><input required name="phone" placeholder="98XXXXXXXX"></div>
+    <div class="field full"><label>Email</label><input required type="email" name="email" placeholder="you@example.com"></div>
     <div class="field full"><label>Reason for return</label>
      <select name="reason">
       <option>Wrong size</option><option>Changed my mind</option><option>Defective / damaged</option><option>Wrong item received</option><option>Other</option>
@@ -357,6 +367,21 @@ footer .logo span{color:var(--gold)}
   <p style="color:var(--muted);font-size:12.5px;margin-bottom:20px">Save this ID — you'll need it if you ever want to return or exchange an item.</p>
   <button class="btn" style="width:100%;margin-bottom:10px" onclick="closeOrderSuccess()">Continue shopping</button>
   <button class="btn light" style="width:100%" onclick="const id=document.querySelector('#orderIdDisplay').textContent;closeOrderSuccess();openReturns(id)">Need to return this order?</button>
+ </div>
+</div>
+
+<div class="modal" id="returnSuccessModal" onclick="if(event.target===this)closeReturnSuccess()">
+ <div class="modalBox" style="text-align:center">
+  <div class="modalHead" style="justify-content:flex-end;margin-bottom:6px"><button class="close" onclick="closeReturnSuccess()">×</button></div>
+  <div style="font-size:38px;margin-bottom:6px">✓</div>
+  <h2 style="margin-bottom:8px">Return request submitted!</h2>
+  <p style="color:var(--muted);font-size:14px;margin-bottom:18px">We've emailed you the details — our team will be in touch to arrange pickup.</p>
+  <div style="background:var(--soft);border-radius:14px;padding:16px;margin-bottom:16px">
+   <div style="font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:6px">Your return ID</div>
+   <div id="returnIdDisplay" style="font-family:var(--serif);font-weight:700;font-size:24px;letter-spacing:.5px"></div>
+  </div>
+  <p style="color:var(--muted);font-size:12.5px;margin-bottom:20px">Save this ID for reference — it's different from your original order ID.</p>
+  <button class="btn" style="width:100%" onclick="closeReturnSuccess()">Close</button>
  </div>
 </div>
 
@@ -628,6 +653,11 @@ function openReturns(prefillId){
  document.querySelector("#returnsModal").classList.add("open");
 }
 function closeReturns(){ document.querySelector("#returnsModal").classList.remove("open"); }
+function openReturnSuccess(returnId){
+ document.querySelector("#returnIdDisplay").textContent = returnId || "—";
+ document.querySelector("#returnSuccessModal").classList.add("open");
+}
+function closeReturnSuccess(){ document.querySelector("#returnSuccessModal").classList.remove("open"); }
 
 async function submitReturn(e){
  e.preventDefault();
@@ -635,7 +665,7 @@ async function submitReturn(e){
  const form = new FormData(e.target);
  const ret = {
   orderId: (form.get("orderId")||"").toUpperCase().trim(),
-  name: form.get("name"), phone: form.get("phone"),
+  name: form.get("name"), phone: form.get("phone"), email: form.get("email"),
   reason: form.get("reason"), details: form.get("details")
  };
  btn.disabled = true; btn.textContent = "Submitting…";
@@ -647,7 +677,7 @@ async function submitReturn(e){
   const data = await res.json();
   if(!data.success) throw new Error(data.error || "failed");
   closeReturns();e.target.reset();
-  toast("Return request submitted — we'll be in touch.");
+  openReturnSuccess(data.returnId);
  }catch(err){
   toast("Couldn't submit return — please try again.");
  }finally{
