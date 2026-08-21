@@ -136,6 +136,11 @@ select{width:100%;height:48px;border:1px solid var(--line);background:#fff;borde
 .pdBlock label{display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:9px}
 .pdColor{display:flex;align-items:center;gap:10px}
 .pdColorDot{width:26px;height:26px;border-radius:50%;border:1px solid var(--line)}
+.pdColorRow{display:flex;flex-wrap:wrap;gap:10px}
+.pdSwatch{width:34px;height:34px;border-radius:50%;border:2px solid transparent;box-shadow:0 0 0 1px var(--line) inset;cursor:pointer;padding:0;position:relative;transition:.15s transform,.15s box-shadow}
+.pdSwatch:hover{transform:translateY(-1px)}
+.pdSwatch.active{border-color:#111;box-shadow:0 0 0 2px #fff inset,0 0 0 3px #111}
+.pdColorLabel{font-size:12.5px;color:var(--muted);margin-top:9px}
 .sizeRow{display:flex;flex-wrap:wrap;gap:8px}
 .sizeBtn{min-width:44px;padding:9px 12px;border-radius:10px;border:1px solid var(--line);background:#fff;font-size:13px;font-weight:600}
 .sizeBtn.active,.sizeBtn:hover{background:#111;color:#fff;border-color:#111}
@@ -471,11 +476,11 @@ function cardHTML(p){
  </article>`;
 }
 
-let pdProduct=null, pdSize=null, pdQty=1;
+let pdProduct=null, pdSize=null, pdQty=1, pdVariantIdx=0;
 function openProduct(id){
  const p = products.find(x=>x.id===id);
  if(!p) return;
- pdProduct=p; pdQty=1;
+ pdProduct=p; pdQty=1; pdVariantIdx=0;
  const sizes = (p.sizes||"").split(",").map(s=>s.trim()).filter(Boolean);
  pdSize = sizes[0] || null;
  renderProductDetail();
@@ -484,10 +489,20 @@ function openProduct(id){
 function closeProduct(){ document.querySelector("#productModal").classList.remove("open"); }
 function pdChangeQty(n){ pdQty=Math.max(1,pdQty+n); renderProductDetail(); }
 function pdPickSize(s){ pdSize=s; renderProductDetail(); }
+// Swaps the displayed photo/color to the picked swatch. Swatch 0 is
+// always the product's own base image+color; any further swatches
+// come from p.variants (each: {colorName, color, image}).
+function pdPickVariant(i){ pdVariantIdx=i; renderProductDetail(); }
+function pdSwatches(p){
+ return [{colorName:"", color:p.color||"#cccccc", image:p.image}, ...(Array.isArray(p.variants)?p.variants:[])];
+}
 function pdAddToCart(){
  if(!pdProduct) return;
- const x=cart.find(i=>i.id===pdProduct.id && i.size===pdSize);
- if(x)x.qty+=pdQty;else cart.push({id:pdProduct.id,qty:pdQty,size:pdSize});
+ const swatches = pdSwatches(pdProduct);
+ const chosen = swatches[pdVariantIdx] || swatches[0];
+ const color = chosen.colorName || (pdVariantIdx>0 ? chosen.color : "") || "";
+ const x=cart.find(i=>i.id===pdProduct.id && i.size===pdSize && (i.color||"")===color);
+ if(x)x.qty+=pdQty;else cart.push({id:pdProduct.id,qty:pdQty,size:pdSize,color,image:chosen.image||pdProduct.image});
  save();toast("Added to cart");closeProduct();
 }
 /* "You might also like" only ever renders inside this product-detail markup,
@@ -497,18 +512,24 @@ function renderProductDetail(){
  const sizes = (p.sizes||"").split(",").map(s=>s.trim()).filter(Boolean);
  const suggestPool = products.filter(x=>x.id!==p.id && x.category===p.category);
  const suggestions = (suggestPool.length?suggestPool:products.filter(x=>x.id!==p.id)).slice().sort(()=>Math.random()-.5).slice(0,4);
+ const swatches = pdSwatches(p);
+ const current = swatches[pdVariantIdx] || swatches[0];
+ const shownImage = current.image || p.image;
+ // Only show clickable swatches once there's more than one color to
+ // pick from — a single-color product keeps the simple dot+label look
+ // it always had.
+ const colorBlock = swatches.length > 1
+  ? `<div class="pdBlock"><label>Color</label><div class="pdColorRow">${swatches.map((v,i)=>`<button class="pdSwatch ${i===pdVariantIdx?'active':''}" style="background:${v.color||'#ccc'}" title="${v.colorName||''}" onclick="pdPickVariant(${i})"></button>`).join("")}</div>${current.colorName?`<div class="pdColorLabel">${current.colorName}</div>`:""}</div>`
+  : `<div class="pdBlock"><label>Color</label><div class="pdColor"><span class="pdColorDot" style="background:${p.color||'#ccc'}"></span><span>${p.color||""}</span></div></div>`;
  document.querySelector("#productModalContent").innerHTML = `
   <div class="pdWrap">
-   <div class="pdImg"><img src="${p.image}" alt="${p.name}" onerror="this.style.display='none'"></div>
+   <div class="pdImg"><img src="${shownImage}" alt="${p.name}" onerror="this.style.display='none'"></div>
    <div class="pdInfo">
     <div class="eyebrow">${p.category}</div>
     <h2>${p.name}</h2>
     <div class="pdPrice">${money(p.price)}${p.old?`<span class="old">${money(p.old)}</span>`:""}</div>
     ${p.description?`<p class="pdDesc">${p.description}</p>`:""}
-    <div class="pdBlock">
-     <label>Color</label>
-     <div class="pdColor"><span class="pdColorDot" style="background:${p.color||'#ccc'}"></span><span>${p.color||""}</span></div>
-    </div>
+    ${colorBlock}
     ${sizes.length?`<div class="pdBlock"><label>Size</label><div class="sizeRow">${sizes.map(s=>`<button class="sizeBtn ${s===pdSize?'active':''}" onclick="pdPickSize('${s}')">${s}</button>`).join("")}</div></div>`:""}
     <div class="pdBlock">
      <label>Quantity</label>
@@ -582,14 +603,20 @@ function clearImageSearch(){
  page=1;
  renderProducts();
 }
-function addToCart(id){const x=cart.find(i=>i.id===id && !i.size);if(x)x.qty++;else cart.push({id,qty:1,size:null});save();toast("Added to cart")}
-function changeQty(id,size,n){const x=cart.find(i=>i.id===id && i.size===size);if(!x)return;x.qty+=n;if(x.qty<=0)cart=cart.filter(i=>i!==x);save()}
-function removeItem(id,size){cart=cart.filter(i=>!(i.id===id && i.size===size));save()}
+function addToCart(id){const x=cart.find(i=>i.id===id && !i.size && !i.color);if(x)x.qty++;else cart.push({id,qty:1,size:null,color:""});save();toast("Added to cart")}
+function changeQty(id,size,color,n){const x=cart.find(i=>i.id===id && i.size===size && (i.color||"")===(color||""));if(!x)return;x.qty+=n;if(x.qty<=0)cart=cart.filter(i=>i!==x);save()}
+function removeItem(id,size,color){cart=cart.filter(i=>!(i.id===id && i.size===size && (i.color||"")===(color||"")));save()}
 function updateCart(){
  const count=cart.reduce((s,i)=>s+i.qty,0);document.querySelector("#cartCount").textContent=count;
  const el=document.querySelector("#cartItems");
  if(!cart.length){el.innerHTML='<div class="empty">Your cart is empty.<br><br><a class="btn" href="#shop" onclick="closeCart()">Start shopping</a></div>';}
- else el.innerHTML=cart.map(i=>{const p=products.find(x=>x.id===i.id);if(!p)return "";return `<div class="cartItem"><img src="${p.image}" alt="" onerror="this.style.display='none'"><div><h4>${p.name}${i.size?` <small style="color:var(--muted)">(${i.size})</small>`:""}</h4><small>${money(p.price)}</small><div class="qty"><button onclick="changeQty(${p.id},${i.size?`'${i.size}'`:null},-1)">−</button><b>${i.qty}</b><button onclick="changeQty(${p.id},${i.size?`'${i.size}'`:null},1)">+</button></div><button class="remove" onclick="removeItem(${p.id},${i.size?`'${i.size}'`:null})">Remove</button></div><b>${money(p.price*i.qty)}</b></div>`}).join("");
+ else el.innerHTML=cart.map(i=>{
+  const p=products.find(x=>x.id===i.id);if(!p)return "";
+  const img=i.image||p.image;
+  const meta=[i.color,i.size].filter(Boolean).join(" · ");
+  const sizeArg=i.size?`'${i.size}'`:null, colorArg=i.color?`'${i.color}'`:null;
+  return `<div class="cartItem"><img src="${img}" alt="" onerror="this.style.display='none'"><div><h4>${p.name}${meta?` <small style="color:var(--muted)">(${meta})</small>`:""}</h4><small>${money(p.price)}</small><div class="qty"><button onclick="changeQty(${p.id},${sizeArg},${colorArg},-1)">−</button><b>${i.qty}</b><button onclick="changeQty(${p.id},${sizeArg},${colorArg},1)">+</button></div><button class="remove" onclick="removeItem(${p.id},${sizeArg},${colorArg})">Remove</button></div><b>${money(p.price*i.qty)}</b></div>`;
+ }).join("");
  const sub=cart.reduce((s,i)=>{const p=products.find(x=>x.id===i.id);return p?s+p.price*i.qty:s},0);
  document.querySelector("#subtotal").textContent=money(sub);document.querySelector("#total").textContent=money(sub+(sub>0&&sub<2000?120:0));
  // Match the Total line's logic: no delivery fee shown when the cart is
@@ -626,7 +653,7 @@ async function placeOrder(e){
   orderId,
   name: form.get("name"), phone: form.get("phone"), email: form.get("email"), address: form.get("address"),
   city: form.get("city"), payment: form.get("payment"),
-  items: cart.map(i=>{const p=products.find(x=>x.id===i.id);return {id:i.id,name:p?p.name:"", size:i.size||"", qty:i.qty, price:p?p.price:0};}),
+  items: cart.map(i=>{const p=products.find(x=>x.id===i.id);return {id:i.id,name:p?p.name:"", size:i.size||"", color:i.color||"", qty:i.qty, price:p?p.price:0};}),
   subtotal: sub, delivery: delivery, total: sub+delivery
  };
  btn.disabled = true; btn.textContent = "Placing order…";
