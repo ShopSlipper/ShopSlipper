@@ -105,6 +105,19 @@ tr:last-child td{border-bottom:0}
 .chatReplyRow input{flex:1;border:1px solid var(--line);border-radius:999px;padding:11px 15px;outline:none;font-size:13.5px}
 .chatReplyRow input:focus{border-color:var(--text)}
 .chatSendBtn{width:42px;height:42px;border-radius:50%;background:#111;color:#fff;font-size:16px;flex-shrink:0}
+
+/* ---- Color variants editor ---- */
+.variantList{display:flex;flex-direction:column;gap:10px;margin-bottom:10px}
+.variantRow{display:flex;gap:10px;align-items:flex-start;background:var(--soft);border:1px solid var(--line);border-radius:14px;padding:10px}
+.variantThumb{width:52px;height:52px;border-radius:10px;object-fit:cover;background:#fff;border:1px solid var(--line);flex-shrink:0}
+.variantCol{flex:1;display:flex;flex-direction:column;gap:6px;min-width:0}
+.variantNameRow{display:flex;gap:8px;align-items:center}
+.variantNameRow input[type=text]{flex:1;border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:12.5px}
+.variantNameRow input[type=color]{width:34px;height:34px;padding:2px;border-radius:9px;flex-shrink:0}
+.variantActionsRow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.variantUploadStatus{font-size:11px;color:var(--muted)}
+.variantUploadStatus.err{color:var(--danger)}
+.variantRemove{width:30px;height:30px;border-radius:9px;background:#fff;border:1px solid var(--line);flex-shrink:0;color:var(--danger);font-size:14px}
 </style>
 </head>
 <body>
@@ -225,7 +238,7 @@ tr:last-child td{border-bottom:0}
     <input id="f_sizes" placeholder="e.g. 38,39,40,41,42 or S,M,L">
    </div>
    <div class="field full">
-    <label>Product photo</label>
+    <label>Main product photo</label>
     <div class="imgUploadRow">
      <img id="f_preview" class="imgPreview" src="" alt="">
      <div class="imgUploadCol">
@@ -243,10 +256,16 @@ tr:last-child td{border-bottom:0}
      <input id="f_color" type="color" value="#cccccc" oninput="f_colorHex.value=f_color.value">
      <input id="f_colorHex" placeholder="#cccccc" oninput="syncColorHex()">
     </div>
-    <span style="font-size:11px;color:var(--muted)">Auto-filled from the photo. Only used for the storefront's "search by image" feature — it doesn't change how the product looks.</span>
+    <span style="font-size:11px;color:var(--muted)">Auto-filled from the photo. Used for the storefront's "search by image" feature, and as this product's first/default color swatch.</span>
    </div>
    <div class="field">
     <div class="checkRow"><input type="checkbox" id="f_new"><label for="f_new">Mark as "New arrival"</label></div>
+   </div>
+   <div class="field full">
+    <label>Additional color variants (optional)</label>
+    <span style="font-size:11px;color:var(--muted);margin-bottom:4px;display:block">Each variant gets its own photo and swatch — customers can click between them on the product page to see the item in that color, like Amazon or Under Armour's color swatches. Leave empty if this product only comes in one color.</span>
+    <div class="variantList" id="variantList"></div>
+    <button type="button" class="btn light sm" style="width:fit-content" onclick="addVariantRow()">+ Add color variant</button>
    </div>
   </div>
   <div class="formFoot">
@@ -291,6 +310,10 @@ let orders = [];
 let chatSessions = [];
 let editingId = null;
 let activeChatSessionId = null;
+// Working list of {colorName, color, image} for the product currently
+// being added/edited in the form. Synced into the "variants" field of
+// the product object on save.
+let formVariants = [];
 
 function tryLogin(){
  const val = document.querySelector("#gatePass").value;
@@ -363,7 +386,7 @@ function render(){
  rows.innerHTML = products.map(p=>`
   <tr>
    <td><img class="thumb" src="${p.image||''}" alt=""></td>
-   <td><b>${p.name}</b></td>
+   <td><b>${p.name}</b>${(p.variants&&p.variants.length)?` <span class="statusTag">${p.variants.length+1} colors</span>`:""}</td>
    <td><span class="skuTag">${p.sku||"—"}</span></td>
    <td>${p.category}</td>
    <td>${money(p.price)} ${p.old?`<span class="oldp">${money(p.old)}</span>`:""}</td>
@@ -391,7 +414,7 @@ function renderOrders(){
    <td>${when}</td>
    <td><span class="skuTag">${o.orderId||""}</span></td>
    <td>${o.name||""}<br><small style="color:var(--muted)">${o.phone||""}</small></td>
-   <td>${items.map(i=>`${i.qty}× ${i.name}`).join("<br>")}</td>
+   <td>${items.map(i=>`${i.qty}× ${i.name}${i.color?` (${i.color})`:""}`).join("<br>")}</td>
    <td>${money(o.total||0)}</td>
    <td><span class="statusTag">${o.status||"New"}</span></td>
   </tr>`;
@@ -502,52 +525,107 @@ function averageColorOf(img){
  return "#"+[r,g,b].map(v=>v.toString(16).padStart(2,"0")).join("");
 }
 
-/* Resizes the chosen photo down to MAX_UPLOAD_DIM (keeps it a
-   reasonably small upload), uploads it to your Drive via the
-   Apps Script backend, and fills in the Image + Color fields
-   with the result. */
+/* Resizes a photo down to MAX_UPLOAD_DIM and uploads it to Drive via
+   the Apps Script backend. Returns a Promise resolving to {url, color}.
+   Shared by both the main product photo upload and each color
+   variant's photo upload. */
+function resizeAndUploadImage_(file){
+ return new Promise((resolve, reject)=>{
+  const reader = new FileReader();
+  reader.onload = e => {
+   const img = new Image();
+   img.onload = async () => {
+    let w = img.width, h = img.height;
+    if(w > MAX_UPLOAD_DIM || h > MAX_UPLOAD_DIM){
+     const scale = MAX_UPLOAD_DIM / Math.max(w,h);
+     w = Math.round(w*scale); h = Math.round(h*scale);
+    }
+    const canvas = document.createElement("canvas");
+    canvas.width = w; canvas.height = h;
+    canvas.getContext("2d").drawImage(img,0,0,w,h);
+    const dataUrl = canvas.toDataURL("image/jpeg",0.85);
+    const base64 = dataUrl.split(",")[1];
+    const color = averageColorOf(img);
+    try{
+     const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({
+      action:"uploadImage", key:ADMIN_KEY, data:base64,
+      filename:(file.name||"product").replace(/[^a-zA-Z0-9.\-_]/g,"_"),
+      mimeType:"image/jpeg"
+     })});
+     const data = await res.json();
+     if(!data.success) throw new Error(data.error || "upload failed");
+     resolve({url:data.url, color});
+    }catch(err){ reject(err); }
+   };
+   img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+ });
+}
+
 function handleImageUpload(file){
  if(!file) return;
  const status = document.querySelector("#uploadStatus");
  status.classList.remove("err");
- status.textContent = "Preparing photo…";
- const reader = new FileReader();
- reader.onload = e => {
-  const img = new Image();
-  img.onload = async () => {
-   let w = img.width, h = img.height;
-   if(w > MAX_UPLOAD_DIM || h > MAX_UPLOAD_DIM){
-    const scale = MAX_UPLOAD_DIM / Math.max(w,h);
-    w = Math.round(w*scale); h = Math.round(h*scale);
-   }
-   const canvas = document.createElement("canvas");
-   canvas.width = w; canvas.height = h;
-   canvas.getContext("2d").drawImage(img,0,0,w,h);
-   const dataUrl = canvas.toDataURL("image/jpeg",0.85);
-   const base64 = dataUrl.split(",")[1];
-   document.querySelector("#f_colorHex").value = averageColorOf(img);
-   document.querySelector("#f_color").value = averageColorOf(img);
-   status.textContent = "Uploading…";
-   try{
-    const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({
-     action:"uploadImage", key:ADMIN_KEY, data:base64,
-     filename:(file.name||"product").replace(/[^a-zA-Z0-9.\-_]/g,"_"),
-     mimeType:"image/jpeg"
-    })});
-    const data = await res.json();
-    if(!data.success) throw new Error(data.error || "upload failed");
-    document.querySelector("#f_image").value = data.url;
-    updateImgPreview();
-    status.textContent = "Uploaded ✓";
-    setTimeout(()=>{ if(status.textContent==="Uploaded ✓") status.textContent=""; }, 2500);
-   }catch(err){
-    status.classList.add("err");
-    status.textContent = "Couldn't upload — try again or paste a URL instead.";
-   }
-  };
-  img.src = e.target.result;
- };
- reader.readAsDataURL(file);
+ status.textContent = "Uploading…";
+ resizeAndUploadImage_(file).then(({url,color})=>{
+  document.querySelector("#f_colorHex").value = color;
+  document.querySelector("#f_color").value = color;
+  document.querySelector("#f_image").value = url;
+  updateImgPreview();
+  status.textContent = "Uploaded ✓";
+  setTimeout(()=>{ if(status.textContent==="Uploaded ✓") status.textContent=""; }, 2500);
+ }).catch(()=>{
+  status.classList.add("err");
+  status.textContent = "Couldn't upload — try again or paste a URL instead.";
+ });
+}
+
+/* ================== Color variants editor ================== */
+function renderVariantRows(){
+ const el = document.querySelector("#variantList");
+ if(!formVariants.length){
+  el.innerHTML = "";
+  return;
+ }
+ el.innerHTML = formVariants.map((v,i)=>`
+  <div class="variantRow">
+   <img class="variantThumb" src="${v.image||''}" alt="" onerror="this.style.opacity='.3'">
+   <div class="variantCol">
+    <div class="variantNameRow">
+     <input type="color" value="${v.color||'#cccccc'}" oninput="setVariantColor(${i},this.value)">
+     <input type="text" placeholder="Color name, e.g. Black/White" value="${(v.colorName||'').replace(/"/g,'&quot;')}" oninput="setVariantName(${i},this.value)">
+    </div>
+    <div class="variantActionsRow">
+     <input type="file" accept="image/*" style="display:none" id="variantFile${i}" onchange="handleVariantUpload(${i},this.files[0])">
+     <button type="button" class="btn light sm" onclick="document.querySelector('#variantFile${i}').click()">📷 Upload photo</button>
+     <span class="variantUploadStatus" id="variantStatus${i}"></span>
+    </div>
+   </div>
+   <button type="button" class="variantRemove" title="Remove this color" onclick="removeVariantRow(${i})">✕</button>
+  </div>`).join("");
+}
+function addVariantRow(){
+ formVariants.push({colorName:"", color:"#cccccc", image:""});
+ renderVariantRows();
+}
+function removeVariantRow(i){
+ formVariants.splice(i,1);
+ renderVariantRows();
+}
+function setVariantColor(i,val){ formVariants[i].color = val; }
+function setVariantName(i,val){ formVariants[i].colorName = val; }
+function handleVariantUpload(i,file){
+ if(!file) return;
+ const status = document.querySelector(`#variantStatus${i}`);
+ if(status){ status.classList.remove("err"); status.textContent = "Uploading…"; }
+ resizeAndUploadImage_(file).then(({url,color})=>{
+  formVariants[i].image = url;
+  if(!formVariants[i].color || formVariants[i].color==="#cccccc") formVariants[i].color = color;
+  renderVariantRows();
+ }).catch(()=>{
+  if(status){ status.classList.add("err"); status.textContent = "Couldn't upload — try again."; }
+ });
 }
 
 function openForm(id){
@@ -570,6 +648,7 @@ function openForm(id){
   document.querySelector("#f_color").value = p.color || "#cccccc";
   document.querySelector("#f_colorHex").value = p.color || "#cccccc";
   document.querySelector("#f_new").checked = !!p.new;
+  formVariants = Array.isArray(p.variants) ? p.variants.map(v=>({colorName:v.colorName||"",color:v.color||"#cccccc",image:v.image||""})) : [];
  }else{
   document.querySelector("#f_name").value = "";
   document.querySelector("#f_category").value = "";
@@ -582,7 +661,9 @@ function openForm(id){
   document.querySelector("#f_color").value = "#cccccc";
   document.querySelector("#f_colorHex").value = "#cccccc";
   document.querySelector("#f_new").checked = false;
+  formVariants = [];
  }
+ renderVariantRows();
  updateImgPreview();
  document.querySelector("#formModal").classList.add("open");
 }
@@ -599,6 +680,9 @@ async function saveProduct(){
  const sku = document.querySelector("#f_sku").value.trim();
  const description = document.querySelector("#f_description").value.trim();
  const sizes = document.querySelector("#f_sizes").value.trim();
+ // Drop any variant rows that never got a photo uploaded — an empty
+ // swatch with no image would just look broken on the storefront.
+ const variants = formVariants.filter(v=>v.image);
 
  if(!name || !category || !price || !image){
   toast("Please fill in name, category, price and a photo");
@@ -608,13 +692,13 @@ async function saveProduct(){
  btn.disabled = true; btn.textContent = "Saving…";
  try{
   if(editingId){
-   const product = {id:editingId,name,category,price,old,image,color,new:isNew,sku,description,sizes};
+   const product = {id:editingId,name,category,price,old,image,color,new:isNew,sku,description,sizes,variants};
    const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"updateProduct",key:ADMIN_KEY,product})});
    const data = await res.json();
    if(!data.success) throw new Error(data.error||"failed");
    Object.assign(products.find(p=>p.id===editingId), product);
   }else{
-   const product = {name,category,price,old,image,color,new:isNew,sku,description,sizes};
+   const product = {name,category,price,old,image,color,new:isNew,sku,description,sizes,variants};
    const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"addProduct",key:ADMIN_KEY,product})});
    const data = await res.json();
    if(!data.success) throw new Error(data.error||"failed");
