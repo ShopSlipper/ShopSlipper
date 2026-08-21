@@ -317,9 +317,13 @@ footer .logo span{color:var(--gold)}
    <div class="formGrid">
     <div class="field"><label>Full name</label><input required name="name" placeholder="Your name"></div>
     <div class="field"><label>Phone</label><input required name="phone" placeholder="98XXXXXXXX"></div>
+    <div class="field full"><label>Email</label><input required type="email" name="email" placeholder="you@example.com"></div>
     <div class="field full"><label>Delivery address</label><textarea required name="address" rows="3" placeholder="Street, area, city"></textarea></div>
     <div class="field"><label>City</label><input required name="city" value="Kathmandu"></div>
-    <div class="field"><label>Payment</label><select name="payment"><option>Cash on Delivery</option><option>Online payment</option></select></div>
+    <div class="field"><label>Payment</label>
+     <input readonly value="Cash on Delivery" style="border:1px solid var(--line);border-radius:11px;padding:12px;background:var(--soft);color:var(--text);width:100%">
+     <input type="hidden" name="payment" value="Cash on Delivery">
+    </div>
    </div>
    <button class="btn" id="placeOrderBtn" style="width:100%;margin-top:5px">Place order</button>
   </form>
@@ -620,7 +624,7 @@ async function placeOrder(e){
  const orderId = generateOrderId();
  const order = {
   orderId,
-  name: form.get("name"), phone: form.get("phone"), address: form.get("address"),
+  name: form.get("name"), phone: form.get("phone"), email: form.get("email"), address: form.get("address"),
   city: form.get("city"), payment: form.get("payment"),
   items: cart.map(i=>{const p=products.find(x=>x.id===i.id);return {id:i.id,name:p?p.name:"", size:i.size||"", qty:i.qty, price:p?p.price:0};}),
   subtotal: sub, delivery: delivery, total: sub+delivery
