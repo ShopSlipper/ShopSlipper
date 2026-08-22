@@ -119,7 +119,15 @@ select{width:100%;height:48px;border:1px solid var(--line);background:#fff;borde
 .productModalClose{position:absolute;right:18px;top:18px;z-index:2;background:#fff;width:38px;height:38px;border-radius:50%;box-shadow:0 4px 12px rgba(20,18,10,.15)}
 .pdWrap{display:grid;grid-template-columns:1fr 1fr}
 .pdImg{aspect-ratio:1/1;background:#efece3;position:relative}
-.pdImg img{width:100%;height:100%;object-fit:cover;display:block}
+.pdImg img{width:100%;height:100%;object-fit:cover;display:block;cursor:zoom-in}
+.zoomBtn{position:absolute;right:14px;bottom:14px;width:42px;height:42px;border-radius:50%;background:#fff;display:grid;place-items:center;font-size:18px;box-shadow:0 4px 12px rgba(20,18,10,.15);z-index:2;cursor:zoom-in}
+.zoomBtn:hover{background:var(--soft)}
+.zoomModal{position:fixed;inset:0;background:rgba(10,18,16,.94);z-index:70;display:none;place-items:center;padding:20px}
+.zoomModal.open{display:grid}
+.zoomModal img{max-width:100%;max-height:88vh;object-fit:contain;border-radius:14px;cursor:zoom-out}
+.zoomClose{position:absolute;top:20px;right:20px;width:44px;height:44px;border-radius:50%;background:#fff;display:grid;place-items:center;font-size:19px;box-shadow:0 4px 12px rgba(20,18,10,.2)}
+.zoomHint{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);color:#fff;font-size:12.5px;opacity:.65;letter-spacing:.3px}
+@media(max-width:650px){.zoomBtn{width:38px;height:38px;font-size:16px;right:10px;bottom:10px}}
 .pdInfo{padding:32px;overflow:auto}
 .pdInfo .eyebrow{margin-bottom:8px}
 .pdInfo h2{font-family:var(--serif);font-weight:600;font-size:28px;letter-spacing:-.5px;margin-bottom:8px}
@@ -328,6 +336,12 @@ footer .logo span{color:var(--gold)}
  </div>
 </div>
 
+<div class="zoomModal" id="zoomModal" onclick="closeZoom()">
+ <button class="zoomClose" onclick="event.stopPropagation();closeZoom()" aria-label="Close zoom">×</button>
+ <img id="zoomImg" src="" alt="" onclick="event.stopPropagation();closeZoom()">
+ <div class="zoomHint">Tap anywhere to close</div>
+</div>
+
 <div class="modal" id="returnsModal" onclick="if(event.target===this)closeReturns()">
  <div class="modalBox">
   <div class="modalHead"><h2>Start a return</h2><button class="close" onclick="closeReturns()">×</button></div>
@@ -480,6 +494,16 @@ function openProduct(id){
  document.querySelector("#productModal").classList.add("open");
 }
 function closeProduct(){ document.querySelector("#productModal").classList.remove("open"); }
+function openZoom(src){
+ document.querySelector("#zoomImg").src = src;
+ document.querySelector("#zoomModal").classList.add("open");
+}
+function closeZoom(){ document.querySelector("#zoomModal").classList.remove("open"); }
+document.addEventListener("keydown", e=>{
+ if(e.key !== "Escape") return;
+ if(document.querySelector("#zoomModal").classList.contains("open")) closeZoom();
+ else if(document.querySelector("#productModal").classList.contains("open")) closeProduct();
+});
 function pdChangeQty(n){ pdQty=Math.max(1,pdQty+n); renderProductDetail(); }
 function pdPickSize(s){ pdSize=s; renderProductDetail(); }
 function pdPickVariant(i){ pdVariantIdx=i; renderProductDetail(); }
@@ -508,7 +532,7 @@ function renderProductDetail(){
   : `<div class="pdBlock"><label>Color</label><div class="pdColor"><span class="pdColorDot" style="background:${p.color||'#ccc'}"></span><span>${p.color||""}</span></div></div>`;
  document.querySelector("#productModalContent").innerHTML = `
   <div class="pdWrap">
-   <div class="pdImg"><img src="${shownImage}" alt="${p.name}" onerror="this.style.display='none'"></div>
+   <div class="pdImg"><img src="${shownImage}" alt="${p.name}" onerror="this.style.display='none'" onclick="openZoom(this.src)"><button class="zoomBtn" onclick="event.stopPropagation();openZoom('${shownImage}')" aria-label="Zoom photo" title="Zoom in">🔍</button></div>
    <div class="pdInfo">
     <div class="eyebrow">${p.category}</div>
     <h2>${p.name}</h2>
