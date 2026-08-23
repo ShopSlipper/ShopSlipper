@@ -11,8 +11,8 @@
 <style>
 :root{
   --bg:#eef6f2;--card:#fffefe;--text:#182220;--muted:#6f8582;
-  --line:#dbe9e3;--accent:#111;--soft:#e6f2ee;--danger:#b5493e;
-  --gold:#4f8f9c;--radius:18px;--shadow:0 20px 50px rgba(20,40,38,.08);
+  --line:#dbe9e3;--accent:var(--gold);--soft:#e6f2ee;--danger:#b5493e;
+  --gold:#4f8f9c;--sage:#7cae9a;--radius:18px;--shadow:0 20px 50px rgba(20,40,38,.08);
   --serif:'Fraunces',Georgia,serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
@@ -35,15 +35,15 @@ header{background:rgba(248,246,241,.9);backdrop-filter:blur(18px);border-bottom:
 .brand .mark{width:36px;height:36px;border-radius:50%;object-fit:cover}
 .brand small{display:block;color:var(--muted);font-weight:400;font-size:11px;letter-spacing:.4px;text-transform:uppercase}
 .headActions{display:flex;gap:10px;flex-wrap:wrap}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px 18px;border-radius:999px;background:#111;color:#fff;font-weight:600;font-size:13px;transition:.2s transform,.2s opacity}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px 18px;border-radius:999px;background:var(--gold);color:#fff;font-weight:600;font-size:13px;transition:.2s transform,.2s opacity}
 .btn:hover{transform:translateY(-1px);opacity:.9}
-.btn.light{background:#fff;color:#111;border:1px solid var(--line)}
+.btn.light{background:#fff;color:var(--gold);border:1px solid var(--line)}
 .btn.danger{background:var(--danger)}
 .btn.sm{padding:8px 13px;font-size:12px}
 main{padding:34px 0 80px}
 .tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
 .tabBtn{padding:9px 16px;border-radius:999px;background:#fff;border:1px solid var(--line);font-size:13px;font-weight:600;position:relative}
-.tabBtn.active{background:#111;color:#fff;border-color:#111}
+.tabBtn.active{background:var(--gold);color:#fff;border-color:var(--gold)}
 .tabDot{position:absolute;top:-3px;right:-3px;background:var(--danger);color:#fff;min-width:17px;height:17px;padding:0 4px;border-radius:999px;font-size:10px;font-weight:700;display:none;place-items:center;border:2px solid var(--bg)}
 .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px;margin-bottom:22px}
 .panelHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px}
@@ -63,6 +63,7 @@ tr:last-child td{border-bottom:0}
 .emptyMsg{text-align:center;color:var(--muted);padding:40px 10px;font-size:13.5px}
 .statusTag{padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700;background:var(--soft)}
 .unreadTag{padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700;background:var(--danger);color:#fff}
+.newTag{padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700;background:var(--sage);color:#fff}
 .formGrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .field{display:flex;flex-direction:column;gap:6px}
 .field.full{grid-column:1/-1}
@@ -81,7 +82,7 @@ tr:last-child td{border-bottom:0}
 .colorRow{display:flex;gap:8px;align-items:center}
 .colorRow input[type=color]{width:44px;height:44px;padding:2px;border-radius:11px}
 .formFoot{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
-.toast{position:fixed;left:50%;bottom:25px;transform:translate(-50%,20px);background:#111;color:#fff;padding:12px 18px;border-radius:999px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:100}
+.toast{position:fixed;left:50%;bottom:25px;transform:translate(-50%,20px);background:var(--gold);color:#fff;padding:12px 18px;border-radius:999px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:100}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .modalBg{position:fixed;inset:0;background:rgba(15,25,22,.4);display:none;place-items:center;z-index:60;padding:18px}
 .modalBg.open{display:grid}
@@ -99,12 +100,12 @@ tr:last-child td{border-bottom:0}
 .chatThread{flex:1;overflow:auto;padding:16px 20px;display:flex;flex-direction:column;gap:10px;background:var(--bg);min-height:200px}
 .chatBubble{max-width:80%;padding:10px 13px;border-radius:16px;font-size:13.5px;line-height:1.4}
 .chatBubble.customer{align-self:flex-start;background:#fff;border:1px solid var(--line);border-bottom-left-radius:4px}
-.chatBubble.staff{align-self:flex-end;background:#111;color:#fff;border-bottom-right-radius:4px}
+.chatBubble.staff{align-self:flex-end;background:var(--gold);color:#fff;border-bottom-right-radius:4px}
 .chatBubble small{display:block;margin-top:4px;font-size:10px;opacity:.6}
 .chatReplyRow{display:flex;gap:8px;padding:14px 20px;border-top:1px solid var(--line)}
 .chatReplyRow input{flex:1;border:1px solid var(--line);border-radius:999px;padding:11px 15px;outline:none;font-size:13.5px}
 .chatReplyRow input:focus{border-color:var(--text)}
-.chatSendBtn{width:42px;height:42px;border-radius:50%;background:#111;color:#fff;font-size:16px;flex-shrink:0}
+.chatSendBtn{width:42px;height:42px;border-radius:50%;background:var(--gold);color:#fff;font-size:16px;flex-shrink:0}
 
 /* ---- Color variants editor ---- */
 .variantList{display:flex;flex-direction:column;gap:10px;margin-bottom:10px}
@@ -344,13 +345,7 @@ let orders = [];
 let chatSessions = [];
 let editingId = null;
 let activeChatSessionId = null;
-// Working list of {colorName, color, image} for the product currently
-// being added/edited in the form. Synced into the "variants" field of
-// the product object on save.
 let formVariants = [];
-// Whether the admin has manually touched the main product's color field
-// during this form session — once true, uploading a new photo will no
-// longer silently overwrite their choice with the auto-detected color.
 let f_colorTouched = false;
 
 function tryLogin(){
@@ -410,7 +405,6 @@ async function loadAll(){
   document.querySelector("#sourceNote").innerHTML = `Couldn't reach the Sheet. Check <code>SCRIPT_URL</code> is set correctly in admin.html and that the Apps Script is deployed with "Anyone" access.`;
  }
 }
-// Keep the Chat tab reasonably fresh even when it's not the active tab
 setInterval(()=>{ if(sessionStorage.getItem("ss-admin-ok")==="1") refreshChatSessions(); }, 15000);
 async function refreshChatSessions(){
  try{
@@ -433,7 +427,7 @@ function render(){
    <td><span class="skuTag">${p.sku||"—"}</span></td>
    <td>${p.category}</td>
    <td>${money(p.price)} ${p.old?`<span class="oldp">${money(p.old)}</span>`:""}</td>
-   <td>${p.new?"🆕 New":""}</td>
+   <td>${p.new?'<span class="newTag">New</span>':""}</td>
    <td>
     <div class="rowActions">
      <button class="iconBtn" title="Edit" onclick="openForm(${p.id})">✎</button>
@@ -464,7 +458,6 @@ function renderOrders(){
  }).join("");
 }
 
-/* ================== Chat tab ================== */
 function escapeHtml(s){ const d=document.createElement("div"); d.textContent=s||""; return d.innerHTML; }
 function renderChatSessions(){
  const rows = document.querySelector("#chatRows");
@@ -555,24 +548,9 @@ function toggleUrlField(){
  document.querySelector("#urlToggle").textContent = showing ? "or paste an image URL instead" : "hide URL field";
 }
 
-/* Reads the average color of an image element into a #rrggbb hex string —
-   reused for both the auto-fill-on-upload color and the storefront's
-   "search by image" feature, so the two stay consistent.
-
-   Samples only the centered ~50% crop of the image (by area) rather than
-   the whole frame. Product photos on this site are often banner-style —
-   a colored background or gradient with text near the edges, and the
-   actual item roughly centered — so a full-frame average tends to pick
-   up mostly that background/banner color instead of the product's real
-   color. Centering the sample window doesn't fully solve that for every
-   photo, but it weights the average much more toward the product itself
-   and away from edge banners/text. For best accuracy, use a photo where
-   the product fills most of the frame with a plain background. */
 function averageColorOf(img){
  const c = document.createElement("canvas"); c.width=30; c.height=30;
  const ctx = c.getContext("2d");
- // Draw only the centered 50%-by-side (25% area) crop of the source
- // image into the same 30x30 sampling canvas.
  const sw = img.naturalWidth || img.width, sh = img.naturalHeight || img.height;
  const cropW = sw*0.5, cropH = sh*0.5;
  const sx = (sw-cropW)/2, sy = (sh-cropH)/2;
@@ -584,10 +562,6 @@ function averageColorOf(img){
  return "#"+[r,g,b].map(v=>v.toString(16).padStart(2,"0")).join("");
 }
 
-/* Resizes a photo down to MAX_UPLOAD_DIM and uploads it to Drive via
-   the Apps Script backend. Returns a Promise resolving to {url, color}.
-   Shared by the main product photo upload, each color variant's photo
-   upload, and the hero banner upload. */
 function resizeAndUploadImage_(file){
  return new Promise((resolve, reject)=>{
   const reader = new FileReader();
@@ -628,9 +602,6 @@ function handleImageUpload(file){
  status.classList.remove("err");
  status.textContent = "Uploading…";
  resizeAndUploadImage_(file).then(({url,color})=>{
-  // Only auto-fill the color if the admin hasn't manually set one yet
-  // this session — otherwise a re-upload would silently overwrite a
-  // deliberately-picked color with a possibly-wrong auto-detected one.
   if(!f_colorTouched){
    document.querySelector("#f_colorHex").value = color;
    document.querySelector("#f_color").value = color;
@@ -645,7 +616,6 @@ function handleImageUpload(file){
  });
 }
 
-/* ================== Color variants editor ================== */
 function renderVariantRows(){
  const el = document.querySelector("#variantList");
  if(!formVariants.length){
@@ -685,8 +655,6 @@ function handleVariantUpload(i,file){
  if(status){ status.classList.remove("err"); status.textContent = "Uploading…"; }
  resizeAndUploadImage_(file).then(({url,color})=>{
   formVariants[i].image = url;
-  // Same rule as the main photo: don't clobber a color the admin has
-  // already picked for this variant, even across multiple uploads.
   if(!formVariants[i].colorTouched) formVariants[i].color = color;
   renderVariantRows();
   if(status) status.textContent = "Uploaded ✓ — check the color swatch matches";
@@ -695,7 +663,6 @@ function handleVariantUpload(i,file){
  });
 }
 
-/* ================== Banner tab ================== */
 function loadBannerIntoForm(settings){
  document.querySelector("#bn_image").value = settings.bannerImage || "";
  document.querySelector("#bn_link").value = settings.bannerLink || "";
@@ -769,8 +736,6 @@ function openForm(id){
   document.querySelector("#f_color").value = p.color || "#cccccc";
   document.querySelector("#f_colorHex").value = p.color || "#cccccc";
   document.querySelector("#f_new").checked = !!p.new;
-  // Existing saved colors count as "already set" — an edit + re-upload
-  // shouldn't clobber a color that was previously saved deliberately.
   f_colorTouched = !!(p.color && p.color !== "#cccccc");
   formVariants = Array.isArray(p.variants) ? p.variants.map(v=>({colorName:v.colorName||"",color:v.color||"#cccccc",image:v.image||"",colorTouched:!!(v.color && v.color!=="#cccccc")})) : [];
  }else{
@@ -804,10 +769,6 @@ async function saveProduct(){
  const sku = document.querySelector("#f_sku").value.trim();
  const description = document.querySelector("#f_description").value.trim();
  const sizes = document.querySelector("#f_sizes").value.trim();
- // Drop any variant rows that never got a photo uploaded — an empty
- // swatch with no image would just look broken on the storefront.
- // Also strip the internal colorTouched flag before saving — that's
- // only used to drive the admin form's own auto-fill behavior.
  const variants = formVariants.filter(v=>v.image).map(v=>({colorName:v.colorName, color:v.color, image:v.image}));
 
  if(!name || !category || !price || !image){
