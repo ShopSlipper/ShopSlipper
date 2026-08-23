@@ -452,10 +452,6 @@ footer .logo span{color:var(--gold)}
 <script>
 /* ================== CONFIG — set this to your Apps Script Web App URL ================== */
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzKHLu21Y5oJeM7KQ5dcI3mTXpNnZlDRoTn19nCuqZ7SNb73S6cj9QaTY2Sd-QHTFoE/exec"; // ends in /exec
-
-/* Hero banner/ad — swap this image and link to whatever promo you're running */
-const HERO_BANNER_IMAGE = "https://placehold.co/1600x500/eef6f2/182220?text=Your+Banner+Here";
-const HERO_BANNER_LINK = "#shop"; // e.g. a category anchor, or a full product URL
 /* ========================================================================================= */
 
 let products = [], cart = JSON.parse(localStorage.getItem("shopslipper-cart")||"[]");
@@ -941,9 +937,20 @@ function updateChatFabBadge(){
 }
 if(chatSessionId) startChatPolling();
 
-document.querySelector("#heroBannerImg").src = HERO_BANNER_IMAGE;
-document.querySelector("#heroBanner").href = HERO_BANNER_LINK;
+async function loadBanner(){
+ const fallbackImg = "https://placehold.co/1600x500/eef6f2/182220?text=Your+Banner+Here";
+ try{
+  const res = await fetch(`${SCRIPT_URL}?action=settings`);
+  const data = await res.json();
+  document.querySelector("#heroBannerImg").src = (data.settings && data.settings.bannerImage) || fallbackImg;
+  document.querySelector("#heroBanner").href = (data.settings && data.settings.bannerLink) || "#shop";
+ }catch(err){
+  document.querySelector("#heroBannerImg").src = fallbackImg;
+  document.querySelector("#heroBanner").href = "#shop";
+ }
+}
 
+loadBanner();
 applyI18n();
 loadProducts();
 </script>
