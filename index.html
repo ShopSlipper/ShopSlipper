@@ -36,6 +36,7 @@ header{position:sticky;top:0;z-index:30;background:rgba(248,246,241,.9);backdrop
 .actions{display:flex;align-items:center;gap:10px}
 .iconbtn{width:42px;height:42px;border:1px solid var(--line);background:#fff;border-radius:50%;display:grid;place-items:center;font-size:16px;position:relative;transition:.2s border-color}
 .iconbtn:hover{border-color:var(--text)}
+.iconbtn.langBtn{width:auto;padding:0 15px;font-weight:800;font-size:12px;letter-spacing:.4px}
 .badge{position:absolute;right:-2px;top:-2px;background:#111;color:#fff;width:17px;height:17px;border-radius:50%;font-size:10px;display:grid;place-items:center}
 .introBand{padding:56px 0 8px}
 .introInner{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;border-bottom:1px solid var(--line);padding-bottom:34px}
@@ -53,11 +54,24 @@ header{position:sticky;top:0;z-index:30;background:rgba(248,246,241,.9);backdrop
 .chip{white-space:nowrap;border:1px solid var(--line);background:#fff;border-radius:999px;padding:10px 18px;font-size:12.5px;font-weight:500;transition:.2s}
 .chip.active,.chip:hover{background:#111;color:#fff;border-color:#111}
 .toolbar{display:flex;flex-direction:column;gap:12px;margin-bottom:28px}
-.search{position:relative}
+.toolbarRow{display:flex;gap:12px;flex-wrap:wrap}
+.search{position:relative;flex:1;min-width:220px}
 .search input{width:100%;border:1px solid var(--line);background:#fff;border-radius:14px;padding:13px 52px 13px 15px;outline:none;font-size:14px}
 .search input:focus{border-color:var(--text)}
 .imgSearchIcon{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:38px;height:38px;border-radius:50%;background:transparent;font-size:17px;display:grid;place-items:center;transition:.2s background}
 .imgSearchIcon:hover{background:var(--soft)}
+.filterWrap{position:relative;flex-shrink:0}
+.filterBtn{white-space:nowrap;border:1px solid var(--line);background:#fff;border-radius:14px;padding:0 18px;height:48px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;color:var(--text)}
+.filterBtn:hover{border-color:var(--text)}
+.filterBtn .arrows{font-size:14px;opacity:.6}
+.filterPanel{position:absolute;top:56px;right:0;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:10px;width:210px;z-index:25;display:none}
+.filterPanel.open{display:block}
+.filterPanelLabel{font-size:10.5px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-weight:700;padding:8px 10px 4px}
+.filterOption{display:flex;align-items:center;gap:9px;padding:10px;border-radius:10px;font-size:13px;cursor:pointer}
+.filterOption:hover{background:var(--soft)}
+.filterOption.active{background:var(--soft);font-weight:700;color:var(--gold)}
+.filterOption .dot{width:7px;height:7px;border-radius:50%;background:var(--line);flex-shrink:0}
+.filterOption.active .dot{background:var(--gold)}
 select{width:100%;height:48px;border:1px solid var(--line);background:#fff;border-radius:14px;padding:0 14px;outline:none;font-size:13.5px}
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
 .product{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;position:relative;transition:transform .3s cubic-bezier(.2,.8,.2,1),box-shadow .3s;cursor:pointer}
@@ -69,6 +83,9 @@ select{width:100%;height:48px;border:1px solid var(--line);background:#fff;borde
 .bestBadge{position:absolute;right:12px;top:12px;background:var(--sage);color:#fff;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:700;letter-spacing:.4px;z-index:2}
 .cardSku{display:inline-block;font-family:monospace;font-size:10px;color:var(--muted);background:var(--soft);padding:2px 6px;border-radius:6px;margin-bottom:6px}
 .priceRow{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.cardMeta{display:flex;align-items:center;gap:8px;margin-top:8px;min-width:0}
+.cardColorDot{width:14px;height:14px;border-radius:50%;border:1px solid var(--line);flex-shrink:0}
+.cardDesc{font-size:11.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;min-width:0}
 .cardAddBtn{margin-top:10px;padding:11px;font-size:12.5px}
 .productInfo{padding:17px}
 .productInfo h3{font-family:var(--serif);font-weight:600;font-size:16px;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
@@ -214,6 +231,7 @@ footer .logo span{color:var(--gold)}
  .field.full{grid-column:auto}
  .pdInfo{padding:20px}
  .pdSuggest{padding:20px}
+ .filterPanel{right:0;left:auto;width:190px}
 }
 @media(max-width:390px){.grid{grid-template-columns:1fr}.features{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
@@ -223,7 +241,7 @@ footer .logo span{color:var(--gold)}
 .featuredImg img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s ease}
 .featuredCard:hover .featuredImg img{transform:scale(1.045)}
 .featuredMeta{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
-.featuredMeta h3{font-family:var(--serif);font-weight:600;font-size:15.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.featuredMeta h3{font-family:var(--serif);font-weight:600;font-size:15.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center;gap:7px}
 .featuredMeta .price{font-weight:700;font-size:14.5px;white-space:nowrap}
 .sectionDivider{display:flex;align-items:center;gap:14px;margin:8px 0 24px;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:1.8px;font-weight:700}
 .sectionDivider::before,.sectionDivider::after{content:"";flex:1;height:1px;background:var(--line)}
@@ -234,8 +252,14 @@ footer .logo span{color:var(--gold)}
 <header>
   <div class="container nav">
     <a class="logo" href="#"><img class="logoMark" src="data:image/png;base64,PLACEHOLDER_LOGO" alt="ShopSlipper logo"><span class="logoText">SHOP<span class="logoAccent">SLIPPER</span></span></a>
-    <nav class="navlinks"><a href="#shop">Shop</a><a href="#new">New arrivals</a><a href="#about">Why us</a><a href="#" onclick="openReturns();return false;">Returns</a></nav>
+    <nav class="navlinks">
+      <a href="#shop" data-i18n="navShop">Shop</a>
+      <a href="#new" data-i18n="navNew">New arrivals</a>
+      <a href="#about" data-i18n="navWhy">Why us</a>
+      <a href="#" onclick="openReturns();return false;" data-i18n="navReturns">Returns</a>
+    </nav>
     <div class="actions">
+      <button class="iconbtn langBtn" id="langBtn" aria-label="Change language" onclick="toggleLang()">EN</button>
       <button class="iconbtn" aria-label="Search" onclick="document.querySelector('#search').focus()">⌕</button>
       <button class="iconbtn" aria-label="Cart" onclick="openCart()">🛒<span class="badge" id="cartCount">0</span></button>
     </div>
@@ -246,25 +270,34 @@ footer .logo span{color:var(--gold)}
 <section class="introBand">
  <div class="container introInner">
   <div>
-   <div class="eyebrow">Everyday comfort</div>
-   <h1>Step into your comfort.</h1>
+   <div class="eyebrow" data-i18n="eyebrow">Everyday comfort</div>
+   <h1 data-i18n="h1">Step into your comfort.</h1>
   </div>
-  <p>Minimal, considered slippers made for everyday life — easy on your feet, easy on your style.</p>
+  <p data-i18n="heroSub">Minimal, considered slippers made for everyday life — easy on your feet, easy on your style.</p>
  </div>
 </section>
 
 <section class="section" id="shop">
  <div class="container">
-  <div class="sectionHead"><div><div class="eyebrow">Collection</div><h2>Find your pair</h2></div><p id="resultText"></p></div>
+  <div class="sectionHead"><div><div class="eyebrow" data-i18n="collectionEyebrow">Collection</div><h2 data-i18n="findPair">Find your pair</h2></div><p id="resultText"></p></div>
   <div class="categories" id="categories"></div>
   <div class="toolbar">
-   <div class="search">
-    <input id="search" placeholder="Search slippers..." oninput="renderProducts()">
-    <button class="imgSearchIcon" id="imgSearchBtn" aria-label="Search by image" title="Search by image" onclick="document.querySelector('#imageSearchInput').click()">📷</button>
+   <div class="toolbarRow">
+    <div class="search">
+     <input id="search" data-i18n-placeholder="searchPlaceholder" placeholder="Search slippers..." oninput="renderProducts()">
+     <button class="imgSearchIcon" id="imgSearchBtn" aria-label="Search by image" title="Search by image" onclick="document.querySelector('#imageSearchInput').click()">📷</button>
+    </div>
+    <div class="filterWrap">
+     <button class="filterBtn" onclick="toggleFilterPanel(event)"><span class="arrows">⇅</span> <span id="filterLabel" data-i18n="filterFeatured">Featured</span></button>
+     <div class="filterPanel" id="filterPanel">
+      <div class="filterPanelLabel">Sort &amp; filter</div>
+      <div class="filterOption active" data-sort="featured" onclick="setSort('featured')"><span class="dot"></span><span data-i18n="filterFeatured">Featured</span></div>
+      <div class="filterOption" data-sort="low" onclick="setSort('low')"><span class="dot"></span><span data-i18n="filterLow">Price: Low to High</span></div>
+      <div class="filterOption" data-sort="high" onclick="setSort('high')"><span class="dot"></span><span data-i18n="filterHigh">Price: High to Low</span></div>
+      <div class="filterOption" data-sort="new" onclick="setSort('new')"><span class="dot"></span><span data-i18n="filterNew">Newest</span></div>
+     </div>
+    </div>
    </div>
-   <select id="sort" onchange="renderProducts()">
-    <option value="featured">Sort: Featured</option><option value="low">Price: Low to high</option><option value="high">Price: High to low</option><option value="new">Newest</option>
-   </select>
    <input type="file" id="imageSearchInput" accept="image/*" style="display:none" onchange="searchByImage(this.files[0])">
   </div>
   <div id="imgSearchBanner" style="display:none;align-items:center;justify-content:space-between;gap:12px;background:var(--soft);border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin-bottom:20px;font-size:13px">
@@ -274,22 +307,22 @@ footer .logo span{color:var(--gold)}
   <div id="products"><div class="loadingMsg">Loading products…</div></div>
   <div class="pagination" id="pagination"></div>
   <div class="features" id="about">
-   <div class="feature"><b>🚚 Fast delivery</b><span>Reliable delivery across Nepal.</span></div>
-   <div class="feature"><b>↩ Easy returns</b><span>Simple return process on eligible items.</span></div>
-   <div class="feature"><b>✓ Quality first</b><span>Comfort-focused products selected for you.</span></div>
-   <div class="feature"><b>💬 Friendly support</b><span>We are here when you need us.</span></div>
+   <div class="feature"><b data-i18n="fastDeliveryTitle">🚚 Fast delivery</b><span data-i18n="fastDeliveryDesc">Reliable delivery across Nepal.</span></div>
+   <div class="feature"><b data-i18n="easyReturnsTitle">↩ Easy returns</b><span data-i18n="easyReturnsDesc">Simple return process on eligible items.</span></div>
+   <div class="feature"><b data-i18n="qualityTitle">✓ Quality first</b><span data-i18n="qualityDesc">Comfort-focused products selected for you.</span></div>
+   <div class="feature"><b data-i18n="supportTitle">💬 Friendly support</b><span data-i18n="supportDesc">We are here when you need us.</span></div>
   </div>
   <div class="returnPolicy">
-   <div class="eyebrow">Our policy</div>
-   <h2>Easy 3-day returns</h2>
-   <p>Not the right fit? Return any unused item in its original packaging within 3 days of delivery for a full refund or exchange — no questions asked.</p>
+   <div class="eyebrow" data-i18n="returnPolicyEyebrow">Our policy</div>
+   <h2 data-i18n="returnPolicyTitle">Easy 3-day returns</h2>
+   <p data-i18n="returnPolicyDesc">Not the right fit? Return any unused item in its original packaging within 3 days of delivery for a full refund or exchange — no questions asked.</p>
    <div class="returnSteps">
-    <div><b>1</b><span>Find the order ID from your order confirmation</span></div>
-    <div><b>2</b><span>Fill in the return form with your order ID</span></div>
-    <div><b>3</b><span>Pack the item unused, with tags/packaging</span></div>
-    <div><b>4</b><span>We arrange pickup and process your refund</span></div>
+    <div><b>1</b><span data-i18n="returnStep1">Find the order ID from your order confirmation</span></div>
+    <div><b>2</b><span data-i18n="returnStep2">Fill in the return form with your order ID</span></div>
+    <div><b>3</b><span data-i18n="returnStep3">Pack the item unused, with tags/packaging</span></div>
+    <div><b>4</b><span data-i18n="returnStep4">We arrange pickup and process your refund</span></div>
    </div>
-   <button class="btn light" onclick="openReturns()">Start a return</button>
+   <button class="btn light" onclick="openReturns()" data-i18n="startReturn">Start a return</button>
   </div>
  </div>
 </section>
@@ -298,10 +331,10 @@ footer .logo span{color:var(--gold)}
 <footer>
  <div class="container">
   <div class="footerGrid">
-   <div><div class="logo" style="display:flex;align-items:center;gap:10px"><img class="logoMark" src="data:image/png;base64,PLACEHOLDER_LOGO" alt="Shop Slipper logo"><div>SHOP<span>SLIPPER</span></div></div><p style="margin-top:14px;max-width:300px">Comfortable everyday footwear for Nepal. Considered products, honest prices.</p></div>
-   <div><h4>Shop</h4><p><a href="#shop">All slippers</a></p><p><a href="#shop">New arrivals</a></p></div>
-   <div><h4>Help</h4><p>Delivery</p><p><a href="#" onclick="openReturns();return false;">Returns</a></p><p>Contact</p></div>
-   <div><h4>Contact</h4><p>Kathmandu, Nepal</p><p>shopslipper@gmail.com</p></div>
+   <div><div class="logo" style="display:flex;align-items:center;gap:10px"><img class="logoMark" src="data:image/png;base64,PLACEHOLDER_LOGO" alt="Shop Slipper logo"><div>SHOP<span>SLIPPER</span></div></div><p style="margin-top:14px;max-width:300px" data-i18n="footerAbout">Comfortable everyday footwear for Nepal. Considered products, honest prices.</p></div>
+   <div><h4 data-i18n="footerShop">Shop</h4><p><a href="#shop" data-i18n="allSlippers">All slippers</a></p><p><a href="#shop" data-i18n="newArrivals">New arrivals</a></p></div>
+   <div><h4 data-i18n="footerHelp">Help</h4><p data-i18n="delivery">Delivery</p><p><a href="#" onclick="openReturns();return false;" data-i18n="returns">Returns</a></p><p data-i18n="contact">Contact</p></div>
+   <div><h4 data-i18n="footerContact">Contact</h4><p>Kathmandu, Nepal</p><p>shopslipper@gmail.com</p></div>
   </div>
   <div class="copy">© 2026 ShopSlipper. All rights reserved. · <a href="admin.html" style="opacity:.5">Admin</a></div>
  </div>
@@ -441,6 +474,97 @@ let products = [], cart = JSON.parse(localStorage.getItem("shopslipper-cart")||"
 let category="All", page=1, imageMatch=null;
 const PER_PAGE=12;
 
+/* ================== i18n (EN / NP toggle) ================== */
+let currentLang = "en";
+const I18N = {
+ en:{
+  navShop:"Shop", navNew:"New arrivals", navWhy:"Why us", navReturns:"Returns",
+  eyebrow:"Everyday comfort", h1:"Step into your comfort.",
+  heroSub:"Minimal, considered slippers made for everyday life — easy on your feet, easy on your style.",
+  collectionEyebrow:"Collection", findPair:"Find your pair",
+  searchPlaceholder:"Search slippers...",
+  filterFeatured:"Featured", filterLow:"Price: Low to High", filterHigh:"Price: High to Low", filterNew:"Newest",
+  fastDeliveryTitle:"🚚 Fast delivery", fastDeliveryDesc:"Reliable delivery across Nepal.",
+  easyReturnsTitle:"↩ Easy returns", easyReturnsDesc:"Simple return process on eligible items.",
+  qualityTitle:"✓ Quality first", qualityDesc:"Comfort-focused products selected for you.",
+  supportTitle:"💬 Friendly support", supportDesc:"We are here when you need us.",
+  returnPolicyEyebrow:"Our policy", returnPolicyTitle:"Easy 3-day returns",
+  returnPolicyDesc:"Not the right fit? Return any unused item in its original packaging within 3 days of delivery for a full refund or exchange — no questions asked.",
+  returnStep1:"Find the order ID from your order confirmation",
+  returnStep2:"Fill in the return form with your order ID",
+  returnStep3:"Pack the item unused, with tags/packaging",
+  returnStep4:"We arrange pickup and process your refund",
+  startReturn:"Start a return",
+  selectSize:"Select size", addToCart:"Add to cart",
+  footerAbout:"Comfortable everyday footwear for Nepal. Considered products, honest prices.",
+  footerShop:"Shop", allSlippers:"All slippers", newArrivals:"New arrivals",
+  footerHelp:"Help", delivery:"Delivery", returns:"Returns", contact:"Contact", footerContact:"Contact"
+ },
+ np:{
+  navShop:"किनमेल", navNew:"नयाँ सामान", navWhy:"किन हामी", navReturns:"फिर्ता",
+  eyebrow:"दैनिक आराम", h1:"आफ्नो आरामतिर कदम चाल्नुहोस्।",
+  heroSub:"दैनिक जीवनको लागि बनाइएका सोचिएका चप्पलहरू — खुट्टामा सजिलो, स्टाइलमा सजिलो।",
+  collectionEyebrow:"सङ्ग्रह", findPair:"आफ्नो जोर्नी छान्नुहोस्",
+  searchPlaceholder:"चप्पल खोज्नुहोस्...",
+  filterFeatured:"विशेष", filterLow:"मूल्य: कमबाट बढी", filterHigh:"मूल्य: बढीबाट कम", filterNew:"नयाँ",
+  fastDeliveryTitle:"🚚 छिटो डेलिभरी", fastDeliveryDesc:"नेपालभर भरपर्दो डेलिभरी।",
+  easyReturnsTitle:"↩ सजिलो फिर्ता", easyReturnsDesc:"योग्य सामानको लागि सरल फिर्ता प्रक्रिया।",
+  qualityTitle:"✓ गुणस्तर पहिलो", qualityDesc:"तपाईंको लागि आराममा केन्द्रित सामान।",
+  supportTitle:"💬 मैत्रीपूर्ण सहयोग", supportDesc:"हामी तपाईंलाई चाहिँदा यहाँ छौं।",
+  returnPolicyEyebrow:"हाम्रो नीति", returnPolicyTitle:"सजिलो ३-दिन फिर्ता",
+  returnPolicyDesc:"ठीक साइज भएन? डेलिभरीको ३ दिनभित्र प्रयोग नगरिएको सामान मूल प्याकेजिङमा फिर्ता गर्नुहोस् — कुनै प्रश्न सोधिँदैन।",
+  returnStep1:"आफ्नो अर्डर पुष्टिबाट अर्डर आईडी फेला पार्नुहोस्",
+  returnStep2:"अर्डर आईडी सहित फिर्ता फारम भर्नुहोस्",
+  returnStep3:"सामान प्रयोग नगरी ट्याग/प्याकेजिङसहित प्याक गर्नुहोस्",
+  returnStep4:"हामी पिकअप मिलाउँछौं र रिफन्ड प्रक्रिया गर्छौं",
+  startReturn:"फिर्ता सुरु गर्नुहोस्",
+  selectSize:"साइज छान्नुहोस्", addToCart:"कार्टमा थप्नुहोस्",
+  footerAbout:"नेपालको लागि आरामदायी दैनिक जुत्ता। सोचिएका सामान, इमानदार मूल्य।",
+  footerShop:"किनमेल", allSlippers:"सबै चप्पल", newArrivals:"नयाँ सामान",
+  footerHelp:"सहयोग", delivery:"डेलिभरी", returns:"फिर्ता", contact:"सम्पर्क", footerContact:"सम्पर्क"
+ }
+};
+function toggleLang(){
+ currentLang = currentLang==="en" ? "np" : "en";
+ document.querySelector("#langBtn").textContent = currentLang==="en" ? "EN" : "NP";
+ applyI18n();
+ renderProducts();
+}
+function applyI18n(){
+ const t = I18N[currentLang];
+ document.querySelectorAll("[data-i18n]").forEach(el=>{
+  const key = el.dataset.i18n;
+  if(t[key]!==undefined) el.textContent = t[key];
+ });
+ document.querySelectorAll("[data-i18n-placeholder]").forEach(el=>{
+  const key = el.dataset.i18nPlaceholder;
+  if(t[key]!==undefined) el.placeholder = t[key];
+ });
+ const labelKey = "filter"+sortMode.charAt(0).toUpperCase()+sortMode.slice(1);
+ document.querySelector("#filterLabel").textContent = t[labelKey] || t.filterFeatured;
+}
+
+/* ================== Filter panel ================== */
+let sortMode = "featured";
+function toggleFilterPanel(e){
+ if(e) e.stopPropagation();
+ document.querySelector("#filterPanel").classList.toggle("open");
+}
+function setSort(mode){
+ sortMode = mode;
+ document.querySelectorAll(".filterOption").forEach(el=>el.classList.toggle("active", el.dataset.sort===mode));
+ const t = I18N[currentLang];
+ const labelKey = "filter"+mode.charAt(0).toUpperCase()+mode.slice(1);
+ document.querySelector("#filterLabel").textContent = t[labelKey] || t.filterFeatured;
+ document.querySelector("#filterPanel").classList.remove("open");
+ page=1;
+ renderProducts();
+}
+document.addEventListener("click", e=>{
+ const panel = document.querySelector("#filterPanel");
+ if(panel && panel.classList.contains("open") && !e.target.closest(".filterWrap")) panel.classList.remove("open");
+});
+
 function money(n){return "Rs. "+Number(n).toLocaleString("en-IN")}
 function save(){localStorage.setItem("shopslipper-cart",JSON.stringify(cart));updateCart()}
 
@@ -464,20 +588,24 @@ function categories(){
  document.querySelector("#categories").innerHTML=cats.map(c=>`<button class="chip ${c===category?"active":""}" onclick="category='${c}';page=1;categories();renderProducts()">${c}</button>`).join("");
 }
 function getFilteredList(){
- const q=document.querySelector("#search").value.toLowerCase(), sort=document.querySelector("#sort").value;
+ const q=document.querySelector("#search").value.toLowerCase();
  let list=products.filter(p=>(category==="All"||p.category===category)&&p.name.toLowerCase().includes(q));
  if(imageMatch){
   list=list.slice().sort((a,b)=>colorDistance(a.color,imageMatch)-colorDistance(b.color,imageMatch));
  }else{
-  if(sort==="low")list.sort((a,b)=>a.price-b.price);
-  if(sort==="high")list.sort((a,b)=>b.price-a.price);
-  if(sort==="new")list.sort((a,b)=>Number(b.new)-Number(a.new));
+  if(sortMode==="low")list.sort((a,b)=>a.price-b.price);
+  if(sortMode==="high")list.sort((a,b)=>b.price-a.price);
+  if(sortMode==="new")list.sort((a,b)=>Number(b.new)-Number(a.new));
  }
  return list;
 }
 function cardHTML(p){
  const sizes=(p.sizes||"").split(",").map(s=>s.trim()).filter(Boolean);
  const discount = p.old && p.old>p.price ? Math.round((1-p.price/p.old)*100) : 0;
+ const t = I18N[currentLang];
+ const hasColor = !!p.color;
+ const hasDesc = !!p.description;
+ const metaRow = (hasColor||hasDesc) ? `<div class="cardMeta">${hasColor?`<span class="cardColorDot" style="background:${p.color}"></span>`:""}${hasDesc?`<span class="cardDesc">${p.description}</span>`:""}</div>` : "";
  return `<article class="product" onclick="openProduct(${p.id})">
   <div class="productImg">
    <img src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.style.display='none'">
@@ -489,7 +617,8 @@ function cardHTML(p){
    <p>${p.category}${sizes.length?` · ${sizes.length} sizes`:""}</p>
    ${p.sku?`<span class="cardSku">SKU: ${p.sku}</span>`:""}
    <div class="priceRow"><span class="price">${money(p.price)}</span>${p.old?`<span class="old">${money(p.old)}</span>`:""}</div>
-   <button class="add cardAddBtn" onclick="event.stopPropagation();openProduct(${p.id})">${sizes.length?'Select size':'Add to cart'}</button>
+   ${metaRow}
+   <button class="add cardAddBtn" onclick="event.stopPropagation();openProduct(${p.id})">${sizes.length?t.selectSize:t.addToCart}</button>
   </div>
  </article>`;
 }
@@ -502,7 +631,7 @@ function featuredCardHTML(p){
    ${discount>0?`<span class="sale">${discount}% OFF</span>`:''}
   </div>
   <div class="featuredMeta">
-   <h3>${p.name}</h3>
+   <h3>${p.color?`<span class="cardColorDot" style="background:${p.color}"></span>`:""}${p.name}</h3>
    <span class="price">${money(p.price)}${p.old?`<span class="old">${money(p.old)}</span>`:""}</span>
   </div>
  </article>`;
@@ -848,6 +977,7 @@ function updateChatFabBadge(){
 }
 if(chatSessionId) startChatPolling();
 
+applyI18n();
 loadProducts();
 </script>
 </body>
