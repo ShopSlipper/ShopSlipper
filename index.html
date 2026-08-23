@@ -11,7 +11,7 @@
 <style>
 :root{
   --bg:#eef6f2;--card:#fffefe;--text:#182220;--muted:#6f8582;
-  --line:#dbe9e3;--accent:#111;--soft:#e6f2ee;--danger:#b5493e;
+  --line:#dbe9e3;--accent:var(--gold);--soft:#e6f2ee;--danger:#b5493e;
   --gold:#4f8f9c;--sage:#7cae9a;--sky:#8fb8d8;
   --radius:20px;--shadow:0 20px 50px rgba(20,40,38,.08);
   --serif:'Inter',system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
@@ -37,21 +37,21 @@ header{position:sticky;top:0;z-index:30;background:rgba(248,246,241,.9);backdrop
 .iconbtn{width:42px;height:42px;border:1px solid var(--line);background:#fff;border-radius:50%;display:grid;place-items:center;font-size:16px;position:relative;transition:.2s border-color}
 .iconbtn:hover{border-color:var(--text)}
 .iconbtn.langBtn{width:auto;padding:0 15px;font-weight:800;font-size:12px;letter-spacing:.4px}
-.badge{position:absolute;right:-2px;top:-2px;background:#111;color:#fff;width:17px;height:17px;border-radius:50%;font-size:10px;display:grid;place-items:center}
+.badge{position:absolute;right:-2px;top:-2px;background:var(--gold);color:#fff;width:17px;height:17px;border-radius:50%;font-size:10px;display:grid;place-items:center}
 .introBand{padding:24px 0 8px}
 .bannerLink{display:block;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow)}
 .bannerLink img{width:100%;height:auto;aspect-ratio:16/5;object-fit:cover;display:block}
 .eyebrow{text-transform:uppercase;letter-spacing:2.5px;font-size:11px;font-weight:700;color:var(--gold);margin-bottom:14px}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 24px;border-radius:999px;background:#111;color:#fff;font-weight:600;font-size:13.5px;letter-spacing:.2px;transition:.25s transform,.25s opacity,.25s background}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 24px;border-radius:999px;background:var(--gold);color:#fff;font-weight:600;font-size:13.5px;letter-spacing:.2px;transition:.25s transform,.25s opacity,.25s background}
 .btn:hover{transform:translateY(-2px);opacity:.92}
-.btn.light{background:#fff;color:#111;border:1px solid var(--line)}
+.btn.light{background:#fff;color:var(--gold);border:1px solid var(--line)}
 .section{padding:35px 0 75px}
 .sectionHead{display:flex;justify-content:space-between;align-items:end;margin-bottom:26px}
 .sectionHead h2{font-family:var(--serif);font-weight:600;font-size:32px;letter-spacing:-1px}
 .sectionHead p{color:var(--muted);font-size:14px}
 .categories{display:flex;gap:10px;overflow:auto;padding-bottom:8px;margin-bottom:25px}
 .chip{white-space:nowrap;border:1px solid var(--line);background:#fff;border-radius:999px;padding:10px 18px;font-size:12.5px;font-weight:500;transition:.2s}
-.chip.active,.chip:hover{background:#111;color:#fff;border-color:#111}
+.chip.active,.chip:hover{background:var(--gold);color:#fff;border-color:var(--gold)}
 .toolbar{display:flex;flex-direction:column;gap:12px;margin-bottom:28px}
 .toolbarRow{display:flex;gap:12px;flex-wrap:wrap}
 .search{position:relative;flex:1;min-width:220px}
@@ -91,8 +91,8 @@ select{width:100%;height:48px;border:1px solid var(--line);background:#fff;borde
 .productInfo p{font-size:11.5px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.7px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .price{font-weight:700}
 .old{text-decoration:line-through;color:#a9a49a;font-weight:500;font-size:12px;margin-left:7px}
-.add{width:100%;margin-top:14px;padding:12px;border-radius:12px;background:#111;color:#fff;font-weight:600;font-size:13px;letter-spacing:.2px;transition:.2s background}
-.add:hover{background:var(--gold)}
+.add{width:100%;margin-top:14px;padding:12px;border-radius:12px;background:var(--gold);color:#fff;font-weight:600;font-size:13px;letter-spacing:.2px;transition:.2s background}
+.add:hover{background:var(--sage)}
 .features{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:34px}
 .returnPolicy{max-width:620px;margin:56px auto 0;text-align:center}
 .returnPolicy .eyebrow{justify-content:center;display:flex}
@@ -100,7 +100,7 @@ select{width:100%;height:48px;border:1px solid var(--line);background:#fff;borde
 .returnPolicy>p{color:var(--muted);font-size:14.5px;max-width:520px;margin:0 auto 30px}
 .returnSteps{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:30px;text-align:left}
 .returnSteps div{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px}
-.returnSteps b{display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:#111;color:#fff;font-size:12px;margin-bottom:10px}
+.returnSteps b{display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:var(--gold);color:#fff;font-size:12px;margin-bottom:10px}
 .returnSteps span{display:block;font-size:12.5px;color:var(--muted);line-height:1.5}
 @media(max-width:700px){.returnSteps{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:390px){.returnSteps{grid-template-columns:1fr}}
@@ -109,7 +109,7 @@ select{width:100%;height:48px;border:1px solid var(--line);background:#fff;borde
 .pagination{display:flex;justify-content:center;align-items:center;gap:8px;margin-top:36px;flex-wrap:wrap}
 .pageBtn{min-width:38px;height:38px;padding:0 12px;border-radius:10px;border:1px solid var(--line);background:#fff;font-size:13px;font-weight:600;color:var(--text);transition:.2s}
 .pageBtn:hover:not(:disabled){border-color:var(--text)}
-.pageBtn.active{background:#111;color:#fff;border-color:#111}
+.pageBtn.active{background:var(--gold);color:#fff;border-color:var(--gold)}
 .pageBtn:disabled{opacity:.35;cursor:default}
 .drawer{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:50;display:none}
 .drawer.open{display:block}
@@ -156,11 +156,11 @@ select{width:100%;height:48px;border:1px solid var(--line);background:#fff;borde
 .pdColorRow{display:flex;flex-wrap:wrap;gap:10px}
 .pdSwatch{width:34px;height:34px;border-radius:50%;border:2px solid transparent;box-shadow:0 0 0 1px var(--line) inset;cursor:pointer;padding:0;position:relative;transition:.15s transform,.15s box-shadow}
 .pdSwatch:hover{transform:translateY(-1px)}
-.pdSwatch.active{border-color:#111;box-shadow:0 0 0 2px #fff inset,0 0 0 3px #111}
+.pdSwatch.active{border-color:var(--gold);box-shadow:0 0 0 2px #fff inset,0 0 0 3px var(--gold)}
 .pdColorLabel{font-size:12.5px;color:var(--muted);margin-top:9px}
 .sizeRow{display:flex;flex-wrap:wrap;gap:8px}
 .sizeBtn{min-width:44px;padding:9px 12px;border-radius:10px;border:1px solid var(--line);background:#fff;font-size:13px;font-weight:600}
-.sizeBtn.active,.sizeBtn:hover{background:#111;color:#fff;border-color:#111}
+.sizeBtn.active,.sizeBtn:hover{background:var(--gold);color:#fff;border-color:var(--gold)}
 .pdQty{display:flex;align-items:center;gap:12px;margin-bottom:18px}
 .pdQty button{width:34px;height:34px;border-radius:9px;background:var(--soft);font-size:16px}
 .pdSuggest{padding:26px 32px 32px;border-top:1px solid var(--line);grid-column:1/-1}
@@ -177,14 +177,14 @@ footer p,footer a{color:#a7c2ba;font-size:13px}footer h4{margin-bottom:14px;font
 footer .logo{color:#fff}
 footer .logo span{color:var(--gold)}
 .copy{border-top:1px solid #1e332e;margin-top:40px;padding-top:20px;font-size:12px;color:#5f7a75}
-.toast{position:fixed;left:50%;bottom:25px;transform:translate(-50%,20px);background:#111;color:#fff;padding:12px 18px;border-radius:999px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:100}
+.toast{position:fixed;left:50%;bottom:25px;transform:translate(-50%,20px);background:var(--gold);color:#fff;padding:12px 18px;border-radius:999px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:100}
 .toast.show{opacity:1;transform:translate(-50%,0)}
-.chatFab{position:fixed;right:22px;bottom:22px;width:58px;height:58px;border-radius:50%;background:#111;color:#fff;font-size:23px;display:grid;place-items:center;box-shadow:0 10px 30px rgba(20,20,20,.28);z-index:80;transition:.2s transform}
+.chatFab{position:fixed;right:22px;bottom:22px;width:58px;height:58px;border-radius:50%;background:var(--gold);color:#fff;font-size:23px;display:grid;place-items:center;box-shadow:0 10px 30px rgba(20,20,20,.28);z-index:80;transition:.2s transform}
 .chatFab:hover{transform:translateY(-3px)}
 .chatFabBadge{position:absolute;top:-3px;right:-3px;background:var(--danger);color:#fff;min-width:20px;height:20px;padding:0 5px;border-radius:50%;font-size:11px;font-weight:700;display:none;place-items:center;border:2px solid #fff}
 .chatWidget{position:fixed;right:22px;bottom:92px;width:min(370px,calc(100vw - 32px));max-height:min(540px,calc(100vh - 130px));background:#fff;border-radius:22px;box-shadow:0 24px 60px rgba(20,30,28,.28);display:none;flex-direction:column;overflow:hidden;z-index:80;border:1px solid var(--line)}
 .chatWidget.open{display:flex}
-.chatHead{display:flex;justify-content:space-between;align-items:center;padding:16px 18px;background:#111;color:#fff;flex-shrink:0}
+.chatHead{display:flex;justify-content:space-between;align-items:center;padding:16px 18px;background:var(--gold);color:#fff;flex-shrink:0}
 .chatHead div b{font-family:var(--serif);font-size:15px;display:block;font-weight:600}
 .chatHead div small{color:#cfe3dc;opacity:.75;font-size:11px}
 .chatHead .close{background:rgba(255,255,255,.15);color:#fff}
@@ -194,13 +194,13 @@ footer .logo span{color:var(--gold)}
 .chatMessages{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:10px;background:var(--bg)}
 .chatEmpty{color:var(--muted);font-size:12.5px;text-align:center;padding:30px 10px}
 .chatBubble{max-width:80%;padding:10px 13px;border-radius:16px;font-size:13.5px;line-height:1.4}
-.chatBubble.me{align-self:flex-end;background:#111;color:#fff;border-bottom-right-radius:4px}
+.chatBubble.me{align-self:flex-end;background:var(--gold);color:#fff;border-bottom-right-radius:4px}
 .chatBubble.staff{align-self:flex-start;background:#fff;border:1px solid var(--line);border-bottom-left-radius:4px}
 .chatBubble small{display:block;margin-top:4px;font-size:10px;opacity:.6}
 .chatInputRow{display:flex;gap:8px;padding:12px;border-top:1px solid var(--line);background:#fff;flex-shrink:0}
 .chatInputRow input{flex:1;border:1px solid var(--line);border-radius:999px;padding:11px 15px;outline:none;font-size:13.5px}
 .chatInputRow input:focus{border-color:var(--text)}
-.chatSendBtn{width:42px;height:42px;border-radius:50%;background:#111;color:#fff;font-size:16px;flex-shrink:0}
+.chatSendBtn{width:42px;height:42px;border-radius:50%;background:var(--gold);color:#fff;font-size:16px;flex-shrink:0}
 @media(max-width:650px){.chatFab{right:14px;bottom:14px;width:52px;height:52px;font-size:20px}.chatWidget{right:8px;bottom:78px}}
 @media(max-width:900px){.grid{grid-template-columns:repeat(3,1fr)}.features{grid-template-columns:repeat(2,1fr)}.footerGrid{grid-template-columns:2fr 1fr 1fr}}
 @media(max-width:650px){
