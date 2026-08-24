@@ -342,7 +342,6 @@ const ADMIN_KEY  = "shopslipper2026";              // must match ADMIN_KEY in Co
  reads this page's source can see it. It keeps
  casual visitors out but isn't real security.
 ================================================*/
-const CAT_CODES = {Slides:"SLD",Everyday:"EVD",Sandals:"SND",Home:"HOM"};
 const MAX_UPLOAD_DIM = 1200; // photos are resized to fit within this before upload
 
 let products = [];
@@ -536,15 +535,21 @@ async function sendStaffReply(e){
 function nextId(){
  return products.length ? Math.max(...products.map(p=>p.id))+1 : 1;
 }
+
+/* ================== SKU generation ==================
+   Plain incrementing, zero-padded numeric SKUs
+   (e.g. 0000001, 0000002, ...) regardless of category.
+   Always one higher than the highest existing SKU, so
+   it keeps counting up correctly even after deletions.
+======================================================= */
 function generateSku(category, excludeId){
- const code = CAT_CODES[category] || (category||"GEN").slice(0,3).toUpperCase().padEnd(3,"X");
- const used = products.filter(p=>p.id!==excludeId && p.sku && p.sku.startsWith(`SS-${code}-`));
+ const used = products.filter(p=>p.id!==excludeId && p.sku);
  let max = 0;
  used.forEach(p=>{
-  const n = parseInt(p.sku.split("-").pop(),10);
-  if(!isNaN(n) && n>max) max=n;
+  const n = parseInt(p.sku, 10);
+  if(!isNaN(n) && n>max) max = n;
  });
- return `SS-${code}-${String(max+1).padStart(4,"0")}`;
+ return String(max+1).padStart(7,"0");
 }
 function onNameOrCatChange(){
  const cat = document.querySelector("#f_category").value.trim() || "GEN";
