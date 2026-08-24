@@ -675,6 +675,7 @@ function renderProductDetail(){
    <div class="pdInfo">
     <div class="eyebrow">${p.category}</div>
     <h2>${p.name}</h2>
+    ${p.sku?`<span class="cardSku" style="margin-bottom:10px">SKU: ${p.sku}</span>`:""}
     <div class="pdPrice">${money(p.price)}${p.old?`<span class="old">${money(p.old)}</span>`:""}</div>
     ${p.description?`<p class="pdDesc">${p.description}</p>`:""}
     ${colorBlock}
