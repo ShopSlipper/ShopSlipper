@@ -537,19 +537,21 @@ function nextId(){
 }
 
 /* ================== SKU generation ==================
-   Plain incrementing, zero-padded numeric SKUs
-   (e.g. 0000001, 0000002, ...) regardless of category.
-   Always one higher than the highest existing SKU, so
-   it keeps counting up correctly even after deletions.
+   "SS-" prefix + 6-digit zero-padded number (e.g. SS-000001,
+   SS-000002, ... SS-000354). Always one higher than the
+   highest existing SKU number, so it keeps counting up
+   correctly even after deletions, regardless of how many
+   products currently exist.
 ======================================================= */
 function generateSku(category, excludeId){
  const used = products.filter(p=>p.id!==excludeId && p.sku);
  let max = 0;
  used.forEach(p=>{
-  const n = parseInt(p.sku, 10);
+  const digits = String(p.sku).replace(/\D/g,"");
+  const n = parseInt(digits, 10);
   if(!isNaN(n) && n>max) max = n;
  });
- return String(max+1).padStart(7,"0");
+ return "SS-" + String(max+1).padStart(6,"0");
 }
 function onNameOrCatChange(){
  const cat = document.querySelector("#f_category").value.trim() || "GEN";
