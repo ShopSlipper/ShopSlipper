@@ -585,7 +585,10 @@ function categories(){
 }
 function getFilteredList(){
  const q=document.querySelector("#search").value.toLowerCase();
- let list=products.filter(p=>(category==="All"||p.category===category)&&p.name.toLowerCase().includes(q));
+ let list=products.filter(p=>
+  (category==="All"||p.category===category) &&
+  (p.name.toLowerCase().includes(q) || (p.sku||"").toLowerCase().includes(q))
+ );
  if(imageMatch){
   list=list.slice().sort((a,b)=>colorDistance(a.color,imageMatch)-colorDistance(b.color,imageMatch));
  }else{
