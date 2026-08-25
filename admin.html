@@ -124,6 +124,27 @@ tr:last-child td{border-bottom:0}
 .bannerPreviewWrap{border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--soft);margin-bottom:18px}
 .bannerPreviewWrap img{width:100%;height:auto;aspect-ratio:16/5;object-fit:cover;display:block}
 
+/* ---- Stock tracker (admin-only — never sent to storefront) ---- */
+.stockNote{font-size:11px;color:var(--muted);margin-bottom:8px;display:block}
+.stockThreshRow{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.stockThreshRow label{font-size:11px;font-weight:700}
+.stockThreshRow input{width:60px;border:1px solid var(--line);border-radius:9px;padding:7px;text-align:center}
+.stockThreshRow span{font-size:11px;color:var(--muted)}
+.stockGrid{overflow:auto;border:1px solid var(--line);border-radius:12px}
+.stockGrid table{width:100%;border-collapse:collapse;font-size:12.5px}
+.stockGrid th,.stockGrid td{padding:7px 8px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);text-align:center;white-space:nowrap}
+.stockGrid th:first-child,.stockGrid td:first-child{text-align:left;position:sticky;left:0;background:var(--card)}
+.stockGrid tr:last-child td{border-bottom:0}
+.stockGrid td:last-child,.stockGrid th:last-child{border-right:0}
+.stockGrid input{width:56px;border:1px solid var(--line);border-radius:7px;padding:5px;text-align:center;font-size:12.5px}
+.stockGrid input.zero{background:#fbe9e7;border-color:var(--danger);color:var(--danger);font-weight:700}
+.stockGrid input.low{background:#fff6e0;border-color:#c98a1c;color:#8a5d00;font-weight:700}
+.stockBadge{padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700;white-space:nowrap}
+.stockBadge.ok{background:var(--soft);color:var(--gold)}
+.stockBadge.low{background:#fff6e0;color:#8a5d00}
+.stockBadge.out{background:var(--danger);color:#fff}
+.stockBadge.none{background:transparent;color:var(--muted);font-weight:400}
+
 /* ---- Refresh icon spin ---- */
 .spinning{display:inline-block;animation:spin360 .7s linear}
 @keyframes spin360{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
@@ -177,7 +198,7 @@ tr:last-child td{border-bottom:0}
    </div>
    <div style="overflow:auto">
    <table>
-    <thead><tr><th></th><th>Name</th><th>SKU</th><th>Category</th><th>Price</th><th>Flags</th><th></th></tr></thead>
+    <thead><tr><th></th><th>Name</th><th>SKU</th><th>Category</th><th>Price</th><th>Flags</th><th>Stock</th><th></th></tr></thead>
     <tbody id="rows"></tbody>
    </table>
    </div>
@@ -275,7 +296,7 @@ tr:last-child td{border-bottom:0}
    </div>
    <div class="field full">
     <label>Sizes (comma-separated, leave blank if not applicable)</label>
-    <input id="f_sizes" placeholder="e.g. 38,39,40,41,42 or S,M,L">
+    <input id="f_sizes" placeholder="e.g. 38,39,40,41,42 or S,M,L" oninput="renderStockGrid()">
    </div>
    <div class="field full">
     <label>Main product photo</label>
@@ -289,6 +310,10 @@ tr:last-child td{border-bottom:0}
       <input id="f_image" placeholder="https://..." oninput="updateImgPreview()" style="display:none">
      </div>
     </div>
+   </div>
+   <div class="field">
+    <label>Color name (for this main photo)</label>
+    <input id="f_colorName" placeholder="e.g. Black" oninput="renderStockGrid()">
    </div>
    <div class="field">
     <label>Dominant color</label>
@@ -306,6 +331,16 @@ tr:last-child td{border-bottom:0}
     <span style="font-size:11px;color:var(--muted);margin-bottom:4px;display:block">Each variant gets its own photo and swatch — customers can click between them on the product page to see the item in that color, like Amazon or Under Armour's color swatches. The swatch color is only a suggestion based on the photo — double-check it against the actual product color before saving, especially with busy or banner-style photos. Leave empty if this product only comes in one color.</span>
     <div class="variantList" id="variantList"></div>
     <button type="button" class="btn light sm" style="width:fit-content" onclick="addVariantRow()">+ Add color variant</button>
+   </div>
+   <div class="field full">
+    <label>Stock levels (admin only — customers never see this)</label>
+    <span class="stockNote">How many pieces you have of each size/color. Leave a box blank if you don't want to track that combination — it just won't show a badge. This is never sent to your storefront.</span>
+    <div class="stockThreshRow">
+     <label for="f_lowThreshold">Low-stock alert at</label>
+     <input id="f_lowThreshold" type="number" min="0" value="2" oninput="renderStockGrid()">
+     <span>pieces or fewer (0 always shows as out of stock)</span>
+    </div>
+    <div class="stockGrid" id="stockGridWrap"></div>
    </div>
   </div>
   <div class="formFoot">
@@ -343,6 +378,7 @@ const ADMIN_KEY  = "shopslipper2026";              // must match ADMIN_KEY in Co
  casual visitors out but isn't real security.
 ================================================*/
 const MAX_UPLOAD_DIM = 1200; // photos are resized to fit within this before upload
+const DEFAULT_LOW_STOCK = 2; // used for the badge shown in the product list
 
 let products = [];
 let orders = [];
@@ -351,6 +387,7 @@ let editingId = null;
 let activeChatSessionId = null;
 let formVariants = [];
 let f_colorTouched = false;
+let currentStock = {}; // {colorLabel: {size: qty}} for the product currently open in the modal
 
 function tryLogin(){
  const val = document.querySelector("#gatePass").value;
@@ -430,6 +467,25 @@ async function refreshChatSessions(){
 
 function money(n){return "Rs. "+Number(n).toLocaleString("en-IN")}
 
+/* ================== Stock summary badge (product list) ================== */
+function stockSummary(stock){
+ if(!stock || !Object.keys(stock).length) return '<span class="stockBadge none">—</span>';
+ let out=0, low=0, tracked=0;
+ Object.values(stock).forEach(sizes=>{
+  Object.values(sizes||{}).forEach(n=>{
+   const q = Number(n);
+   if(isNaN(q)) return;
+   tracked++;
+   if(q<=0) out++;
+   else if(q<=DEFAULT_LOW_STOCK) low++;
+  });
+ });
+ if(!tracked) return '<span class="stockBadge none">—</span>';
+ if(out>0) return `<span class="stockBadge out">${out} out</span>`;
+ if(low>0) return `<span class="stockBadge low">${low} low</span>`;
+ return '<span class="stockBadge ok">OK</span>';
+}
+
 function render(){
  const rows = document.querySelector("#rows");
  document.querySelector("#countLabel").textContent = `(${products.length})`;
@@ -442,6 +498,7 @@ function render(){
    <td>${p.category}</td>
    <td>${money(p.price)} ${p.old?`<span class="oldp">${money(p.old)}</span>`:""}</td>
    <td>${p.new?'<span class="newTag">New</span>':""}</td>
+   <td>${stockSummary(p.stock)}</td>
    <td>
     <div class="rowActions">
      <button class="iconBtn" title="Edit" onclick="openForm(${p.id})">✎</button>
@@ -664,13 +721,15 @@ function renderVariantRows(){
 function addVariantRow(){
  formVariants.push({colorName:"", color:"#cccccc", image:"", colorTouched:false});
  renderVariantRows();
+ renderStockGrid();
 }
 function removeVariantRow(i){
  formVariants.splice(i,1);
  renderVariantRows();
+ renderStockGrid();
 }
 function setVariantColor(i,val){ formVariants[i].color = val; formVariants[i].colorTouched = true; }
-function setVariantName(i,val){ formVariants[i].colorName = val; }
+function setVariantName(i,val){ formVariants[i].colorName = val; renderStockGrid(); }
 function handleVariantUpload(i,file){
  if(!file) return;
  const status = document.querySelector(`#variantStatus${i}`);
@@ -683,6 +742,76 @@ function handleVariantUpload(i,file){
  }).catch(()=>{
   if(status){ status.classList.add("err"); status.textContent = "Couldn't upload — try again."; }
  });
+}
+
+/* ================== Stock grid (admin-only) ==================
+   Rows = sizes (parsed from the Sizes field, or a single "Qty"
+   row for products with no sizes). Columns = main color + each
+   variant. Values live in `currentStock` as {colorLabel:{size:qty}}
+   and are synced from the DOM before every re-render so nothing
+   is lost when you add/rename a variant or edit Sizes.
+================================================================= */
+function stockColumns(){
+ const cols = [{key:"main", label: document.querySelector("#f_colorName").value.trim() || "Main"}];
+ formVariants.forEach((v,i)=>{
+  cols.push({key:"v"+i, label: v.colorName.trim() || `Color ${i+2}`});
+ });
+ return cols;
+}
+function stockSizes(){
+ const raw = document.querySelector("#f_sizes").value.trim();
+ if(!raw) return ["Qty"];
+ return raw.split(",").map(s=>s.trim()).filter(Boolean);
+}
+function syncStockFromDom(){
+ const cols = stockColumns();
+ document.querySelectorAll("#stockGridWrap input").forEach(inp=>{
+  const col = inp.dataset.col, size = inp.dataset.size;
+  const label = (cols.find(c=>c.key===col)||{}).label || col;
+  const val = inp.value.trim();
+  if(!currentStock[label]) currentStock[label] = {};
+  if(val==="") delete currentStock[label][size];
+  else currentStock[label][size] = val;
+ });
+}
+function renderStockGrid(){
+ syncStockFromDom();
+ const cols = stockColumns();
+ const sizes = stockSizes();
+ const threshold = Number(document.querySelector("#f_lowThreshold").value)||0;
+ const wrap = document.querySelector("#stockGridWrap");
+ let html = "<table><thead><tr><th>Size</th>"+cols.map(c=>`<th>${escapeHtml(c.label)}</th>`).join("")+"</tr></thead><tbody>";
+ sizes.forEach(sz=>{
+  html += "<tr><td>"+escapeHtml(sz)+"</td>"+cols.map(c=>{
+   const existing = (currentStock[c.label] && currentStock[c.label][sz]!==undefined) ? currentStock[c.label][sz] : "";
+   return `<td><input type="number" min="0" data-col="${c.key}" data-size="${escapeHtml(sz)}" value="${existing}" oninput="applyStockCellClass(this,${threshold})"></td>`;
+  }).join("")+"</tr>";
+ });
+ html += "</tbody></table>";
+ wrap.innerHTML = html;
+ wrap.querySelectorAll("input").forEach(inp=>applyStockCellClass(inp,threshold));
+}
+function applyStockCellClass(inp,threshold){
+ inp.classList.remove("zero","low");
+ const val = inp.value.trim();
+ if(val==="") return;
+ const n = Number(val);
+ if(n<=0) inp.classList.add("zero");
+ else if(n<=threshold) inp.classList.add("low");
+}
+function collectStock(){
+ syncStockFromDom();
+ const out = {};
+ Object.keys(currentStock).forEach(label=>{
+  const sizes = currentStock[label];
+  const cleaned = {};
+  Object.keys(sizes).forEach(sz=>{
+   const n = Number(sizes[sz]);
+   if(sizes[sz]!=="" && !isNaN(n)) cleaned[sz]=n;
+  });
+  if(Object.keys(cleaned).length) out[label]=cleaned;
+ });
+ return out;
 }
 
 function loadBannerIntoForm(settings){
@@ -763,6 +892,7 @@ function openForm(id){
  document.querySelector("#f_image").style.display = "none";
  document.querySelector("#urlToggle").textContent = "or paste an image URL instead";
  f_colorTouched = false;
+ document.querySelector("#f_lowThreshold").value = DEFAULT_LOW_STOCK;
  if(id){
   const p = products.find(x=>x.id===id);
   document.querySelector("#f_name").value = p.name;
@@ -773,11 +903,13 @@ function openForm(id){
   document.querySelector("#f_description").value = p.description || "";
   document.querySelector("#f_sizes").value = p.sizes || "";
   document.querySelector("#f_image").value = p.image;
+  document.querySelector("#f_colorName").value = p.colorName || "";
   document.querySelector("#f_color").value = p.color || "#cccccc";
   document.querySelector("#f_colorHex").value = p.color || "#cccccc";
   document.querySelector("#f_new").checked = !!p.new;
   f_colorTouched = !!(p.color && p.color !== "#cccccc");
   formVariants = Array.isArray(p.variants) ? p.variants.map(v=>({colorName:v.colorName||"",color:v.color||"#cccccc",image:v.image||"",colorTouched:!!(v.color && v.color!=="#cccccc")})) : [];
+  currentStock = p.stock ? JSON.parse(JSON.stringify(p.stock)) : {};
  }else{
   document.querySelector("#f_name").value = "";
   document.querySelector("#f_category").value = "";
@@ -787,13 +919,16 @@ function openForm(id){
   document.querySelector("#f_description").value = "";
   document.querySelector("#f_sizes").value = "";
   document.querySelector("#f_image").value = "";
+  document.querySelector("#f_colorName").value = "";
   document.querySelector("#f_color").value = "#cccccc";
   document.querySelector("#f_colorHex").value = "#cccccc";
   document.querySelector("#f_new").checked = false;
   formVariants = [];
+  currentStock = {};
  }
  renderVariantRows();
  updateImgPreview();
+ renderStockGrid();
  document.querySelector("#formModal").classList.add("open");
 }
 function closeForm(){ document.querySelector("#formModal").classList.remove("open"); }
@@ -804,12 +939,14 @@ async function saveProduct(){
  const price = Number(document.querySelector("#f_price").value);
  const old = Number(document.querySelector("#f_old").value)||0;
  const image = document.querySelector("#f_image").value.trim();
+ const colorName = document.querySelector("#f_colorName").value.trim();
  const color = document.querySelector("#f_colorHex").value.trim() || "#cccccc";
  const isNew = document.querySelector("#f_new").checked;
  const sku = document.querySelector("#f_sku").value.trim();
  const description = document.querySelector("#f_description").value.trim();
  const sizes = document.querySelector("#f_sizes").value.trim();
  const variants = formVariants.filter(v=>v.image).map(v=>({colorName:v.colorName, color:v.color, image:v.image}));
+ const stock = collectStock();
 
  if(!name || !category || !price || !image){
   toast("Please fill in name, category, price and a photo");
@@ -819,13 +956,13 @@ async function saveProduct(){
  btn.disabled = true; btn.textContent = "Saving…";
  try{
   if(editingId){
-   const product = {id:editingId,name,category,price,old,image,color,new:isNew,sku,description,sizes,variants};
+   const product = {id:editingId,name,category,price,old,image,colorName,color,new:isNew,sku,description,sizes,variants,stock};
    const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"updateProduct",key:ADMIN_KEY,product})});
    const data = await res.json();
    if(!data.success) throw new Error(data.error||"failed");
    Object.assign(products.find(p=>p.id===editingId), product);
   }else{
-   const product = {name,category,price,old,image,color,new:isNew,sku,description,sizes,variants};
+   const product = {name,category,price,old,image,colorName,color,new:isNew,sku,description,sizes,variants,stock};
    const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"addProduct",key:ADMIN_KEY,product})});
    const data = await res.json();
    if(!data.success) throw new Error(data.error||"failed");
