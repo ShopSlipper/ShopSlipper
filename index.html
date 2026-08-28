@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ShopSlipper — Step into comfort</title>
 <meta name="description" content="Shop comfortable everyday slippers with fast delivery across Nepal.">
+<meta property="og:title" content="ShopSlipper — Step into comfort">
+<meta property="og:description" content="Shop comfortable everyday slippers with fast delivery across Nepal.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://raw.githubusercontent.com/ShopSlipper/ShopSlipper/main/WhatsApp%20Image%202026-08-18%20at%209.09.35%20PM.jpeg">
+<meta name="theme-color" content="#077F38">
+<link rel="icon" href="https://raw.githubusercontent.com/ShopSlipper/ShopSlipper/main/WhatsApp%20Image%202026-08-18%20at%209.09.35%20PM.jpeg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -39,9 +45,31 @@ header{position:sticky;top:0;z-index:30;background:rgba(7,127,56,.96);backdrop-f
 .iconbtn.langBtn{width:auto;padding:0 15px;font-weight:800;font-size:12px;letter-spacing:.4px}
 .badge{position:absolute;right:-2px;top:-2px;background:var(--gold);color:#fff;width:17px;height:17px;border-radius:50%;font-size:10px;display:grid;place-items:center}
 .introBand{padding:24px 0 8px}
-.bannerLink{display:block;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow)}
-.bannerLink img{width:100%;height:auto;aspect-ratio:16/5;object-fit:cover;display:block}
+.hero{text-align:center;max-width:640px;margin:6px auto 24px}
+.hero h1{font-family:var(--serif);font-weight:800;font-size:clamp(28px,4.2vw,46px);letter-spacing:-1.2px;margin-bottom:12px}
+.hero p{color:var(--muted);font-size:15px;max-width:480px;margin:0 auto}
+.bannerLink{display:block;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow);position:relative}
+.bannerLink img{width:100%;height:auto;aspect-ratio:16/5;object-fit:cover;display:block;background:var(--soft)}
 .eyebrow{text-transform:uppercase;letter-spacing:2.5px;font-size:11px;font-weight:700;color:var(--gold);margin-bottom:14px}
+.rail{display:flex;gap:16px;overflow:auto;padding-bottom:10px;scroll-snap-type:x proximity}
+.rail .product{flex:0 0 220px;scroll-snap-align:start}
+@media(max-width:650px){.rail .product{flex-basis:158px}}
+.skeleton{background:linear-gradient(100deg,var(--soft) 30%,#f6faf8 50%,var(--soft) 70%);background-size:200% 100%;animation:shimmer 1.4s infinite}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.skelCard{border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.skelCard .productImg{background:none}
+.skelLine{height:11px;border-radius:6px;margin:10px 14px}
+.skelLine.w60{width:60%}.skelLine.w40{width:40%}.skelLine.w80{width:80%;height:16px}
+.deliveryProgress{background:var(--soft);border-radius:14px;padding:12px 14px;margin-bottom:16px;font-size:12px}
+.deliveryProgress b{color:var(--gold)}
+.progressTrack{height:6px;background:#fff;border-radius:99px;margin-top:8px;overflow:hidden}
+.progressFill{height:100%;background:var(--gold);border-radius:99px;transition:width .3s}
+.wishBtn{position:absolute;right:12px;bottom:12px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.92);display:grid;place-items:center;font-size:16px;z-index:3;box-shadow:0 2px 8px rgba(20,20,20,.12);transition:.15s transform}
+.wishBtn:hover{transform:scale(1.08)}
+.wishBtn.active{color:var(--danger)}
+.wishBtn.pdWish{position:static;background:var(--soft);box-shadow:none}
+.ratingRow{display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--muted);margin-bottom:6px}
+.ratingRow .stars{color:#e0a825;letter-spacing:1px;font-size:12px}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 24px;border-radius:999px;background:var(--gold);color:#fff;font-weight:600;font-size:13.5px;letter-spacing:.2px;transition:.25s transform,.25s opacity,.25s background}
 .btn:hover{transform:translateY(-2px);opacity:.92}
 .btn.light{background:#fff;color:var(--gold);border:1px solid var(--line)}
@@ -231,9 +259,13 @@ footer .logo span{color:#c8f0d6}
 }
 @media(max-width:390px){.grid{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.skipLink{position:absolute;left:12px;top:-60px;background:var(--gold);color:#fff;padding:10px 16px;border-radius:10px;z-index:200;transition:.2s top}
+.skipLink:focus{top:12px}
 </style>
 </head>
 <body>
+<a class="skipLink" href="#shop">Skip to products</a>
 
 <header>
   <div class="container nav">
@@ -247,6 +279,7 @@ footer .logo span{color:#c8f0d6}
     <div class="actions">
       <button class="iconbtn langBtn" id="langBtn" aria-label="Change language" onclick="toggleLang()">EN</button>
       <button class="iconbtn" aria-label="Search" onclick="document.querySelector('#search').focus()">⌕</button>
+      <button class="iconbtn" aria-label="Wishlist" onclick="openWishlist()">♡<span class="badge" id="wishCount" style="display:none">0</span></button>
       <button class="iconbtn" aria-label="Cart" onclick="openCart()">🛒<span class="badge" id="cartCount">0</span></button>
     </div>
   </div>
@@ -255,9 +288,21 @@ footer .logo span{color:#c8f0d6}
 <main>
 <section class="introBand">
  <div class="container">
+  <div class="hero">
+   <div class="eyebrow" style="justify-content:center;display:flex" data-i18n="eyebrow">Everyday comfort</div>
+   <h1 data-i18n="h1">Step into your comfort.</h1>
+   <p data-i18n="heroSub">Minimal, considered slippers made for everyday life — easy on your feet, easy on your style.</p>
+  </div>
   <a class="bannerLink" id="heroBanner" href="#shop">
    <img id="heroBannerImg" src="" alt="Promotion">
   </a>
+ </div>
+</section>
+
+<section class="section" id="new" style="padding-bottom:0" aria-label="New arrivals">
+ <div class="container" id="newArrivalsWrap" style="display:none">
+  <div class="sectionHead"><div><div class="eyebrow" data-i18n="justLanded">Just landed</div><h2 data-i18n="newArrivals">New arrivals</h2></div></div>
+  <div class="rail" id="newArrivalsRail"></div>
  </div>
 </section>
 
@@ -288,7 +333,12 @@ footer .logo span{color:#c8f0d6}
    <span id="imgSearchText">Showing products similar to your photo</span>
    <button class="chip" onclick="clearImageSearch()">Clear ✕</button>
   </div>
-  <div id="products"><div class="loadingMsg">Loading products…</div></div>
+  <div id="products" class="grid" aria-busy="true" aria-live="polite">
+   <div class="product skelCard"><div class="productImg skeleton"></div><div class="skelLine w80 skeleton"></div><div class="skelLine w40 skeleton"></div><div class="skelLine w60 skeleton"></div></div>
+   <div class="product skelCard"><div class="productImg skeleton"></div><div class="skelLine w80 skeleton"></div><div class="skelLine w40 skeleton"></div><div class="skelLine w60 skeleton"></div></div>
+   <div class="product skelCard"><div class="productImg skeleton"></div><div class="skelLine w80 skeleton"></div><div class="skelLine w40 skeleton"></div><div class="skelLine w60 skeleton"></div></div>
+   <div class="product skelCard"><div class="productImg skeleton"></div><div class="skelLine w80 skeleton"></div><div class="skelLine w40 skeleton"></div><div class="skelLine w60 skeleton"></div></div>
+  </div>
   <div class="pagination" id="pagination"></div>
   <div class="features" id="about">
    <div class="feature"><b data-i18n="fastDeliveryTitle">🚚 Fast delivery</b><span data-i18n="fastDeliveryDesc">Reliable delivery across Nepal.</span></div>
@@ -307,6 +357,10 @@ footer .logo span{color:#c8f0d6}
     <div><b>4</b><span data-i18n="returnStep4">We arrange pickup and process your refund</span></div>
    </div>
    <button class="btn light" onclick="openReturns()" data-i18n="startReturn">Start a return</button>
+  </div>
+  <div id="recentlyViewedWrap" style="display:none;margin-top:56px">
+   <div class="sectionHead"><h2 data-i18n="recentlyViewed" style="font-family:var(--serif);font-weight:600;font-size:26px;letter-spacing:-.7px">Recently viewed</h2></div>
+   <div class="rail" id="recentlyViewedRail"></div>
   </div>
  </div>
 </section>
@@ -328,6 +382,9 @@ footer .logo span{color:#c8f0d6}
     <h4 data-i18n="footerHelp">Help</h4>
     <p data-i18n="delivery">Delivery</p>
     <p><a href="#" onclick="openReturns();return false;" data-i18n="returns">Returns</a></p>
+   </div>
+   <div>
+    <h4 data-i18n="footerContact">Contact</h4>
     <p><a href="mailto:www.shopslipper@gmail.com" data-i18n="email">www.shopslipper@gmail.com</a></p>
     <p><a href="tel:+9779747961784" data-i18n="contact">977-9747961784</a></p>
    </div>
@@ -336,11 +393,12 @@ footer .logo span{color:#c8f0d6}
  </div>
 </footer>
 
-<div class="drawer" id="drawer" onclick="if(event.target===this)closeCart()">
+<div class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="Cart" onclick="if(event.target===this)closeCart()">
  <aside class="cart">
   <div class="cartHead"><h2>Your cart</h2><button class="close" onclick="closeCart()">×</button></div>
   <div class="cartItems" id="cartItems"></div>
   <div class="cartFoot">
+   <div id="deliveryProgressWrap"></div>
    <div class="row"><span>Subtotal</span><b id="subtotal">Rs. 0</b></div>
    <div class="row"><span>Delivery</span><span id="delivery">Calculated at checkout</span></div>
    <div class="row total"><span>Total</span><span id="total">Rs. 0</span></div>
@@ -349,7 +407,14 @@ footer .logo span{color:#c8f0d6}
  </aside>
 </div>
 
-<div class="modal" id="checkout" onclick="if(event.target===this)closeCheckout()">
+<div class="drawer" id="wishDrawer" role="dialog" aria-modal="true" aria-label="Wishlist" onclick="if(event.target===this)closeWishlist()">
+ <aside class="cart">
+  <div class="cartHead"><h2 data-i18n="wishlistTitle">Your wishlist</h2><button class="close" onclick="closeWishlist()">×</button></div>
+  <div class="cartItems" id="wishItems"></div>
+ </aside>
+</div>
+
+<div class="modal" id="checkout" role="dialog" aria-modal="true" aria-label="Checkout" onclick="if(event.target===this)closeCheckout()">
  <div class="modalBox">
   <div class="modalHead"><h2>Checkout</h2><button class="close" onclick="closeCheckout()">×</button></div>
   <div id="checkoutSummary"></div>
@@ -369,20 +434,20 @@ footer .logo span{color:#c8f0d6}
   </form>
  </div>
 </div>
-<div class="modal" id="productModal" onclick="if(event.target===this)closeProduct()">
+<div class="modal" id="productModal" role="dialog" aria-modal="true" aria-label="Product details" onclick="if(event.target===this)closeProduct()">
  <div class="modalBox productModalBox" style="position:relative">
   <button class="productModalClose" onclick="closeProduct()">×</button>
   <div id="productModalContent"></div>
  </div>
 </div>
 
-<div class="zoomModal" id="zoomModal" onclick="closeZoom()">
+<div class="zoomModal" id="zoomModal" role="dialog" aria-modal="true" aria-label="Zoomed photo" onclick="closeZoom()">
  <button class="zoomClose" onclick="event.stopPropagation();closeZoom()" aria-label="Close zoom">×</button>
  <img id="zoomImg" src="" alt="" onclick="event.stopPropagation();closeZoom()">
  <div class="zoomHint">Tap anywhere to close</div>
 </div>
 
-<div class="modal" id="returnsModal" onclick="if(event.target===this)closeReturns()">
+<div class="modal" id="returnsModal" role="dialog" aria-modal="true" aria-label="Start a return" onclick="if(event.target===this)closeReturns()">
  <div class="modalBox">
   <div class="modalHead"><h2>Start a return</h2><button class="close" onclick="closeReturns()">×</button></div>
   <p style="color:var(--muted);font-size:13px;margin-bottom:18px">Enter the order ID from your confirmation and a few details — we'll be in touch to arrange pickup.</p>
@@ -404,7 +469,7 @@ footer .logo span{color:#c8f0d6}
  </div>
 </div>
 
-<div class="modal" id="orderSuccessModal" onclick="if(event.target===this)closeOrderSuccess()">
+<div class="modal" id="orderSuccessModal" role="dialog" aria-modal="true" aria-label="Order placed" onclick="if(event.target===this)closeOrderSuccess()">
  <div class="modalBox" style="text-align:center">
   <div class="modalHead" style="justify-content:flex-end;margin-bottom:6px"><button class="close" onclick="closeOrderSuccess()">×</button></div>
   <div style="font-size:38px;margin-bottom:6px">✓</div>
@@ -420,7 +485,7 @@ footer .logo span{color:#c8f0d6}
  </div>
 </div>
 
-<div class="modal" id="returnSuccessModal" onclick="if(event.target===this)closeReturnSuccess()">
+<div class="modal" id="returnSuccessModal" role="dialog" aria-modal="true" aria-label="Return submitted" onclick="if(event.target===this)closeReturnSuccess()">
  <div class="modalBox" style="text-align:center">
   <div class="modalHead" style="justify-content:flex-end;margin-bottom:6px"><button class="close" onclick="closeReturnSuccess()">×</button></div>
   <div style="font-size:38px;margin-bottom:6px">✓</div>
@@ -467,7 +532,7 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzKHLu21Y5oJeM7KQ5dc
 /* ========================================================================================= */
 
 let products = [], cart = JSON.parse(localStorage.getItem("shopslipper-cart")||"[]");
-let category="All", page=1, imageMatch=null;
+let category="All", page=1, imageMatch=null, productsLoaded=false;
 const PER_PAGE=12;
 
 /* ================== i18n (EN / NP toggle) ================== */
@@ -494,7 +559,9 @@ const I18N = {
   selectSize:"Select size", addToCart:"Add to cart",
   footerAbout:"Comfortable everyday footwear for Nepal. Considered products, honest prices.",
   footerShop:"Shop", allSlippers:"All slippers", newArrivals:"New arrivals",
-  footerHelp:"Help", delivery:"Delivery", returns:"Returns", email:"www.shopslipper@gmail.com", contact:"977-9747961784", footerContact:"Contact"
+  footerHelp:"Help", delivery:"Delivery", returns:"Returns", email:"www.shopslipper@gmail.com", contact:"977-9747961784", footerContact:"Contact",
+  justLanded:"Just landed", recentlyViewed:"Recently viewed", freeDeliveryHint:"away from free delivery", freeDeliveryUnlocked:"You've unlocked free delivery!",
+  wishlistTitle:"Your wishlist", wishlistEmpty:"Nothing saved yet.", addedToWishlist:"Saved to wishlist", removedFromWishlist:"Removed from wishlist"
  },
  np:{
   navShop:"किनमेल", navNew:"नयाँ सामान", navWhy:"किन हामी", navReturns:"फिर्ता",
@@ -517,14 +584,21 @@ const I18N = {
   selectSize:"साइज छान्नुहोस्", addToCart:"कार्टमा थप्नुहोस्",
   footerAbout:"नेपालको लागि आरामदायी दैनिक जुत्ता। सोचिएका सामान, इमानदार मूल्य।",
   footerShop:"किनमेल", allSlippers:"सबै चप्पल", newArrivals:"नयाँ सामान",
-  footerHelp:"सहयोग", delivery:"डेलिभरी", returns:"फिर्ता", email:"www.shopslipper@gmail.com", contact:"977-9747961784", footerContact:"सम्पर्क"
+  footerHelp:"सहयोग", delivery:"डेलिभरी", returns:"फिर्ता", email:"www.shopslipper@gmail.com", contact:"977-9747961784", footerContact:"सम्पर्क",
+  justLanded:"भर्खरै आएको", recentlyViewed:"भर्खरै हेरिएको", freeDeliveryHint:"नि:शुल्क डेलिभरीको लागि बाँकी", freeDeliveryUnlocked:"तपाईंले नि:शुल्क डेलिभरी पाउनुभयो!",
+  wishlistTitle:"तपाईंको मनपर्ने सूची", wishlistEmpty:"अहिलेसम्म केही थपिएको छैन।", addedToWishlist:"मनपर्ने सूचीमा थपियो", removedFromWishlist:"मनपर्ने सूचीबाट हटाइयो"
  }
 };
 function toggleLang(){
  currentLang = currentLang==="en" ? "np" : "en";
  document.querySelector("#langBtn").textContent = currentLang==="en" ? "EN" : "NP";
+ document.documentElement.lang = currentLang==="en" ? "en" : "ne";
  applyI18n();
  renderProducts();
+ renderNewArrivals();
+ renderRecentlyViewed();
+ updateCart();
+ if(document.querySelector("#wishDrawer").classList.contains("open")) renderWishItems();
 }
 function applyI18n(){
  const t = I18N[currentLang];
@@ -564,25 +638,81 @@ document.addEventListener("click", e=>{
 function money(n){return "Rs. "+Number(n).toLocaleString("en-IN")}
 function save(){localStorage.setItem("shopslipper-cart",JSON.stringify(cart));updateCart()}
 
+/* ================== Wishlist ================== */
+let wishlist = JSON.parse(localStorage.getItem("shopslipper-wishlist")||"[]");
+function isWished(id){ return wishlist.includes(id); }
+function saveWishlist(){ localStorage.setItem("shopslipper-wishlist",JSON.stringify(wishlist)); updateWishBadge(); }
+function toggleWishlist(id){
+ if(isWished(id)){ wishlist=wishlist.filter(x=>x!==id); toast(I18N[currentLang].removedFromWishlist); }
+ else{ wishlist=[...wishlist,id]; toast(I18N[currentLang].addedToWishlist); }
+ saveWishlist();
+ renderProducts();
+ if(pdProduct && pdProduct.id===id) renderProductDetail();
+ if(document.querySelector("#wishDrawer").classList.contains("open")) renderWishItems();
+}
+function updateWishBadge(){
+ const b=document.querySelector("#wishCount");
+ if(wishlist.length){ b.style.display="grid"; b.textContent=wishlist.length; }
+ else b.style.display="none";
+}
+function openWishlist(){ document.querySelector("#wishDrawer").classList.add("open"); renderWishItems(); }
+function closeWishlist(){ document.querySelector("#wishDrawer").classList.remove("open"); }
+function renderWishItems(){
+ const el=document.querySelector("#wishItems");
+ const items = products.filter(p=>wishlist.includes(p.id));
+ if(!items.length){ el.innerHTML = `<div class="empty">${I18N[currentLang].wishlistEmpty}</div>`; return; }
+ el.innerHTML = items.map(p=>`<div class="cartItem"><img src="${p.image}" alt="" onerror="this.style.display='none'"><div><h4>${escapeHtml(p.name)}</h4><small>${money(p.price)}</small><div class="qty" style="margin-top:8px"><button class="chip" style="padding:7px 12px" onclick="closeWishlist();openProduct(${p.id})">View</button></div><button class="remove" onclick="toggleWishlist(${p.id})">Remove</button></div></div>`).join("");
+}
+
+/* ================== Recently viewed ================== */
+let recentlyViewed = JSON.parse(localStorage.getItem("shopslipper-recent")||"[]");
+function trackRecentlyViewed(id){
+ recentlyViewed = [id, ...recentlyViewed.filter(x=>x!==id)].slice(0,8);
+ localStorage.setItem("shopslipper-recent", JSON.stringify(recentlyViewed));
+ renderRecentlyViewed();
+}
+function renderRecentlyViewed(){
+ const wrap=document.querySelector("#recentlyViewedWrap");
+ const items = recentlyViewed.map(id=>products.find(p=>p.id===id)).filter(Boolean);
+ if(!items.length){ wrap.style.display="none"; return; }
+ wrap.style.display="block";
+ document.querySelector("#recentlyViewedRail").innerHTML = items.map(cardHTML).join("");
+}
+
+/* ================== New arrivals rail ================== */
+function renderNewArrivals(){
+ const wrap=document.querySelector("#newArrivalsWrap");
+ const items = products.filter(p=>p.new);
+ if(!items.length){ wrap.style.display="none"; return; }
+ wrap.style.display="block";
+ document.querySelector("#newArrivalsRail").innerHTML = items.slice(0,10).map(cardHTML).join("");
+}
+
 async function loadProducts(){
  try{
   const res = await fetch(`${SCRIPT_URL}?action=products`);
   const data = await res.json();
   products = data.products || [];
  }catch(err){
+  document.querySelector("#products").removeAttribute("aria-busy");
   document.querySelector("#products").innerHTML = `<div class="loadingMsg">Couldn't load products. Check SCRIPT_URL is set correctly in index.html.</div>`;
   return;
  }
+ productsLoaded = true;
  const beforeCount = cart.length;
  cart = cart.filter(i => products.some(p => p.id === i.id));
  if(cart.length !== beforeCount) save();
- categories();renderProducts();updateCart();
+ const wishBefore = wishlist.length;
+ wishlist = wishlist.filter(id => products.some(p => p.id === id));
+ if(wishlist.length !== wishBefore) saveWishlist();
+ categories();renderProducts();updateCart();updateWishBadge();renderNewArrivals();renderRecentlyViewed();
 }
 
 function categories(){
  const cats=["All",...new Set(products.map(p=>p.category))];
- document.querySelector("#categories").innerHTML=cats.map(c=>`<button class="chip ${c===category?"active":""}" onclick="category='${c}';page=1;categories();renderProducts()">${c}</button>`).join("");
+ document.querySelector("#categories").innerHTML=cats.map(c=>`<button class="chip ${c===category?"active":""}" onclick="selectCategory(${JSON.stringify(c)})">${escapeHtml(c)}</button>`).join("");
 }
+function selectCategory(c){ category=c; page=1; categories(); renderProducts(); }
 function getFilteredList(){
  const q=document.querySelector("#search").value.toLowerCase();
  let list=products.filter(p=>
@@ -598,23 +728,32 @@ function getFilteredList(){
  }
  return list;
 }
+function starRow(rating){
+ if(!rating) return "";
+ const r = Math.max(0,Math.min(5,Number(rating)));
+ const full = Math.round(r);
+ return `<div class="ratingRow"><span class="stars">${"★".repeat(full)}${"☆".repeat(5-full)}</span><span>${r.toFixed(1)}</span></div>`;
+}
 function cardHTML(p){
  const sizes=(p.sizes||"").split(",").map(s=>s.trim()).filter(Boolean);
  const discount = p.old && p.old>p.price ? Math.round((1-p.price/p.old)*100) : 0;
  const t = I18N[currentLang];
  const hasColor = !!p.color;
  const hasDesc = !!p.description;
- const metaRow = (hasColor||hasDesc) ? `<div class="cardMeta">${hasColor?`<span class="cardColorDot" style="background:${p.color}"></span>`:""}${hasDesc?`<span class="cardDesc">${p.description}</span>`:""}</div>` : "";
+ const metaRow = (hasColor||hasDesc) ? `<div class="cardMeta">${hasColor?`<span class="cardColorDot" style="background:${escapeHtml(p.color)}"></span>`:""}${hasDesc?`<span class="cardDesc">${escapeHtml(p.description)}</span>`:""}</div>` : "";
+ const wished = isWished(p.id);
  return `<article class="product" onclick="openProduct(${p.id})">
   <div class="productImg">
-   <img src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.style.display='none'">
+   <img src="${p.image}" alt="${escapeHtml(p.name)}" loading="lazy" onerror="this.style.display='none'">
    ${p.new?'<span class="bestBadge">BEST</span>':''}
    ${discount>0?`<span class="sale">${discount}% OFF</span>`:''}
+   <button class="wishBtn ${wished?'active':''}" aria-label="Toggle wishlist" onclick="event.stopPropagation();toggleWishlist(${p.id})">${wished?'♥':'♡'}</button>
   </div>
   <div class="productInfo">
-   <h3>${p.name}</h3>
-   <p>${p.category}${sizes.length?` · ${sizes.length} sizes`:""}</p>
-   ${p.sku?`<span class="cardSku">SKU: ${p.sku}</span>`:""}
+   <h3>${escapeHtml(p.name)}</h3>
+   <p>${escapeHtml(p.category)}${sizes.length?` · ${sizes.length} sizes`:""}</p>
+   ${p.sku?`<span class="cardSku">SKU: ${escapeHtml(p.sku)}</span>`:""}
+   ${starRow(p.rating)}
    <div class="priceRow"><span class="price">${money(p.price)}</span>${p.old?`<span class="old">${money(p.old)}</span>`:""}</div>
    ${metaRow}
    <button class="add cardAddBtn" onclick="event.stopPropagation();openProduct(${p.id})">${sizes.length?t.selectSize:t.addToCart}</button>
@@ -631,6 +770,7 @@ function openProduct(id){
  pdSize = sizes[0] || null;
  renderProductDetail();
  document.querySelector("#productModal").classList.add("open");
+ trackRecentlyViewed(id);
 }
 function closeProduct(){ document.querySelector("#productModal").classList.remove("open"); }
 function openZoom(src){
@@ -642,6 +782,12 @@ document.addEventListener("keydown", e=>{
  if(e.key !== "Escape") return;
  if(document.querySelector("#zoomModal").classList.contains("open")) closeZoom();
  else if(document.querySelector("#productModal").classList.contains("open")) closeProduct();
+ else if(document.querySelector("#checkout").classList.contains("open")) closeCheckout();
+ else if(document.querySelector("#returnsModal").classList.contains("open")) closeReturns();
+ else if(document.querySelector("#orderSuccessModal").classList.contains("open")) closeOrderSuccess();
+ else if(document.querySelector("#returnSuccessModal").classList.contains("open")) closeReturnSuccess();
+ else if(document.querySelector("#drawer").classList.contains("open")) closeCart();
+ else if(document.querySelector("#wishDrawer").classList.contains("open")) closeWishlist();
 });
 function pdChangeQty(n){ pdQty=Math.max(1,pdQty+n); renderProductDetail(); }
 function pdPickSize(s){ pdSize=s; renderProductDetail(); }
@@ -667,19 +813,24 @@ function renderProductDetail(){
  const current = swatches[pdVariantIdx] || swatches[0];
  const shownImage = current.image || p.image;
  const colorBlock = swatches.length > 1
-  ? `<div class="pdBlock"><label>Color</label><div class="pdColorRow">${swatches.map((v,i)=>`<button class="pdSwatch ${i===pdVariantIdx?'active':''}" style="background:${v.color||'#ccc'}" title="${v.colorName||''}" onclick="pdPickVariant(${i})"></button>`).join("")}</div>${current.colorName?`<div class="pdColorLabel">${current.colorName}</div>`:""}</div>`
-  : `<div class="pdBlock"><label>Color</label><div class="pdColor"><span class="pdColorDot" style="background:${p.color||'#ccc'}"></span><span>${p.color||""}</span></div></div>`;
+  ? `<div class="pdBlock"><label>Color</label><div class="pdColorRow">${swatches.map((v,i)=>`<button class="pdSwatch ${i===pdVariantIdx?'active':''}" style="background:${v.color||'#ccc'}" title="${escapeHtml(v.colorName||'')}" onclick="pdPickVariant(${i})"></button>`).join("")}</div>${current.colorName?`<div class="pdColorLabel">${escapeHtml(current.colorName)}</div>`:""}</div>`
+  : `<div class="pdBlock"><label>Color</label><div class="pdColor"><span class="pdColorDot" style="background:${p.color||'#ccc'}"></span><span>${escapeHtml(p.color||"")}</span></div></div>`;
+ const wished = isWished(p.id);
  document.querySelector("#productModalContent").innerHTML = `
   <div class="pdWrap">
-   <div class="pdImg"><img src="${shownImage}" alt="${p.name}" onerror="this.style.display='none'" onclick="openZoom(this.src)"><button class="zoomBtn" onclick="event.stopPropagation();openZoom('${shownImage}')" aria-label="Zoom photo" title="Zoom in">🔍</button></div>
+   <div class="pdImg"><img src="${shownImage}" alt="${escapeHtml(p.name)}" onerror="this.style.display='none'" onclick="openZoom(this.src)"><button class="zoomBtn" onclick="event.stopPropagation();openZoom('${shownImage}')" aria-label="Zoom photo" title="Zoom in">🔍</button></div>
    <div class="pdInfo">
-    <div class="eyebrow">${p.category}</div>
-    <h2>${p.name}</h2>
-    ${p.sku?`<span class="cardSku" style="margin-bottom:10px">SKU: ${p.sku}</span>`:""}
+    <div class="eyebrow" style="display:flex;justify-content:space-between;align-items:center">
+     <span>${escapeHtml(p.category)}</span>
+     <button class="wishBtn pdWish" aria-label="Toggle wishlist" onclick="toggleWishlist(${p.id})">${wished?'♥':'♡'}</button>
+    </div>
+    <h2>${escapeHtml(p.name)}</h2>
+    ${p.sku?`<span class="cardSku" style="margin-bottom:10px">SKU: ${escapeHtml(p.sku)}</span>`:""}
+    ${starRow(p.rating)}
     <div class="pdPrice">${money(p.price)}${p.old?`<span class="old">${money(p.old)}</span>`:""}</div>
-    ${p.description?`<p class="pdDesc">${p.description}</p>`:""}
+    ${p.description?`<p class="pdDesc">${escapeHtml(p.description)}</p>`:""}
     ${colorBlock}
-    ${sizes.length?`<div class="pdBlock"><label>Size</label><div class="sizeRow">${sizes.map(s=>`<button class="sizeBtn ${s===pdSize?'active':''}" onclick="pdPickSize('${s}')">${s}</button>`).join("")}</div></div>`:""}
+    ${sizes.length?`<div class="pdBlock"><label>Size</label><div class="sizeRow">${sizes.map(s=>`<button class="sizeBtn ${s===pdSize?'active':''}" onclick="pdPickSize('${escapeHtml(s)}')">${escapeHtml(s)}</button>`).join("")}</div></div>`:""}
     <div class="pdBlock">
      <label>Quantity</label>
      <div class="pdQty"><button onclick="pdChangeQty(-1)">−</button><b>${pdQty}</b><button onclick="pdChangeQty(1)">+</button></div>
@@ -689,12 +840,13 @@ function renderProductDetail(){
    <div class="pdSuggest">
     <div class="eyebrow">You might also like</div>
     <h3>Suggested for you</h3>
-    <div class="pdSuggestGrid">${suggestions.map(s=>`<article class="product" onclick="openProduct(${s.id})"><div class="productImg"><img src="${s.image}" alt="${s.name}" loading="lazy" onerror="this.style.display='none'"></div><div class="productInfo"><h3>${s.name}</h3><p>${s.category}</p><span class="price">${money(s.price)}</span></div></article>`).join("")}</div>
+    <div class="pdSuggestGrid">${suggestions.map(s=>`<article class="product" onclick="openProduct(${s.id})"><div class="productImg"><img src="${s.image}" alt="${escapeHtml(s.name)}" loading="lazy" onerror="this.style.display='none'"></div><div class="productInfo"><h3>${escapeHtml(s.name)}</h3><p>${escapeHtml(s.category)}</p><span class="price">${money(s.price)}</span></div></article>`).join("")}</div>
    </div>
   </div>`;
 }
 function renderProducts(){
- if(!products.length && document.querySelector("#products").querySelector(".loadingMsg")) return;
+ if(!productsLoaded) return;
+ document.querySelector("#products").removeAttribute("aria-busy");
  const list=getFilteredList();
  const totalPages=Math.max(1,Math.ceil(list.length/PER_PAGE));
  if(page>totalPages)page=totalPages;
@@ -707,10 +859,10 @@ function renderProducts(){
 function renderProductBlocks(pageItems){
  const el = document.querySelector("#products");
  if(!pageItems.length){
-  el.innerHTML = `<div class="empty">No products found.</div>`;
+  el.innerHTML = `<div class="empty" style="grid-column:1/-1">No products found.</div>`;
   return;
  }
- el.innerHTML = `<div class="grid">${pageItems.map(cardHTML).join("")}</div>`;
+ el.innerHTML = pageItems.map(cardHTML).join("");
 }
 function renderPagination(totalPages){
  const el=document.querySelector("#pagination");
@@ -763,6 +915,7 @@ function clearImageSearch(){
 function addToCart(id){const x=cart.find(i=>i.id===id && !i.size && !i.color);if(x)x.qty++;else cart.push({id,qty:1,size:null,color:""});save();toast("Added to cart")}
 function changeQty(id,size,color,n){const x=cart.find(i=>i.id===id && i.size===size && (i.color||"")===(color||""));if(!x)return;x.qty+=n;if(x.qty<=0)cart=cart.filter(i=>i!==x);save()}
 function removeItem(id,size,color){cart=cart.filter(i=>!(i.id===id && i.size===size && (i.color||"")===(color||"")));save()}
+const FREE_DELIVERY_THRESHOLD = 2000;
 function updateCart(){
  const count=cart.reduce((s,i)=>s+i.qty,0);document.querySelector("#cartCount").textContent=count;
  const el=document.querySelector("#cartItems");
@@ -771,12 +924,25 @@ function updateCart(){
   const p=products.find(x=>x.id===i.id);if(!p)return "";
   const img=i.image||p.image;
   const meta=[i.color,i.size].filter(Boolean).join(" · ");
-  const sizeArg=i.size?`'${i.size}'`:null, colorArg=i.color?`'${i.color}'`:null;
-  return `<div class="cartItem"><img src="${img}" alt="" onerror="this.style.display='none'"><div><h4>${p.name}${meta?` <small style="color:var(--muted)">(${meta})</small>`:""}</h4><small>${money(p.price)}</small><div class="qty"><button onclick="changeQty(${p.id},${sizeArg},${colorArg},-1)">−</button><b>${i.qty}</b><button onclick="changeQty(${p.id},${sizeArg},${colorArg},1)">+</button></div><button class="remove" onclick="removeItem(${p.id},${sizeArg},${colorArg})">Remove</button></div><b>${money(p.price*i.qty)}</b></div>`;
+  const sizeArg=i.size?JSON.stringify(i.size):null, colorArg=i.color?JSON.stringify(i.color):null;
+  return `<div class="cartItem"><img src="${img}" alt="" onerror="this.style.display='none'"><div><h4>${escapeHtml(p.name)}${meta?` <small style="color:var(--muted)">(${escapeHtml(meta)})</small>`:""}</h4><small>${money(p.price)}</small><div class="qty"><button onclick="changeQty(${p.id},${sizeArg},${colorArg},-1)">−</button><b>${i.qty}</b><button onclick="changeQty(${p.id},${sizeArg},${colorArg},1)">+</button></div><button class="remove" onclick="removeItem(${p.id},${sizeArg},${colorArg})">Remove</button></div><b>${money(p.price*i.qty)}</b></div>`;
  }).join("");
  const sub=cart.reduce((s,i)=>{const p=products.find(x=>x.id===i.id);return p?s+p.price*i.qty:s},0);
- document.querySelector("#subtotal").textContent=money(sub);document.querySelector("#total").textContent=money(sub+(sub>0&&sub<2000?120:0));
- document.querySelector("#delivery").textContent = sub<=0 ? "Rs. 0" : (sub<2000 ? "Rs. 120" : "Free");
+ document.querySelector("#subtotal").textContent=money(sub);document.querySelector("#total").textContent=money(sub+(sub>0&&sub<FREE_DELIVERY_THRESHOLD?120:0));
+ document.querySelector("#delivery").textContent = sub<=0 ? "Rs. 0" : (sub<FREE_DELIVERY_THRESHOLD ? "Rs. 120" : "Free");
+ renderDeliveryProgress(sub);
+}
+function renderDeliveryProgress(sub){
+ const wrap=document.querySelector("#deliveryProgressWrap");
+ const t=I18N[currentLang];
+ if(!sub){ wrap.innerHTML=""; return; }
+ if(sub>=FREE_DELIVERY_THRESHOLD){
+  wrap.innerHTML=`<div class="deliveryProgress">🚚 ${t.freeDeliveryUnlocked}</div>`;
+ }else{
+  const remaining = FREE_DELIVERY_THRESHOLD - sub;
+  const pct = Math.min(100, Math.round(sub/FREE_DELIVERY_THRESHOLD*100));
+  wrap.innerHTML=`<div class="deliveryProgress"><b>${money(remaining)}</b> ${t.freeDeliveryHint}<div class="progressTrack"><div class="progressFill" style="width:${pct}%"></div></div></div>`;
+ }
 }
 function openCart(){document.querySelector("#drawer").classList.add("open");updateCart()}
 function closeCart(){document.querySelector("#drawer").classList.remove("open")}
@@ -829,7 +995,7 @@ function openOrderSuccess(orderId){
 function closeOrderSuccess(){ document.querySelector("#orderSuccessModal").classList.remove("open"); }
 
 function openReturns(prefillId){
- closeProduct();closeCart();closeCheckout();
+ closeProduct();closeCart();closeCheckout();closeWishlist();
  if(prefillId) document.querySelector("#returnOrderId").value = prefillId;
  document.querySelector("#returnsModal").classList.add("open");
 }
