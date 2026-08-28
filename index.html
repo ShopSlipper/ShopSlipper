@@ -23,8 +23,8 @@
   --serif:'Inter',system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{font-family:'Inter',system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:linear-gradient(160deg,#eef7f1 0%,#eaf2f2 45%,#e9f0f6 100%) fixed;color:var(--text);line-height:1.55;-webkit-font-smoothing:antialiased}
+html{scroll-behavior:smooth;overflow-x:clip}
+body{font-family:'Inter',system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:linear-gradient(160deg,#eef7f1 0%,#eaf2f2 45%,#e9f0f6 100%) fixed;color:var(--text);line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:clip}
 button,input,select{font:inherit}
 button{cursor:pointer;border:0}
 a{color:inherit;text-decoration:none}
@@ -233,7 +233,13 @@ footer .logo span{color:#c8f0d6}
 @media(max-width:900px){.grid{grid-template-columns:repeat(3,1fr)}.features{grid-template-columns:repeat(2,1fr)}.footerGrid{grid-template-columns:2fr 1fr 1fr}}
 @media(max-width:650px){
  .navlinks{display:none}
- .nav{height:64px}
+ .nav{height:60px;gap:8px}
+ .logo{font-size:15px;gap:7px}
+ .logoMark{width:32px;height:32px}
+ .actions{gap:6px}
+ .iconbtn{width:34px;height:34px;font-size:14px}
+ .iconbtn.langBtn{padding:0 9px;font-size:10.5px}
+ #searchIconBtn{display:none}
  .introBand{padding:14px 0 4px}
  .bannerLink img{aspect-ratio:16/7}
  .section{padding:22px 0 50px}
@@ -251,13 +257,19 @@ footer .logo span{color:#c8f0d6}
  .features{grid-template-columns:1fr 1fr;margin-top:24px}
  .feature{padding:16px}
  .footerGrid{grid-template-columns:1fr 1fr}
+ footer p,footer a{overflow-wrap:anywhere;word-break:break-word}
  .formGrid{grid-template-columns:1fr}
  .field.full{grid-column:auto}
  .pdInfo{padding:20px}
  .pdSuggest{padding:20px}
  .filterPanel{right:0;left:auto;width:190px}
 }
-@media(max-width:390px){.grid{grid-template-columns:1fr}}
+@media(max-width:390px){
+ .grid{grid-template-columns:1fr}
+ .logoText{font-size:14px}
+ .iconbtn{width:32px;height:32px;font-size:13px}
+ .iconbtn.langBtn{padding:0 7px;font-size:10px}
+}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
 :focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .skipLink{position:absolute;left:12px;top:-60px;background:var(--gold);color:#fff;padding:10px 16px;border-radius:10px;z-index:200;transition:.2s top}
@@ -278,7 +290,7 @@ footer .logo span{color:#c8f0d6}
     </nav>
     <div class="actions">
       <button class="iconbtn langBtn" id="langBtn" aria-label="Change language" onclick="toggleLang()">EN</button>
-      <button class="iconbtn" aria-label="Search" onclick="document.querySelector('#search').focus()">⌕</button>
+      <button class="iconbtn" id="searchIconBtn" aria-label="Search" onclick="document.querySelector('#search').focus();document.querySelector('#shop').scrollIntoView({behavior:'smooth'})">⌕</button>
       <button class="iconbtn" aria-label="Wishlist" onclick="openWishlist()">♡<span class="badge" id="wishCount" style="display:none">0</span></button>
       <button class="iconbtn" aria-label="Cart" onclick="openCart()">🛒<span class="badge" id="cartCount">0</span></button>
     </div>
@@ -457,6 +469,7 @@ footer .logo span{color:#c8f0d6}
     <div class="field"><label>Full name</label><input required name="name" placeholder="Your name"></div>
     <div class="field"><label>Phone</label><input required name="phone" placeholder="98XXXXXXXX"></div>
     <div class="field full"><label>Email</label><input required type="email" name="email" placeholder="you@example.com"></div>
+    <div class="field full"><label>Pickup address</label><textarea required name="address" rows="2" placeholder="Street, area, city — where should we collect the item?"></textarea></div>
     <div class="field full"><label>Reason for return</label>
      <select name="reason">
       <option>Wrong size</option><option>Changed my mind</option><option>Defective / damaged</option><option>Wrong item received</option><option>Other</option>
@@ -1013,6 +1026,7 @@ async function submitReturn(e){
  const ret = {
   orderId: (form.get("orderId")||"").toUpperCase().trim(),
   name: form.get("name"), phone: form.get("phone"), email: form.get("email"),
+  address: form.get("address"),
   reason: form.get("reason"), details: form.get("details")
  };
  btn.disabled = true; btn.textContent = "Submitting…";
