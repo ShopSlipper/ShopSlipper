@@ -265,7 +265,12 @@ footer .logo span{color:#c8f0d6}
  .filterPanel{right:0;left:auto;width:190px}
 }
 @media(max-width:390px){
- .grid{grid-template-columns:1fr}
+ /* NOTE: grid intentionally stays 2-column even on narrow phones
+    (e.g. Samsung S24 base model, 360px CSS width) — a 1-column
+    override here previously caused the grid to collapse to a
+    single product per row on narrower flagship phones while wider
+    phones (e.g. many Vivo models) still showed 2 columns, which is
+    what caused the "only one product shows" report. */
  .logoText{font-size:14px}
  .iconbtn{width:32px;height:32px;font-size:13px}
  .iconbtn.langBtn{padding:0 7px;font-size:10px}
