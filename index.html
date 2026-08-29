@@ -370,10 +370,6 @@ footer .logo span{color:#c8f0d6}
    </div>
    <button class="btn light" onclick="openReturns()" data-i18n="startReturn">Start a return</button>
   </div>
-  <div id="recentlyViewedWrap" style="display:none;margin-top:56px">
-   <div class="sectionHead"><h2 data-i18n="recentlyViewed" style="font-family:var(--serif);font-weight:600;font-size:26px;letter-spacing:-.7px">Recently viewed</h2></div>
-   <div class="rail" id="recentlyViewedRail"></div>
-  </div>
  </div>
 </section>
 </main>
@@ -581,7 +577,7 @@ const I18N = {
   footerAbout:"Comfortable everyday footwear for Nepal. Considered products, honest prices.",
   footerShop:"Shop", allSlippers:"All slippers", newArrivals:"New arrivals",
   footerHelp:"Help", delivery:"Delivery", returns:"Returns", email:"www.shopslipper@gmail.com", contact:"977-9747961784", footerContact:"Contact",
-  justLanded:"Just landed", recentlyViewed:"Recently viewed", freeDeliveryHint:"away from free delivery", freeDeliveryUnlocked:"You've unlocked free delivery!",
+  justLanded:"Just landed", freeDeliveryHint:"away from free delivery", freeDeliveryUnlocked:"You've unlocked free delivery!",
   wishlistTitle:"Your wishlist", wishlistEmpty:"Nothing saved yet.", addedToWishlist:"Saved to wishlist", removedFromWishlist:"Removed from wishlist"
  },
  np:{
@@ -606,7 +602,7 @@ const I18N = {
   footerAbout:"नेपालको लागि आरामदायी दैनिक जुत्ता। सोचिएका सामान, इमानदार मूल्य।",
   footerShop:"किनमेल", allSlippers:"सबै चप्पल", newArrivals:"नयाँ सामान",
   footerHelp:"सहयोग", delivery:"डेलिभरी", returns:"फिर्ता", email:"www.shopslipper@gmail.com", contact:"977-9747961784", footerContact:"सम्पर्क",
-  justLanded:"भर्खरै आएको", recentlyViewed:"भर्खरै हेरिएको", freeDeliveryHint:"नि:शुल्क डेलिभरीको लागि बाँकी", freeDeliveryUnlocked:"तपाईंले नि:शुल्क डेलिभरी पाउनुभयो!",
+  justLanded:"भर्खरै आएको", freeDeliveryHint:"नि:शुल्क डेलिभरीको लागि बाँकी", freeDeliveryUnlocked:"तपाईंले नि:शुल्क डेलिभरी पाउनुभयो!",
   wishlistTitle:"तपाईंको मनपर्ने सूची", wishlistEmpty:"अहिलेसम्म केही थपिएको छैन।", addedToWishlist:"मनपर्ने सूचीमा थपियो", removedFromWishlist:"मनपर्ने सूचीबाट हटाइयो"
  }
 };
@@ -617,7 +613,6 @@ function toggleLang(){
  applyI18n();
  renderProducts();
  renderNewArrivals();
- renderRecentlyViewed();
  updateCart();
  if(document.querySelector("#wishDrawer").classList.contains("open")) renderWishItems();
 }
@@ -685,21 +680,6 @@ function renderWishItems(){
  el.innerHTML = items.map(p=>`<div class="cartItem"><img src="${p.image}" alt="" onerror="this.style.display='none'"><div><h4>${escapeHtml(p.name)}</h4><small>${money(p.price)}</small><div class="qty" style="margin-top:8px"><button class="chip" style="padding:7px 12px" onclick="closeWishlist();openProduct(${p.id})">View</button></div><button class="remove" onclick="toggleWishlist(${p.id})">Remove</button></div></div>`).join("");
 }
 
-/* ================== Recently viewed ================== */
-let recentlyViewed = JSON.parse(localStorage.getItem("shopslipper-recent")||"[]");
-function trackRecentlyViewed(id){
- recentlyViewed = [id, ...recentlyViewed.filter(x=>x!==id)].slice(0,8);
- localStorage.setItem("shopslipper-recent", JSON.stringify(recentlyViewed));
- renderRecentlyViewed();
-}
-function renderRecentlyViewed(){
- const wrap=document.querySelector("#recentlyViewedWrap");
- const items = recentlyViewed.map(id=>products.find(p=>p.id===id)).filter(Boolean);
- if(!items.length){ wrap.style.display="none"; return; }
- wrap.style.display="block";
- document.querySelector("#recentlyViewedRail").innerHTML = items.map(cardHTML).join("");
-}
-
 /* ================== New arrivals rail ================== */
 function renderNewArrivals(){
  const wrap=document.querySelector("#newArrivalsWrap");
@@ -726,7 +706,7 @@ async function loadProducts(){
  const wishBefore = wishlist.length;
  wishlist = wishlist.filter(id => products.some(p => p.id === id));
  if(wishlist.length !== wishBefore) saveWishlist();
- categories();renderProducts();updateCart();updateWishBadge();renderNewArrivals();renderRecentlyViewed();
+ categories();renderProducts();updateCart();updateWishBadge();renderNewArrivals();
 }
 
 function categories(){
@@ -791,7 +771,6 @@ function openProduct(id){
  pdSize = sizes[0] || null;
  renderProductDetail();
  document.querySelector("#productModal").classList.add("open");
- trackRecentlyViewed(id);
 }
 function closeProduct(){ document.querySelector("#productModal").classList.remove("open"); }
 function openZoom(src){
