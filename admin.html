@@ -333,7 +333,7 @@ tr:last-child td{border-bottom:0}
    </div>
    <div class="field">
     <label>Color name (for this main photo)</label>
-    <input id="f_colorName" placeholder="e.g. Black" oninput="renderStockGrid()">
+    <input id="f_colorName" placeholder="e.g. Black" oninput="onMainColorNameChange()">
    </div>
    <div class="field">
     <label>Dominant color</label>
@@ -341,7 +341,7 @@ tr:last-child td{border-bottom:0}
      <input id="f_color" type="color" value="#cccccc" oninput="f_colorHex.value=f_color.value;f_colorTouched=true">
      <input id="f_colorHex" placeholder="#cccccc" oninput="syncColorHex();f_colorTouched=true">
     </div>
-    <span style="font-size:11px;color:var(--muted)">Auto-suggested from the photo — check it matches before saving, especially if the photo has a background or banner behind the product. Used for the storefront's "search by image" feature, and as this product's first/default color swatch.</span>
+    <span style="font-size:11px;color:var(--muted)">Auto-suggested from the photo or the color name — check it matches before saving, especially if the photo has a background or banner behind the product. Used for the storefront's "search by image" feature, and as this product's first/default color swatch.</span>
    </div>
    <div class="field">
     <label>Rating (optional, 0–5)</label>
@@ -353,7 +353,7 @@ tr:last-child td{border-bottom:0}
    </div>
    <div class="field full">
     <label>Additional color variants (optional)</label>
-    <span style="font-size:11px;color:var(--muted);margin-bottom:4px;display:block">Each variant gets its own photo and swatch — customers can click between them on the product page to see the item in that color, like Amazon or Under Armour's color swatches. The swatch color is only a suggestion based on the photo — double-check it against the actual product color before saving, especially with busy or banner-style photos. Leave empty if this product only comes in one color.</span>
+    <span style="font-size:11px;color:var(--muted);margin-bottom:4px;display:block">Each variant gets its own photo and swatch — customers can click between them on the product page to see the item in that color, like Amazon or Under Armour's color swatches. Typing a common color name (e.g. "Navy", "Green") will suggest a matching swatch automatically — double-check it against the actual product color before saving, especially with busy or banner-style photos, or multi-word names like "Black/White" that can't be auto-matched. Leave empty if this product only comes in one color.</span>
     <div class="variantList" id="variantList"></div>
     <button type="button" class="btn light sm" style="width:fit-content" onclick="addVariantRow()">+ Add color variant</button>
    </div>
@@ -495,6 +495,29 @@ async function refreshChatSessions(){
 
 function money(n){return "Rs. "+Number(n).toLocaleString("en-IN")}
 function escapeHtml(s){ const d=document.createElement("div"); d.textContent=s||""; return d.innerHTML; }
+
+/* ================== Color name → swatch matching ==================
+   Lets the browser resolve a typed color name (e.g. "Navy",
+   "Forest Green", "Maroon") to an actual hex value using the
+   same color-name table CSS itself understands. Multi-word names
+   that aren't valid CSS colors (e.g. "Black/White") simply return
+   null and the swatch is left as-is, since that's a real limit —
+   there's no single hex for a two-tone name.
+======================================================================= */
+function colorNameToHex(name){
+ if(!name) return null;
+ const probe = document.createElement("span");
+ probe.style.color = "";
+ probe.style.color = name;
+ if(!probe.style.color) return null; // browser didn't recognize it as a color
+ document.body.appendChild(probe);
+ const rgb = getComputedStyle(probe).color;
+ document.body.removeChild(probe);
+ const m = rgb.match(/\d+(\.\d+)?/g);
+ if(!m || m.length < 3) return null;
+ const hex = "#" + m.slice(0,3).map(n => Math.round(Number(n)).toString(16).padStart(2,"0")).join("");
+ return hex;
+}
 
 /* ================== Stock summary badge (product list) ================== */
 function stockSummary(stock){
@@ -648,6 +671,15 @@ function syncColorHex(){
  let v = document.querySelector("#f_colorHex").value.trim();
  if(/^#[0-9a-fA-F]{6}$/.test(v)) document.querySelector("#f_color").value = v;
 }
+function onMainColorNameChange(){
+ renderStockGrid();
+ if(f_colorTouched) return;
+ const hex = colorNameToHex(document.querySelector("#f_colorName").value.trim());
+ if(hex){
+  document.querySelector("#f_color").value = hex;
+  document.querySelector("#f_colorHex").value = hex;
+ }
+}
 function toggleUrlField(){
  const urlField = document.querySelector("#f_image");
  const showing = urlField.style.display !== "none";
@@ -765,7 +797,19 @@ function removeVariantRow(i){
  renderStockGrid();
 }
 function setVariantColor(i,val){ formVariants[i].color = val; formVariants[i].colorTouched = true; }
-function setVariantName(i,val){ formVariants[i].colorName = val; renderStockGrid(); }
+function setVariantName(i,val){
+ formVariants[i].colorName = val;
+ if(!formVariants[i].colorTouched){
+  const hex = colorNameToHex(val.trim());
+  if(hex){
+   formVariants[i].color = hex;
+   renderVariantRows(); // refresh swatch + keep focus/typing smooth since it's a full re-render
+   const nameInput = document.querySelectorAll(".variantNameRow input[type=text]")[i];
+   if(nameInput){ nameInput.focus(); nameInput.setSelectionRange(val.length, val.length); }
+  }
+ }
+ renderStockGrid();
+}
 function handleVariantUpload(i,file){
  if(!file) return;
  const status = document.querySelector(`#variantStatus${i}`);
