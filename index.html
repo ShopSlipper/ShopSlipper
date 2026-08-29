@@ -944,7 +944,9 @@ function updateCart(){
   const p=products.find(x=>x.id===i.id);if(!p)return "";
   const img=i.image||p.image;
   const meta=[i.color,i.size].filter(Boolean).join(" · ");
-  const sizeArg=i.size?JSON.stringify(i.size):null, colorArg=i.color?JSON.stringify(i.color):null;
+  /* FIX: escape the quote characters JSON.stringify adds, so they don't
+     terminate the double-quoted onclick="" attribute they're placed in. */
+  const sizeArg=i.size?JSON.stringify(i.size).replace(/"/g,"&quot;"):null, colorArg=i.color?JSON.stringify(i.color).replace(/"/g,"&quot;"):null;
   return `<div class="cartItem"><img src="${img}" alt="" onerror="this.style.display='none'"><div><h4>${escapeHtml(p.name)}${meta?` <small style="color:var(--muted)">(${escapeHtml(meta)})</small>`:""}</h4><small>${money(p.price)}</small><div class="qty"><button onclick="changeQty(${p.id},${sizeArg},${colorArg},-1)">−</button><b>${i.qty}</b><button onclick="changeQty(${p.id},${sizeArg},${colorArg},1)">+</button></div><button class="remove" onclick="removeItem(${p.id},${sizeArg},${colorArg})">Remove</button></div><b>${money(p.price*i.qty)}</b></div>`;
  }).join("");
  const sub=cart.reduce((s,i)=>{const p=products.find(x=>x.id===i.id);return p?s+p.price*i.qty:s},0);
