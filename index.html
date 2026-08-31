@@ -73,6 +73,8 @@ header{position:sticky;top:0;z-index:30;background:rgba(7,127,56,.96);backdrop-f
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 24px;border-radius:999px;background:var(--gold);color:#fff;font-weight:600;font-size:13.5px;letter-spacing:.2px;transition:.25s transform,.25s opacity,.25s background}
 .btn:hover{transform:translateY(-2px);opacity:.92}
 .btn.light{background:#fff;color:var(--gold);border:1px solid var(--line)}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.btn:disabled:hover{transform:none;opacity:.45}
 .section{padding:35px 0 75px}
 .sectionHead{display:flex;justify-content:space-between;align-items:end;margin-bottom:26px}
 .sectionHead h2{font-family:var(--serif);font-weight:600;font-size:32px;letter-spacing:-1px}
@@ -103,11 +105,13 @@ select{width:100%;height:48px;border:1px solid var(--line);background:#fff;borde
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
 .product{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;position:relative;transition:transform .3s cubic-bezier(.2,.8,.2,1),box-shadow .3s;cursor:pointer}
 .product:hover{transform:translateY(-5px);box-shadow:var(--shadow);border-color:transparent}
-.productImg{aspect-ratio:1/1;background:#efece3;position:relative;overflow:hidden}
+.productImg{aspect-ratio:1/1;background:#efece3;position:relative}
 .productImg img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s ease}
 .product:hover .productImg img{transform:scale(1.05)}
 .sale{position:absolute;left:12px;top:12px;background:var(--gold);color:#fff;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:700;letter-spacing:.4px;z-index:2}
 .bestBadge{position:absolute;right:12px;top:12px;background:var(--sage);color:#fff;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:700;letter-spacing:.4px;z-index:2}
+.outBadge{position:absolute;left:12px;top:12px;background:var(--danger);color:#fff;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:700;letter-spacing:.4px;z-index:2}
+.product.outOfStock .productImg img{filter:grayscale(.6);opacity:.55}
 .cardSku{display:inline-block;font-family:monospace;font-size:10px;color:var(--muted);background:var(--soft);padding:2px 6px;border-radius:6px;margin-bottom:6px}
 .priceRow{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
 .cardMeta{display:flex;align-items:center;gap:8px;margin-top:8px;min-width:0}
@@ -121,6 +125,8 @@ select{width:100%;height:48px;border:1px solid var(--line);background:#fff;borde
 .old{text-decoration:line-through;color:#a9a49a;font-weight:500;font-size:12px;margin-left:7px}
 .add{width:100%;margin-top:14px;padding:12px;border-radius:12px;background:var(--gold);color:#fff;font-weight:600;font-size:13px;letter-spacing:.2px;transition:.2s background}
 .add:hover{background:var(--sage)}
+.add:disabled{background:#c7c2b8;cursor:not-allowed}
+.add:disabled:hover{background:#c7c2b8}
 .features{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:34px}
 .returnPolicy{max-width:620px;margin:56px auto 0;text-align:center}
 .returnPolicy .eyebrow{justify-content:center;display:flex}
@@ -185,12 +191,20 @@ select{width:100%;height:48px;border:1px solid var(--line);background:#fff;borde
 .pdSwatch{width:34px;height:34px;border-radius:50%;border:2px solid transparent;box-shadow:0 0 0 1px var(--line) inset;cursor:pointer;padding:0;position:relative;transition:.15s transform,.15s box-shadow}
 .pdSwatch:hover{transform:translateY(-1px)}
 .pdSwatch.active{border-color:var(--gold);box-shadow:0 0 0 2px #fff inset,0 0 0 3px var(--gold)}
+.pdSwatch.swatchOut{opacity:.35;cursor:not-allowed}
+.pdSwatch.swatchOut::after{content:"";position:absolute;left:-1px;top:50%;width:calc(100% + 2px);height:1px;background:var(--danger);transform:rotate(-45deg)}
 .pdColorLabel{font-size:12.5px;color:var(--muted);margin-top:9px}
 .sizeRow{display:flex;flex-wrap:wrap;gap:8px}
 .sizeBtn{min-width:44px;padding:9px 12px;border-radius:10px;border:1px solid var(--line);background:#fff;font-size:13px;font-weight:600}
 .sizeBtn.active,.sizeBtn:hover{background:var(--gold);color:#fff;border-color:var(--gold)}
+.sizeBtn.sizeOut{opacity:.4;text-decoration:line-through;cursor:not-allowed;background:#fff;color:var(--text);border-color:var(--line)}
+.sizeBtn.sizeOut:hover{background:#fff;color:var(--text);border-color:var(--line)}
+.stockMsg{font-size:12px;margin-top:-8px;margin-bottom:16px}
+.stockMsg.out{color:var(--danger);font-weight:600}
+.stockMsg.low{color:#8a5d00;font-weight:600}
 .pdQty{display:flex;align-items:center;gap:12px;margin-bottom:18px}
 .pdQty button{width:34px;height:34px;border-radius:9px;background:var(--soft);font-size:16px}
+.pdQty button:disabled{opacity:.4;cursor:not-allowed}
 .pdSuggest{padding:26px 32px 32px;border-top:1px solid var(--line);grid-column:1/-1}
 .pdSuggest .eyebrow{margin-bottom:10px}
 .pdSuggest h3{font-family:var(--serif);font-weight:600;font-size:19px;margin-bottom:16px}
@@ -584,7 +598,8 @@ const I18N = {
   footerShop:"Shop", allSlippers:"All slippers", newArrivals:"New arrivals",
   footerHelp:"Help", delivery:"Delivery", returns:"Returns", email:"www.shopslipper@gmail.com", contact:"977-9747961784", footerContact:"Contact",
   justLanded:"Just landed", freeDeliveryHint:"away from free delivery", freeDeliveryUnlocked:"You've unlocked free delivery!",
-  wishlistTitle:"Your wishlist", wishlistEmpty:"Nothing saved yet.", addedToWishlist:"Saved to wishlist", removedFromWishlist:"Removed from wishlist"
+  wishlistTitle:"Your wishlist", wishlistEmpty:"Nothing saved yet.", addedToWishlist:"Saved to wishlist", removedFromWishlist:"Removed from wishlist",
+  outOfStock:"Out of stock", onlyLeft:"Only {n} left", selectAvailableSize:"Select an available size"
  },
  np:{
   navShop:"किनमेल", navNew:"नयाँ सामान", navWhy:"किन हामी", navReturns:"फिर्ता",
@@ -609,7 +624,8 @@ const I18N = {
   footerShop:"किनमेल", allSlippers:"सबै चप्पल", newArrivals:"नयाँ सामान",
   footerHelp:"सहयोग", delivery:"डेलिभरी", returns:"फिर्ता", email:"www.shopslipper@gmail.com", contact:"977-9747961784", footerContact:"सम्पर्क",
   justLanded:"भर्खरै आएको", freeDeliveryHint:"नि:शुल्क डेलिभरीको लागि बाँकी", freeDeliveryUnlocked:"तपाईंले नि:शुल्क डेलिभरी पाउनुभयो!",
-  wishlistTitle:"तपाईंको मनपर्ने सूची", wishlistEmpty:"अहिलेसम्म केही थपिएको छैन।", addedToWishlist:"मनपर्ने सूचीमा थपियो", removedFromWishlist:"मनपर्ने सूचीबाट हटाइयो"
+  wishlistTitle:"तपाईंको मनपर्ने सूची", wishlistEmpty:"अहिलेसम्म केही थपिएको छैन।", addedToWishlist:"मनपर्ने सूचीमा थपियो", removedFromWishlist:"मनपर्ने सूचीबाट हटाइयो",
+  outOfStock:"स्टकमा छैन", onlyLeft:"जम्मा {n} बाँकी", selectAvailableSize:"उपलब्ध साइज छान्नुहोस्"
  }
 };
 function toggleLang(){
@@ -659,6 +675,52 @@ document.addEventListener("click", e=>{
 
 function money(n){return "Rs. "+Number(n).toLocaleString("en-IN")}
 function save(){localStorage.setItem("shopslipper-cart",JSON.stringify(cart));updateCart()}
+
+/* ================== Stock helpers ==================
+   Mirrors the label logic used in admin.html's stock grid, so the
+   same product.stock object (built there) can be read here:
+   - stock is shaped {colorLabel: {sizeOrQty: qty}}
+   - colorLabel for the main photo = product.colorName trimmed, or "Main"
+   - colorLabel for variant i (0-based in product.variants)
+     = variant.colorName trimmed, or "Color " + (i+2)
+   - sizeOrQty is the size string, or "Qty" when the product has no sizes
+   A quantity that isn't present at all (undefined) means that
+   combination was never tracked in admin — treated as unlimited so
+   untracked products/sizes are never blocked from ordering.
+================================================================= */
+function stockColorLabel(product, variantIdx){
+ if(variantIdx<=0) return (product.colorName && product.colorName.trim()) || "Main";
+ const v = (product.variants||[])[variantIdx-1];
+ return (v && v.colorName && v.colorName.trim()) || ("Color "+(variantIdx+1));
+}
+function stockQtyFor(product, variantIdx, size){
+ if(!product.stock) return null;
+ const label = stockColorLabel(product, variantIdx);
+ const bucket = product.stock[label];
+ if(!bucket) return null;
+ const key = size || "Qty";
+ const val = bucket[key];
+ return (val===undefined || val===null || val==="") ? null : Number(val);
+}
+// true only when a quantity was tracked AND it's <=0
+function isCombinationOut(product, variantIdx, size){
+ const q = stockQtyFor(product, variantIdx, size);
+ return q!==null && q<=0;
+}
+// Does this product have at least one orderable (untracked or >0) combination?
+function productHasAnyStock(product){
+ if(!product.stock || !Object.keys(product.stock).length) return true; // not tracked -> unlimited
+ const sizes = (product.sizes||"").split(",").map(s=>s.trim()).filter(Boolean);
+ const sizeKeys = sizes.length ? sizes : ["Qty"];
+ const swatchCount = 1 + (Array.isArray(product.variants) ? product.variants.length : 0);
+ for(let vi=0; vi<swatchCount; vi++){
+  for(const sz of sizeKeys){
+   const q = stockQtyFor(product, vi, sz==="Qty"?null:sz);
+   if(q===null || q>0) return true;
+  }
+ }
+ return false;
+}
 
 /* ================== Wishlist ================== */
 let wishlist = JSON.parse(localStorage.getItem("shopslipper-wishlist")||"[]");
@@ -749,11 +811,12 @@ function cardHTML(p){
  const hasDesc = !!p.description;
  const metaRow = (hasColor||hasDesc) ? `<div class="cardMeta">${hasColor?`<span class="cardColorDot" style="background:${escapeHtml(p.color)}"></span>`:""}${hasDesc?`<span class="cardDesc">${escapeHtml(p.description)}</span>`:""}</div>` : "";
  const wished = isWished(p.id);
- return `<article class="product" onclick="openProduct(${p.id})">
+ const outOfStock = !productHasAnyStock(p);
+ return `<article class="product ${outOfStock?'outOfStock':''}" onclick="openProduct(${p.id})">
   <div class="productImg">
    <img src="${p.image}" alt="${escapeHtml(p.name)}" loading="lazy" onerror="this.style.display='none'">
-   ${p.new?'<span class="bestBadge">BEST</span>':''}
-   ${discount>0?`<span class="sale">${discount}% OFF</span>`:''}
+   ${outOfStock?`<span class="outBadge">${t.outOfStock}</span>`:(p.new?'<span class="bestBadge">BEST</span>':'')}
+   ${(!outOfStock && discount>0)?`<span class="sale" style="left:auto;right:12px">${discount}% OFF</span>`:''}
    <button class="wishBtn ${wished?'active':''}" aria-label="Toggle wishlist" onclick="event.stopPropagation();toggleWishlist(${p.id})">${wished?'♥':'♡'}</button>
   </div>
   <div class="productInfo">
@@ -763,7 +826,7 @@ function cardHTML(p){
    ${starRow(p.rating)}
    <div class="priceRow"><span class="price">${money(p.price)}</span>${p.old?`<span class="old">${money(p.old)}</span>`:""}</div>
    ${metaRow}
-   <button class="add cardAddBtn" onclick="event.stopPropagation();openProduct(${p.id})">${sizes.length?t.selectSize:t.addToCart}</button>
+   <button class="add cardAddBtn" ${outOfStock?'disabled':''} onclick="event.stopPropagation();openProduct(${p.id})">${outOfStock?t.outOfStock:(sizes.length?t.selectSize:t.addToCart)}</button>
   </div>
  </article>`;
 }
@@ -774,7 +837,8 @@ function openProduct(id){
  if(!p) return;
  pdProduct=p; pdQty=1; pdVariantIdx=0;
  const sizes = (p.sizes||"").split(",").map(s=>s.trim()).filter(Boolean);
- pdSize = sizes[0] || null;
+ // default to the first size that's actually in stock, if any are tracked
+ pdSize = sizes.find(s=>!isCombinationOut(p,0,s)) || sizes[0] || null;
  renderProductDetail();
  document.querySelector("#productModal").classList.add("open");
 }
@@ -795,23 +859,51 @@ document.addEventListener("keydown", e=>{
  else if(document.querySelector("#drawer").classList.contains("open")) closeCart();
  else if(document.querySelector("#wishDrawer").classList.contains("open")) closeWishlist();
 });
-function pdChangeQty(n){ pdQty=Math.max(1,pdQty+n); renderProductDetail(); }
-function pdPickSize(s){ pdSize=s; renderProductDetail(); }
-function pdPickVariant(i){ pdVariantIdx=i; renderProductDetail(); }
+function pdChangeQty(n){
+ const max = stockQtyFor(pdProduct, pdVariantIdx, pdSize);
+ let next = pdQty+n;
+ next = Math.max(1, next);
+ if(max!==null) next = Math.min(next, Math.max(1,max));
+ pdQty = next;
+ renderProductDetail();
+}
+function pdPickSize(s){
+ if(isCombinationOut(pdProduct, pdVariantIdx, s)) return; // guard even if a disabled button is somehow clicked
+ pdSize=s; pdQty=1; renderProductDetail();
+}
+function pdPickVariant(i){
+ pdVariantIdx=i; pdQty=1;
+ const sizes = (pdProduct.sizes||"").split(",").map(s=>s.trim()).filter(Boolean);
+ if(sizes.length && isCombinationOut(pdProduct, i, pdSize)){
+  const alt = sizes.find(s=>!isCombinationOut(pdProduct,i,s));
+  pdSize = alt || pdSize;
+ }
+ renderProductDetail();
+}
 function pdSwatches(p){
  return [{colorName:"", color:p.color||"#cccccc", image:p.image}, ...(Array.isArray(p.variants)?p.variants:[])];
 }
 function pdAddToCart(){
  if(!pdProduct) return;
+ const sizes = (pdProduct.sizes||"").split(",").map(s=>s.trim()).filter(Boolean);
+ if(sizes.length && !pdSize){ toast(I18N[currentLang].selectAvailableSize); return; }
+ if(isCombinationOut(pdProduct, pdVariantIdx, pdSize)){ toast(I18N[currentLang].outOfStock); return; }
  const swatches = pdSwatches(pdProduct);
  const chosen = swatches[pdVariantIdx] || swatches[0];
  const color = chosen.colorName || (pdVariantIdx>0 ? chosen.color : "") || "";
+ const max = stockQtyFor(pdProduct, pdVariantIdx, pdSize);
  const x=cart.find(i=>i.id===pdProduct.id && i.size===pdSize && (i.color||"")===color);
+ const already = x ? x.qty : 0;
+ if(max!==null && already+pdQty>max){
+  toast(max-already>0 ? I18N[currentLang].onlyLeft.replace("{n}", max-already) : I18N[currentLang].outOfStock);
+  return;
+ }
  if(x)x.qty+=pdQty;else cart.push({id:pdProduct.id,qty:pdQty,size:pdSize,color,image:chosen.image||pdProduct.image});
  save();toast("Added to cart");closeProduct();
 }
 function renderProductDetail(){
  const p = pdProduct;
+ const t = I18N[currentLang];
  const sizes = (p.sizes||"").split(",").map(s=>s.trim()).filter(Boolean);
  const suggestPool = products.filter(x=>x.id!==p.id && x.category===p.category);
  const suggestions = (suggestPool.length?suggestPool:products.filter(x=>x.id!==p.id)).slice().sort(()=>Math.random()-.5).slice(0,4);
@@ -819,9 +911,20 @@ function renderProductDetail(){
  const current = swatches[pdVariantIdx] || swatches[0];
  const shownImage = current.image || p.image;
  const colorBlock = swatches.length > 1
-  ? `<div class="pdBlock"><label>Color</label><div class="pdColorRow">${swatches.map((v,i)=>`<button class="pdSwatch ${i===pdVariantIdx?'active':''}" style="background:${v.color||'#ccc'}" title="${escapeHtml(v.colorName||'')}" onclick="pdPickVariant(${i})"></button>`).join("")}</div>${current.colorName?`<div class="pdColorLabel">${escapeHtml(current.colorName)}</div>`:""}</div>`
+  ? `<div class="pdBlock"><label>Color</label><div class="pdColorRow">${swatches.map((v,i)=>{
+      const colorOut = sizes.length ? sizes.every(s=>isCombinationOut(p,i,s)) : isCombinationOut(p,i,null);
+      return `<button class="pdSwatch ${i===pdVariantIdx?'active':''} ${colorOut?'swatchOut':''}" style="background:${v.color||'#ccc'}" title="${escapeHtml(v.colorName||'')}${colorOut?' — '+t.outOfStock:''}" onclick="pdPickVariant(${i})"></button>`;
+     }).join("")}</div>${current.colorName?`<div class="pdColorLabel">${escapeHtml(current.colorName)}</div>`:""}</div>`
   : `<div class="pdBlock"><label>Color</label><div class="pdColor"><span class="pdColorDot" style="background:${p.color||'#ccc'}"></span><span>${escapeHtml(p.color||"")}</span></div></div>`;
  const wished = isWished(p.id);
+ const curQty = stockQtyFor(p, pdVariantIdx, pdSize);
+ const combinationOut = sizes.length ? (pdSize ? isCombinationOut(p, pdVariantIdx, pdSize) : true) : isCombinationOut(p, pdVariantIdx, null);
+ let stockMsgHtml = "";
+ if(combinationOut){
+  stockMsgHtml = `<div class="stockMsg out">${t.outOfStock}</div>`;
+ }else if(curQty!==null && curQty<=5){
+  stockMsgHtml = `<div class="stockMsg low">${t.onlyLeft.replace("{n}",curQty)}</div>`;
+ }
  document.querySelector("#productModalContent").innerHTML = `
   <div class="pdWrap">
    <div class="pdImg"><img src="${shownImage}" alt="${escapeHtml(p.name)}" onerror="this.style.display='none'" onclick="openZoom(this.src)"><button class="zoomBtn" onclick="event.stopPropagation();openZoom('${shownImage}')" aria-label="Zoom photo" title="Zoom in">🔍</button></div>
@@ -836,12 +939,16 @@ function renderProductDetail(){
     <div class="pdPrice">${money(p.price)}${p.old?`<span class="old">${money(p.old)}</span>`:""}</div>
     ${p.description?`<p class="pdDesc">${escapeHtml(p.description)}</p>`:""}
     ${colorBlock}
-    ${sizes.length?`<div class="pdBlock"><label>Size</label><div class="sizeRow">${sizes.map(s=>`<button class="sizeBtn ${s===pdSize?'active':''}" onclick="pdPickSize('${escapeHtml(s)}')">${escapeHtml(s)}</button>`).join("")}</div></div>`:""}
+    ${sizes.length?`<div class="pdBlock"><label>Size</label><div class="sizeRow">${sizes.map(s=>{
+       const sOut = isCombinationOut(p, pdVariantIdx, s);
+       return `<button class="sizeBtn ${s===pdSize?'active':''} ${sOut?'sizeOut':''}" ${sOut?'disabled':''} onclick="pdPickSize('${escapeHtml(s)}')">${escapeHtml(s)}</button>`;
+      }).join("")}</div></div>`:""}
+    ${stockMsgHtml}
     <div class="pdBlock">
      <label>Quantity</label>
-     <div class="pdQty"><button onclick="pdChangeQty(-1)">−</button><b>${pdQty}</b><button onclick="pdChangeQty(1)">+</button></div>
+     <div class="pdQty"><button onclick="pdChangeQty(-1)" ${combinationOut?'disabled':''}>−</button><b>${pdQty}</b><button onclick="pdChangeQty(1)" ${combinationOut || (curQty!==null && pdQty>=curQty) ?'disabled':''}>+</button></div>
     </div>
-    <button class="add" onclick="pdAddToCart()">Add to cart</button>
+    <button class="add" ${combinationOut?'disabled':''} onclick="pdAddToCart()">${combinationOut?t.outOfStock:'Add to cart'}</button>
    </div>
    <div class="pdSuggest">
     <div class="eyebrow">You might also like</div>
@@ -969,6 +1076,20 @@ function openCart(){document.querySelector("#drawer").classList.add("open");upda
 function closeCart(){document.querySelector("#drawer").classList.remove("open")}
 function openCheckout(){
  if(!cart.length){toast("Your cart is empty");return}
+ /* Guard against stale carts: strip anything that's since sold out
+    (stock can change between when an item was added and checkout). */
+ const before = cart.length;
+ cart = cart.filter(i=>{
+  const p = products.find(x=>x.id===i.id);
+  if(!p) return false;
+  const variantIdx = (Array.isArray(p.variants) ? p.variants.findIndex(v=>(v.colorName||"")===(i.color||"")) : -1) + 1;
+  return !isCombinationOut(p, variantIdx, i.size||null);
+ });
+ if(cart.length !== before){
+  save();
+  toast("Some items in your cart just sold out and were removed");
+ }
+ if(!cart.length){ closeCart(); return; }
  closeCart();document.querySelector("#checkoutSummary").innerHTML=`<div style="background:var(--soft);padding:14px;border-radius:14px;margin-bottom:18px"><b>${cart.reduce((s,i)=>s+i.qty,0)} items</b> · Total ${document.querySelector("#total").textContent}</div>`;
  document.querySelector("#checkout").classList.add("open")
 }
@@ -983,6 +1104,21 @@ async function placeOrder(e){
  e.preventDefault();
  const btn = document.querySelector("#placeOrderBtn");
  const form = new FormData(e.target);
+ // Final stock guard right before submitting, in case something sold out
+ // while the checkout form was open.
+ const soldOut = cart.filter(i=>{
+  const p = products.find(x=>x.id===i.id);
+  if(!p) return true;
+  const variantIdx = (Array.isArray(p.variants) ? p.variants.findIndex(v=>(v.colorName||"")===(i.color||"")) : -1) + 1;
+  return isCombinationOut(p, variantIdx, i.size||null);
+ });
+ if(soldOut.length){
+  cart = cart.filter(i=>!soldOut.includes(i));
+  save();
+  toast("Sorry, an item in your cart just sold out — please review your cart");
+  closeCheckout();
+  return;
+ }
  const sub=cart.reduce((s,i)=>{const p=products.find(x=>x.id===i.id);return p?s+p.price*i.qty:s},0);
  const delivery = computeDeliveryFee(sub);
  const orderId = generateOrderId();
