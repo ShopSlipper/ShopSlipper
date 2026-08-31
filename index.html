@@ -1136,7 +1136,21 @@ async function placeOrder(e){
    body: JSON.stringify({ action: "placeOrder", order })
   });
   const data = await res.json();
-  if(!data.success) throw new Error(data.error || "failed");
+  if(!data.success){
+   // Server-side stock check (Code.gs) rejected this order — the
+   // definitive check, since it reads live sheet data rather than
+   // whatever the browser had cached. Drop the flagged items and let
+   // the customer retry with what's left.
+   if(Array.isArray(data.outOfStock) && data.outOfStock.length){
+    const badKeys = new Set(data.outOfStock.map(o=>o.id+"|"+(o.size||"")+"|"+(o.color||"")));
+    cart = cart.filter(i=>!badKeys.has(i.id+"|"+(i.size||"")+"|"+(i.color||"")));
+    save();
+    closeCheckout();
+    toast("Sorry, some items just sold out and were removed from your cart");
+    return;
+   }
+   throw new Error(data.error || "failed");
+  }
   cart=[];save();closeCheckout();e.target.reset();
   openOrderSuccess(data.orderId || orderId);
  }catch(err){
