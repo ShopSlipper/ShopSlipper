@@ -777,9 +777,25 @@ async function loadProducts(){
  categories();renderProducts();updateCart();updateWishBadge();renderNewArrivals();
 }
 
+/* ================== FIX APPLIED HERE ==================
+   Previously this used JSON.stringify(c) directly inside a
+   double-quoted onclick="" attribute. For any category name,
+   JSON.stringify wraps it in double quotes too, which prematurely
+   terminated the onclick attribute (browsers stop at the first
+   unescaped "). The result was a broken/incomplete function call
+   (selectCategory() never actually ran with the right argument),
+   so clicking a category chip never changed `category` and the
+   grid kept showing every product.
+   Fix: escape the quotes JSON.stringify adds to &quot; before
+   inserting into the attribute — the same fix already used for the
+   cart's quantity buttons in updateCart() below.
+======================================================= */
 function categories(){
  const cats=["All",...new Set(products.map(p=>p.category))];
- document.querySelector("#categories").innerHTML=cats.map(c=>`<button class="chip ${c===category?"active":""}" onclick="selectCategory(${JSON.stringify(c)})">${escapeHtml(c)}</button>`).join("");
+ document.querySelector("#categories").innerHTML=cats.map(c=>{
+  const arg = JSON.stringify(c).replace(/"/g,"&quot;");
+  return `<button class="chip ${c===category?"active":""}" onclick="selectCategory(${arg})">${escapeHtml(c)}</button>`;
+ }).join("");
 }
 function selectCategory(c){ category=c; page=1; categories(); renderProducts(); }
 function getFilteredList(){
