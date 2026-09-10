@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Account — ShopSlipper</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="https://raw.githubusercontent.com/ShopSlipper/ShopSlipper/main/shop_slipper_transparent.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eef6f2;--card:#fffefe;--text:#182220;--muted:#6f8582;
+  --line:#8fd3a6;--soft:#e6f2ee;--danger:#b5493e;
+  --gold:#077F38;--sage:#0a9c47;--amber:#c17a1f;--sky:#3b6ea5;
+  --radius:20px;--shadow:0 16px 40px rgba(7,60,35,.10);--shadow-lg:0 24px 60px rgba(7,60,35,.16);
+  --ease:cubic-bezier(.2,.8,.2,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:linear-gradient(160deg,#eef7f1 0%,#eaf2f2 45%,#e9f0f6 100%) fixed;color:var(--text);line-height:1.55;-webkit-font-smoothing:antialiased;min-height:100vh}
+button,input,select{font:inherit}
+button{cursor:pointer;border:0}
+a{color:inherit;text-decoration:none}
+.container{width:min(880px,calc(100% - 32px));margin:auto}
+header{position:sticky;top:0;z-index:30;background:rgba(7,127,56,.96);backdrop-filter:blur(18px);border-bottom:1px solid #056b2f}
+.nav{height:72px;display:flex;align-items:center;justify-content:space-between;gap:20px;max-width:1180px;width:min(1180px,calc(100% - 32px));margin:auto}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:19px;letter-spacing:-.4px;color:#fff}
+.logoMark{width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.55)}
+.logoAccent{font-weight:400;color:#c8f0d6}
+.backLink{color:#eafff2;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px}
+.backLink:hover{text-decoration:underline}
+main{padding:40px 0 80px}
+.pageHead{margin-bottom:28px}
+.eyebrow{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--gold);margin-bottom:10px}
+.eyebrow::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--gold)}
+h1{font-weight:800;font-size:clamp(24px,3.5vw,34px);letter-spacing:-.8px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:26px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 22px;border-radius:999px;background:var(--gold);color:#fff;font-weight:600;font-size:13.5px;transition:transform .2s var(--ease),box-shadow .2s var(--ease)}
+.btn:hover{transform:translateY(-2px);box-shadow:0 10px 22px rgba(7,127,56,.28)}
+.btn:active{transform:translateY(0) scale(.98)}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
+.btn.light{background:#fff;color:var(--gold);border:1px solid var(--line)}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.field label{font-size:12px;font-weight:700}
+.field input{border:1px solid var(--line);border-radius:11px;padding:12px;outline:none;width:100%}
+.field input:focus{border-color:var(--text)}
+.authWrap{max-width:420px;margin:0 auto}
+.authTabs{display:flex;gap:8px;margin-bottom:22px;background:var(--soft);border-radius:999px;padding:4px}
+.authTab{flex:1;text-align:center;padding:9px;border-radius:999px;font-size:13px;font-weight:700;color:var(--muted)}
+.authTab.active{background:#fff;color:var(--gold);box-shadow:0 3px 10px rgba(7,60,35,.1)}
+.authNote{color:var(--muted);font-size:13px;margin-bottom:16px}
+.authSwitch{text-align:center;font-size:13px;color:var(--muted);margin-top:14px}
+.authSwitch a{color:var(--gold);font-weight:700}
+.profileRow{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:26px;flex-wrap:wrap}
+.profileWho b{display:block;font-size:17px}
+.profileWho span{color:var(--muted);font-size:13px}
+.sectionLabel{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);font-weight:700;margin:26px 0 12px}
+.orderCard{border:1px solid var(--line);border-radius:16px;margin-bottom:14px;overflow:hidden;background:#fff}
+.orderHead{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 18px;cursor:pointer}
+.orderHead:hover{background:var(--soft)}
+.orderIdRow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.orderIdRow b{font-size:14px}
+.orderDate{color:var(--muted);font-size:12.5px}
+.statusPill{font-size:10.5px;font-weight:700;letter-spacing:.3px;padding:5px 10px;border-radius:999px;text-transform:uppercase}
+.statusPill.new{background:#e5eefc;color:var(--sky)}
+.statusPill.processing{background:#fbeed9;color:var(--amber)}
+.statusPill.handover{background:#e1f6e9;color:var(--gold)}
+.statusPill.delivered{background:#e1f6e9;color:var(--gold)}
+.statusPill.failed{background:#fbe4e1;color:var(--danger)}
+.orderRight{display:flex;align-items:center;gap:14px}
+.orderTotal{font-weight:700;font-size:14px}
+.chevron{transition:transform .2s var(--ease);color:var(--muted)}
+.orderCard.open .chevron{transform:rotate(180deg)}
+.orderBody{max-height:0;overflow:hidden;transition:max-height .25s var(--ease)}
+.orderCard.open .orderBody{max-height:1200px}
+.orderBodyInner{padding:0 18px 18px;border-top:1px solid var(--soft)}
+.itemRow{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--soft);font-size:13px}
+.itemRow:last-child{border-bottom:0}
+.itemMeta{color:var(--muted);font-size:11.5px;margin-top:2px}
+.itemQtyPrice{text-align:right;white-space:nowrap;font-weight:600}
+.detailGrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px}
+.detailBlock b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:5px}
+.detailBlock span{font-size:13.5px}
+.totalsBlock{margin-top:14px;padding-top:14px;border-top:1px solid var(--soft)}
+.totalsRow{display:flex;justify-content:space-between;font-size:13px;padding:3px 0;color:var(--muted)}
+.totalsRow.grand{color:var(--text);font-weight:800;font-size:15px;margin-top:4px}
+.emptyState{text-align:center;padding:50px 10px;color:var(--muted)}
+.emptyState .icon{font-size:38px;margin-bottom:10px}
+.loadingState{text-align:center;padding:50px 10px;color:var(--muted);font-size:13.5px}
+.errBanner{background:#fbe4e1;color:var(--danger);border-radius:12px;padding:11px 14px;font-size:13px;margin-bottom:16px}
+.toast{position:fixed;left:50%;bottom:25px;transform:translate(-50%,20px);background:var(--text);color:#fff;padding:12px 20px;border-radius:999px;font-size:13px;font-weight:500;opacity:0;pointer-events:none;transition:.3s var(--ease);z-index:100;box-shadow:0 14px 34px rgba(0,0,0,.22)}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+@media(max-width:600px){
+ .card{padding:18px}
+ .detailGrid{grid-template-columns:1fr}
+ .orderHead{flex-wrap:wrap}
+ .profileRow{flex-direction:column;align-items:flex-start}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <a class="logo" href="index.html"><img class="logoMark" src="https://raw.githubusercontent.com/ShopSlipper/ShopSlipper/main/shop_slipper_transparent.png" alt="ShopSlipper logo">SHOP<span class="logoAccent">SLIPPER</span></a>
+    <a class="backLink" href="index.html">← Back to shop</a>
+  </div>
+</header>
+
+<main>
+ <div class="container">
+
+  <div id="loggedOutView" style="display:none">
+   <div class="pageHead" style="text-align:center">
+    <div class="eyebrow" style="justify-content:center">Account</div>
+    <h1>Sign in to see your orders</h1>
+   </div>
+   <div class="card authWrap">
+    <div class="authTabs">
+     <button class="authTab" id="tabLogin" onclick="switchMode('login')">Log in</button>
+     <button class="authTab" id="tabSignup" onclick="switchMode('signup')">Sign up</button>
+    </div>
+    <div id="authBody"></div>
+   </div>
+  </div>
+
+  <div id="loggedInView" style="display:none">
+   <div class="pageHead">
+    <div class="eyebrow">Account</div>
+    <h1>My account</h1>
+   </div>
+   <div class="card">
+    <div class="profileRow">
+     <div class="profileWho">
+      <b id="whoName"></b>
+      <span id="whoEmail"></span>
+     </div>
+     <button class="btn light" onclick="logout()">Log out</button>
+    </div>
+
+    <div class="sectionLabel">Order history</div>
+    <div id="ordersWrap"><div class="loadingState">Loading your orders…</div></div>
+   </div>
+  </div>
+
+ </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzKHLu21Y5oJeM7KQ5dcI3mTXpNnZlDRoTn19nCuqZ7SNb73S6cj9QaTY2Sd-QHTFoE/exec";
+
+let session = null;
+try{ session = JSON.parse(localStorage.getItem("ss-session")||"null"); }catch(err){ session = null; }
+let mode = "login"; // login | signup | forgot | resetCode
+let resetEmail = "";
+
+function money(n){ return "Rs. "+Number(n||0).toLocaleString("en-IN"); }
+function escapeHtml(s){ const d=document.createElement("div"); d.textContent=s||""; return d.innerHTML; }
+function toast(msg){
+ const el = document.querySelector("#toast");
+ el.textContent = msg; el.classList.add("show");
+ clearTimeout(window._toastT);
+ window._toastT = setTimeout(()=>el.classList.remove("show"), 2600);
+}
+
+function render(){
+ if(session){
+  document.querySelector("#loggedOutView").style.display = "none";
+  document.querySelector("#loggedInView").style.display = "block";
+  document.querySelector("#whoName").textContent = session.name || session.email;
+  document.querySelector("#whoEmail").textContent = session.email;
+  loadOrders();
+ }else{
+  document.querySelector("#loggedInView").style.display = "none";
+  document.querySelector("#loggedOutView").style.display = "block";
+  document.querySelector("#tabLogin").classList.toggle("active", mode==="login");
+  document.querySelector("#tabSignup").classList.toggle("active", mode==="signup");
+  renderAuthBody();
+ }
+}
+
+function switchMode(m){ mode = m; render(); }
+
+function renderAuthBody(){
+ const body = document.querySelector("#authBody");
+ if(mode === "forgot"){
+  body.innerHTML = `
+   <p class="authNote">Enter your account email and we'll send a 6-digit code to reset your password.</p>
+   <form onsubmit="submitForgot(event)">
+    <div class="field"><label>Email</label><input required type="email" name="email" placeholder="you@example.com"></div>
+    <button class="btn" id="authSubmitBtn" style="width:100%;margin-top:5px">Send reset code</button>
+   </form>
+   <p class="authSwitch"><a href="#" onclick="switchMode('login');return false;">Back to log in</a></p>
+  `;
+ }else if(mode === "resetCode"){
+  body.innerHTML = `
+   <p class="authNote">We sent a 6-digit code to <b>${escapeHtml(resetEmail)}</b>. It expires in 15 minutes.</p>
+   <form onsubmit="submitReset(event)">
+    <div class="field"><label>6-digit code</label><input required name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="123456"></div>
+    <div class="field"><label>New password</label><input required type="password" name="newPassword" minlength="6" placeholder="At least 6 characters"></div>
+    <button class="btn" id="authSubmitBtn" style="width:100%;margin-top:5px">Reset password</button>
+   </form>
+   <p class="authSwitch">Didn't get a code? <a href="#" onclick="switchMode('forgot');return false;">Try again</a></p>
+  `;
+ }else{
+  const isLogin = mode === "login";
+  body.innerHTML = `
+   <p class="authNote">${isLogin?"Log in to see your past orders.":"Create an account to track your orders."}</p>
+   <form onsubmit="${isLogin?'submitLogin(event)':'submitSignup(event)'}">
+    ${isLogin?"":'<div class="field"><label>Full name</label><input required name="name" placeholder="Your name"></div>'}
+    <div class="field"><label>Email</label><input required type="email" name="email" placeholder="you@example.com"></div>
+    ${isLogin?"":'<div class="field"><label>Phone (optional)</label><input name="phone" placeholder="98XXXXXXXX"></div>'}
+    <div class="field"><label>Password</label><input required type="password" name="password" minlength="6" placeholder="At least 6 characters"></div>
+    <button class="btn" id="authSubmitBtn" style="width:100%;margin-top:5px">${isLogin?"Log in":"Create account"}</button>
+   </form>
+   ${isLogin?'<p style="text-align:right;margin-top:8px"><a href="#" onclick="switchMode(\'forgot\');return false;" style="color:var(--muted);font-size:12.5px">Forgot password?</a></p>':""}
+  `;
+ }
+}
+
+async function submitLogin(e){
+ e.preventDefault();
+ const btn = document.querySelector("#authSubmitBtn");
+ const form = new FormData(e.target);
+ btn.disabled = true; btn.textContent = "Logging in…";
+ try{
+  const res = await fetch(SCRIPT_URL, { method:"POST", body: JSON.stringify({ action:"login", email: form.get("email"), password: form.get("password") }) });
+  const data = await res.json();
+  if(!data.success) throw new Error(data.error || "Couldn't log in");
+  session = { token: data.token, email: data.email, name: data.name };
+  localStorage.setItem("ss-session", JSON.stringify(session));
+  render();
+  toast("Logged in");
+ }catch(err){
+  toast(err.message || "Couldn't log in — check your email and password.");
+  btn.disabled = false; btn.textContent = "Log in";
+ }
+}
+async function submitSignup(e){
+ e.preventDefault();
+ const btn = document.querySelector("#authSubmitBtn");
+ const form = new FormData(e.target);
+ btn.disabled = true; btn.textContent = "Creating account…";
+ try{
+  const res = await fetch(SCRIPT_URL, { method:"POST", body: JSON.stringify({ action:"signup", name: form.get("name"), email: form.get("email"), phone: form.get("phone"), password: form.get("password") }) });
+  const data = await res.json();
+  if(!data.success) throw new Error(data.error || "Couldn't create account");
+  session = { token: data.token, email: data.email, name: data.name };
+  localStorage.setItem("ss-session", JSON.stringify(session));
+  render();
+  toast("Account created");
+ }catch(err){
+  toast(err.message || "Couldn't create account — please try again.");
+  btn.disabled = false; btn.textContent = "Create account";
+ }
+}
+async function submitForgot(e){
+ e.preventDefault();
+ const btn = document.querySelector("#authSubmitBtn");
+ const form = new FormData(e.target);
+ resetEmail = (form.get("email")||"").trim();
+ btn.disabled = true; btn.textContent = "Sending…";
+ try{
+  const res = await fetch(SCRIPT_URL, { method:"POST", body: JSON.stringify({ action:"requestPasswordReset", email: resetEmail }) });
+  const data = await res.json();
+  if(!data.success) throw new Error(data.error || "Couldn't send reset code");
+  mode = "resetCode";
+  render();
+  toast("Check your email for the code");
+ }catch(err){
+  toast(err.message || "Couldn't send reset code — please try again.");
+  btn.disabled = false; btn.textContent = "Send reset code";
+ }
+}
+async function submitReset(e){
+ e.preventDefault();
+ const btn = document.querySelector("#authSubmitBtn");
+ const form = new FormData(e.target);
+ btn.disabled = true; btn.textContent = "Resetting…";
+ try{
+  const res = await fetch(SCRIPT_URL, { method:"POST", body: JSON.stringify({ action:"resetPassword", email: resetEmail, code: form.get("code"), newPassword: form.get("newPassword") }) });
+  const data = await res.json();
+  if(!data.success) throw new Error(data.error || "Couldn't reset password");
+  session = { token: data.token, email: data.email, name: data.name };
+  localStorage.setItem("ss-session", JSON.stringify(session));
+  mode = "login";
+  render();
+  toast("Password reset — you're logged in");
+ }catch(err){
+  toast(err.message || "Couldn't reset password — check the code and try again.");
+  btn.disabled = false; btn.textContent = "Reset password";
+ }
+}
+function logout(){
+ session = null;
+ localStorage.removeItem("ss-session");
+ mode = "login";
+ render();
+ toast("Logged out");
+}
+
+/* ================== Orders ==================
+   Renders every field placeOrder() sends when an order is created
+   (name, phone, email, address, city, payment, items[], subtotal,
+   delivery, total) — plus orderId, timestamp and status, which the
+   backend adds. Each block only prints if the field is actually
+   present, so this stays safe if a particular order is missing one.
+================================================= */
+function statusInfo(raw){
+ const s = (raw||"New").toLowerCase();
+ if(s.includes("process")) return {label:"Processing", cls:"processing"};
+ if(s.includes("handover") || s.includes("deliver")) return {label:"Delivered", cls:"handover"};
+ if(s.includes("fail")) return {label:"Failed", cls:"failed"};
+ return {label:"New", cls:"new"};
+}
+
+async function loadOrders(){
+ const wrap = document.querySelector("#ordersWrap");
+ try{
+  const res = await fetch(`${SCRIPT_URL}?action=myOrders&token=${encodeURIComponent(session.token)}`);
+  const data = await res.json();
+  if(data.error){
+   session = null;
+   localStorage.removeItem("ss-session");
+   mode = "login";
+   render();
+   toast("Your session expired — please log in again");
+   return;
+  }
+  const orders = (data.orders || []).slice().sort((a,b)=>new Date(b.timestamp||0)-new Date(a.timestamp||0));
+  if(!orders.length){
+   wrap.innerHTML = `<div class="emptyState"><div class="icon">🧦</div><p>No orders yet — once you place one with this email, it'll show up here.</p></div>`;
+   return;
+  }
+  wrap.innerHTML = orders.map((o,idx)=>orderCardHtml(o,idx)).join("");
+ }catch(err){
+  wrap.innerHTML = `<div class="errBanner">Couldn't load your orders — check your connection and refresh.</div>`;
+ }
+}
+
+function orderCardHtml(o, idx){
+ const st = statusInfo(o.status);
+ const items = Array.isArray(o.items) ? o.items : [];
+ const dateStr = o.timestamp ? new Date(o.timestamp).toLocaleDateString(undefined,{day:"numeric",month:"short",year:"numeric"}) : "";
+ const itemsHtml = items.map(i=>`
+  <div class="itemRow">
+   <div>
+    <div>${escapeHtml(i.name||"Item")}</div>
+    <div class="itemMeta">${[i.size?`Size ${escapeHtml(i.size)}`:"", i.color?escapeHtml(i.color):""].filter(Boolean).join(" · ")}${i.qty?` · Qty ${i.qty}`:""}</div>
+   </div>
+   <div class="itemQtyPrice">${money((i.price||0)*(i.qty||1))}</div>
+  </div>
+ `).join("");
+
+ const addressParts = [o.address, o.city].filter(Boolean).join(", ");
+
+ return `
+  <div class="orderCard" id="order-${idx}">
+   <div class="orderHead" onclick="toggleOrder(${idx})">
+    <div class="orderIdRow">
+     <b>${escapeHtml(o.orderId||"Order")}</b>
+     <span class="statusPill ${st.cls}">${st.label}</span>
+    </div>
+    <div class="orderRight">
+     <div style="text-align:right">
+      <div class="orderTotal">${money(o.total)}</div>
+      <div class="orderDate">${dateStr}</div>
+     </div>
+     <span class="chevron">▾</span>
+    </div>
+   </div>
+   <div class="orderBody">
+    <div class="orderBodyInner">
+     ${itemsHtml || `<p style="color:var(--muted);font-size:13px;padding:10px 0">Item details aren't available for this order.</p>`}
+     <div class="detailGrid">
+      ${addressParts ? `<div class="detailBlock"><b>Delivery address</b><span>${escapeHtml(addressParts)}</span></div>` : ""}
+      ${o.phone ? `<div class="detailBlock"><b>Phone</b><span>${escapeHtml(o.phone)}</span></div>` : ""}
+      ${o.payment ? `<div class="detailBlock"><b>Payment</b><span>${escapeHtml(o.payment)}</span></div>` : ""}
+      ${o.name ? `<div class="detailBlock"><b>Name on order</b><span>${escapeHtml(o.name)}</span></div>` : ""}
+     </div>
+     <div class="totalsBlock">
+      ${o.subtotal!==undefined ? `<div class="totalsRow"><span>Subtotal</span><span>${money(o.subtotal)}</span></div>` : ""}
+      ${o.delivery!==undefined ? `<div class="totalsRow"><span>Delivery</span><span>${o.delivery?money(o.delivery):"Free"}</span></div>` : ""}
+      <div class="totalsRow grand"><span>Total</span><span>${money(o.total)}</span></div>
+     </div>
+    </div>
+   </div>
+  </div>
+ `;
+}
+
+function toggleOrder(idx){
+ document.querySelector(`#order-${idx}`).classList.toggle("open");
+}
+
+render();
+</script>
+</body>
+</html>
