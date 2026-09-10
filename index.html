@@ -67,10 +67,6 @@ header{position:sticky;top:0;z-index:30;background:rgba(7,127,56,.96);backdrop-f
 .deliveryProgress b{color:var(--gold)}
 .progressTrack{height:6px;background:#fff;border-radius:99px;margin-top:8px;overflow:hidden}
 .progressFill{height:100%;background:var(--gold);border-radius:99px;transition:width .3s}
-.wishBtn{position:absolute;right:12px;bottom:12px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.92);display:grid;place-items:center;font-size:16px;z-index:3;box-shadow:0 2px 8px rgba(20,20,20,.12);transition:.15s transform}
-.wishBtn:hover{transform:scale(1.08)}
-.wishBtn.active{color:var(--danger)}
-.wishBtn.pdWish{position:static;background:var(--soft);box-shadow:none}
 .ratingRow{display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--muted);margin-bottom:6px}
 .ratingRow .stars{color:#e0a825;letter-spacing:1px;font-size:12px}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 24px;border-radius:999px;background:var(--gold);color:#fff;font-weight:600;font-size:13.5px;letter-spacing:.2px;transition:.25s transform,.25s opacity,.25s background}
@@ -314,7 +310,7 @@ footer .logo span{color:#c8f0d6}
     <div class="actions">
       <button class="iconbtn langBtn" id="langBtn" aria-label="Change language" onclick="toggleLang()">EN</button>
       <button class="iconbtn" id="searchIconBtn" aria-label="Search" onclick="document.querySelector('#search').focus();document.querySelector('#shop').scrollIntoView({behavior:'smooth'})">⌕</button>
-      <button class="iconbtn" aria-label="Wishlist" onclick="openWishlist()">♡<span class="badge" id="wishCount" style="display:none">0</span></button>
+      <button class="iconbtn" aria-label="Account" onclick="openAccount()">👤<span class="badge" id="acctBadge" style="display:none">•</span></button>
       <button class="iconbtn" aria-label="Cart" onclick="openCart()">🛒<span class="badge" id="cartCount">0</span></button>
     </div>
   </div>
@@ -438,13 +434,6 @@ footer .logo span{color:#c8f0d6}
  </aside>
 </div>
 
-<div class="drawer" id="wishDrawer" role="dialog" aria-modal="true" aria-label="Wishlist" onclick="if(event.target===this)closeWishlist()">
- <aside class="cart">
-  <div class="cartHead"><h2 data-i18n="wishlistTitle">Your wishlist</h2><button class="close" onclick="closeWishlist()">×</button></div>
-  <div class="cartItems" id="wishItems"></div>
- </aside>
-</div>
-
 <div class="modal" id="checkout" role="dialog" aria-modal="true" aria-label="Checkout" onclick="if(event.target===this)closeCheckout()">
  <div class="modalBox">
   <div class="modalHead"><h2>Checkout</h2><button class="close" onclick="closeCheckout()">×</button></div>
@@ -464,6 +453,9 @@ footer .logo span{color:#c8f0d6}
    <button class="btn" id="placeOrderBtn" style="width:100%;margin-top:5px">Place order</button>
   </form>
  </div>
+</div>
+<div class="modal" id="accountModal" role="dialog" aria-modal="true" aria-label="Account" onclick="if(event.target===this)closeAccount()">
+ <div class="modalBox" id="accountModalBox"></div>
 </div>
 <div class="modal" id="productModal" role="dialog" aria-modal="true" aria-label="Product details" onclick="if(event.target===this)closeProduct()">
  <div class="modalBox productModalBox" style="position:relative">
@@ -602,7 +594,6 @@ const I18N = {
   footerShop:"Shop", allSlippers:"All slippers", newArrivals:"New arrivals",
   footerHelp:"Help", delivery:"Delivery", returns:"Returns", email:"www.shopslipper@gmail.com", contact:"977-9747961784", footerContact:"Contact",
   justLanded:"Just landed", freeDeliveryHint:"away from free delivery", freeDeliveryUnlocked:"You've unlocked free delivery!",
-  wishlistTitle:"Your wishlist", wishlistEmpty:"Nothing saved yet.", addedToWishlist:"Saved to wishlist", removedFromWishlist:"Removed from wishlist",
   outOfStock:"Out of stock", onlyLeft:"Only {n} left", selectAvailableSize:"Select an available size"
  },
  np:{
@@ -628,7 +619,6 @@ const I18N = {
   footerShop:"किनमेल", allSlippers:"सबै चप्पल", newArrivals:"नयाँ सामान",
   footerHelp:"सहयोग", delivery:"डेलिभरी", returns:"फिर्ता", email:"www.shopslipper@gmail.com", contact:"977-9747961784", footerContact:"सम्पर्क",
   justLanded:"भर्खरै आएको", freeDeliveryHint:"नि:शुल्क डेलिभरीको लागि बाँकी", freeDeliveryUnlocked:"तपाईंले नि:शुल्क डेलिभरी पाउनुभयो!",
-  wishlistTitle:"तपाईंको मनपर्ने सूची", wishlistEmpty:"अहिलेसम्म केही थपिएको छैन।", addedToWishlist:"मनपर्ने सूचीमा थपियो", removedFromWishlist:"मनपर्ने सूचीबाट हटाइयो",
   outOfStock:"स्टकमा छैन", onlyLeft:"जम्मा {n} बाँकी", selectAvailableSize:"उपलब्ध साइज छान्नुहोस्"
  }
 };
@@ -640,7 +630,6 @@ function toggleLang(){
  renderProducts();
  renderNewArrivals();
  updateCart();
- if(document.querySelector("#wishDrawer").classList.contains("open")) renderWishItems();
 }
 function applyI18n(){
  const t = I18N[currentLang];
@@ -726,32 +715,6 @@ function productHasAnyStock(product){
  return false;
 }
 
-/* ================== Wishlist ================== */
-let wishlist = JSON.parse(localStorage.getItem("shopslipper-wishlist")||"[]");
-function isWished(id){ return wishlist.includes(id); }
-function saveWishlist(){ localStorage.setItem("shopslipper-wishlist",JSON.stringify(wishlist)); updateWishBadge(); }
-function toggleWishlist(id){
- if(isWished(id)){ wishlist=wishlist.filter(x=>x!==id); toast(I18N[currentLang].removedFromWishlist); }
- else{ wishlist=[...wishlist,id]; toast(I18N[currentLang].addedToWishlist); }
- saveWishlist();
- renderProducts();
- if(pdProduct && pdProduct.id===id) renderProductDetail();
- if(document.querySelector("#wishDrawer").classList.contains("open")) renderWishItems();
-}
-function updateWishBadge(){
- const b=document.querySelector("#wishCount");
- if(wishlist.length){ b.style.display="grid"; b.textContent=wishlist.length; }
- else b.style.display="none";
-}
-function openWishlist(){ document.querySelector("#wishDrawer").classList.add("open"); renderWishItems(); }
-function closeWishlist(){ document.querySelector("#wishDrawer").classList.remove("open"); }
-function renderWishItems(){
- const el=document.querySelector("#wishItems");
- const items = products.filter(p=>wishlist.includes(p.id));
- if(!items.length){ el.innerHTML = `<div class="empty">${I18N[currentLang].wishlistEmpty}</div>`; return; }
- el.innerHTML = items.map(p=>`<div class="cartItem"><img src="${p.image}" alt="" onerror="this.style.display='none'"><div><h4>${escapeHtml(p.name)}</h4><small>${money(p.price)}</small><div class="qty" style="margin-top:8px"><button class="chip" style="padding:7px 12px" onclick="closeWishlist();openProduct(${p.id})">View</button></div><button class="remove" onclick="toggleWishlist(${p.id})">Remove</button></div></div>`).join("");
-}
-
 /* ================== New arrivals rail ================== */
 function renderNewArrivals(){
  const wrap=document.querySelector("#newArrivalsWrap");
@@ -775,10 +738,7 @@ async function loadProducts(){
  const beforeCount = cart.length;
  cart = cart.filter(i => products.some(p => p.id === i.id));
  if(cart.length !== beforeCount) save();
- const wishBefore = wishlist.length;
- wishlist = wishlist.filter(id => products.some(p => p.id === id));
- if(wishlist.length !== wishBefore) saveWishlist();
- categories();renderProducts();updateCart();updateWishBadge();renderNewArrivals();
+ categories();renderProducts();updateCart();renderNewArrivals();
 }
 
 /* ================== FIX APPLIED HERE ==================
@@ -830,14 +790,12 @@ function cardHTML(p){
  const hasColor = !!p.color;
  const hasDesc = !!p.description;
  const metaRow = (hasColor||hasDesc) ? `<div class="cardMeta">${hasColor?`<span class="cardColorDot" style="background:${escapeHtml(p.color)}"></span>`:""}${hasDesc?`<span class="cardDesc">${escapeHtml(p.description)}</span>`:""}</div>` : "";
- const wished = isWished(p.id);
  const outOfStock = !productHasAnyStock(p);
  return `<article class="product ${outOfStock?'outOfStock':''}" onclick="openProduct(${p.id})">
   <div class="productImg">
    <img src="${p.image}" alt="${escapeHtml(p.name)}" loading="lazy" onerror="this.style.display='none'">
    ${outOfStock?`<span class="outBadge">${t.outOfStock}</span>`:(p.new?'<span class="bestBadge">BEST</span>':'')}
    ${(!outOfStock && discount>0)?`<span class="sale" style="left:auto;right:12px">${discount}% OFF</span>`:''}
-   <button class="wishBtn ${wished?'active':''}" aria-label="Toggle wishlist" onclick="event.stopPropagation();toggleWishlist(${p.id})">${wished?'♥':'♡'}</button>
   </div>
   <div class="productInfo">
    <h3>${escapeHtml(p.name)}</h3>
@@ -876,8 +834,8 @@ document.addEventListener("keydown", e=>{
  else if(document.querySelector("#returnsModal").classList.contains("open")) closeReturns();
  else if(document.querySelector("#orderSuccessModal").classList.contains("open")) closeOrderSuccess();
  else if(document.querySelector("#returnSuccessModal").classList.contains("open")) closeReturnSuccess();
+ else if(document.querySelector("#accountModal").classList.contains("open")) closeAccount();
  else if(document.querySelector("#drawer").classList.contains("open")) closeCart();
- else if(document.querySelector("#wishDrawer").classList.contains("open")) closeWishlist();
 });
 function pdChangeQty(n){
  const max = stockQtyFor(pdProduct, pdVariantIdx, pdSize);
@@ -936,7 +894,6 @@ function renderProductDetail(){
       return `<button class="pdSwatch ${i===pdVariantIdx?'active':''} ${colorOut?'swatchOut':''}" style="background:${v.color||'#ccc'}" title="${escapeHtml(v.colorName||'')}${colorOut?' — '+t.outOfStock:''}" onclick="pdPickVariant(${i})"></button>`;
      }).join("")}</div>${current.colorName?`<div class="pdColorLabel">${escapeHtml(current.colorName)}</div>`:""}</div>`
   : `<div class="pdBlock"><label>Color</label><div class="pdColor"><span class="pdColorDot" style="background:${p.color||'#ccc'}"></span><span>${escapeHtml(p.color||"")}</span></div></div>`;
- const wished = isWished(p.id);
  const curQty = stockQtyFor(p, pdVariantIdx, pdSize);
  const combinationOut = sizes.length ? (pdSize ? isCombinationOut(p, pdVariantIdx, pdSize) : true) : isCombinationOut(p, pdVariantIdx, null);
  let stockMsgHtml = "";
@@ -949,9 +906,8 @@ function renderProductDetail(){
   <div class="pdWrap">
    <div class="pdImg"><img src="${shownImage}" alt="${escapeHtml(p.name)}" onerror="this.style.display='none'" onclick="openZoom(this.src)"><button class="zoomBtn" onclick="event.stopPropagation();openZoom('${shownImage}')" aria-label="Zoom photo" title="Zoom in">🔍</button></div>
    <div class="pdInfo">
-    <div class="eyebrow" style="display:flex;justify-content:space-between;align-items:center">
+    <div class="eyebrow">
      <span>${escapeHtml(p.category)}</span>
-     <button class="wishBtn pdWish" aria-label="Toggle wishlist" onclick="toggleWishlist(${p.id})">${wished?'♥':'♡'}</button>
     </div>
     <h2>${escapeHtml(p.name)}</h2>
     ${p.sku?`<span class="cardSku" style="margin-bottom:10px">SKU: ${escapeHtml(p.sku)}</span>`:""}
@@ -1129,6 +1085,9 @@ function openCheckout(){
  }
  if(!cart.length){ closeCart(); return; }
  closeCart();document.querySelector("#checkoutSummary").innerHTML=`<div style="background:var(--soft);padding:14px;border-radius:14px;margin-bottom:18px"><b>${cart.reduce((s,i)=>s+i.qty,0)} items</b> · Total ${document.querySelector("#total").textContent}</div>`;
+ // Prefill email for signed-in customers so their order shows up under
+ // "My account" (order history is matched by email, not a customer ID).
+ if(session) document.querySelector('#checkoutForm [name="email"]').value = session.email;
  document.querySelector("#checkout").classList.add("open")
 }
 function closeCheckout(){document.querySelector("#checkout").classList.remove("open")}
@@ -1204,7 +1163,7 @@ function openOrderSuccess(orderId){
 function closeOrderSuccess(){ document.querySelector("#orderSuccessModal").classList.remove("open"); }
 
 function openReturns(prefillId){
- closeProduct();closeCart();closeCheckout();closeWishlist();
+ closeProduct();closeCart();closeCheckout();
  if(prefillId) document.querySelector("#returnOrderId").value = prefillId;
  document.querySelector("#returnsModal").classList.add("open");
 }
@@ -1243,6 +1202,216 @@ async function submitReturn(e){
 }
 
 let toastTimer;function toast(t){const e=document.querySelector("#toast");e.textContent=t;e.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>e.classList.remove("show"),1800)}
+
+/* ================== Customer accounts ==================
+   Optional — customers can keep checking out as a guest without
+   ever signing up. An account just lets them come back and see
+   their past orders. Order history is matched by email (whatever
+   email they used at checkout), since orders aren't otherwise
+   linked to an account. Session is a signed token from the backend,
+   kept in localStorage so it survives reloads; logging out just
+   clears it client-side.
+=========================================================== */
+let session = null;
+try{ session = JSON.parse(localStorage.getItem("ss-session")||"null"); }catch(err){ session = null; }
+let acctMode = "login"; // "login" | "signup" | "forgot" | "resetCode" — all only relevant while logged out
+let resetEmail = ""; // email a reset code was just sent to, carried from the "forgot" step to "resetCode"
+
+function updateAccountBadge(){
+ document.querySelector("#acctBadge").style.display = session ? "grid" : "none";
+}
+function openAccount(){
+ closeProduct();closeCart();closeCheckout();closeReturns();
+ renderAccountModal();
+ document.querySelector("#accountModal").classList.add("open");
+}
+function closeAccount(){ document.querySelector("#accountModal").classList.remove("open"); }
+function switchAccountMode(mode){ acctMode = mode; renderAccountModal(); }
+
+function renderAccountModal(){
+ const box = document.querySelector("#accountModalBox");
+ if(session){
+  box.innerHTML = `
+   <div class="modalHead"><h2>My account</h2><button class="close" onclick="closeAccount()">×</button></div>
+   <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Signed in as <b>${escapeHtml(session.name||session.email)}</b></p>
+   <div style="font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:10px">Your orders</div>
+   <div id="acctOrdersWrap"><p style="color:var(--muted);font-size:13px">Loading your orders…</p></div>
+   <button class="btn light" style="width:100%;margin-top:16px" onclick="logoutAccount()">Log out</button>
+  `;
+  loadMyOrders();
+ }else if(acctMode === "forgot"){
+  box.innerHTML = `
+   <div class="modalHead"><h2>Reset password</h2><button class="close" onclick="closeAccount()">×</button></div>
+   <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Enter your account email and we'll send a 6-digit code to reset your password.</p>
+   <form id="acctForm" onsubmit="submitForgot(event)">
+    <div class="formGrid">
+     <div class="field full"><label>Email</label><input required type="email" name="email" placeholder="you@example.com"></div>
+    </div>
+    <button class="btn" id="acctSubmitBtn" style="width:100%;margin-top:5px">Send reset code</button>
+   </form>
+   <p style="text-align:center;font-size:13px;color:var(--muted);margin-top:14px">
+    <a href="#" onclick="switchAccountMode('login');return false;" style="color:var(--gold);font-weight:700">Back to log in</a>
+   </p>
+  `;
+ }else if(acctMode === "resetCode"){
+  box.innerHTML = `
+   <div class="modalHead"><h2>Enter your code</h2><button class="close" onclick="closeAccount()">×</button></div>
+   <p style="color:var(--muted);font-size:13px;margin-bottom:16px">We sent a 6-digit code to <b>${escapeHtml(resetEmail)}</b>. It expires in 15 minutes.</p>
+   <form id="acctForm" onsubmit="submitReset(event)">
+    <div class="formGrid">
+     <div class="field full"><label>6-digit code</label><input required name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="123456"></div>
+     <div class="field full"><label>New password</label><input required type="password" name="newPassword" minlength="6" placeholder="At least 6 characters"></div>
+    </div>
+    <button class="btn" id="acctSubmitBtn" style="width:100%;margin-top:5px">Reset password</button>
+   </form>
+   <p style="text-align:center;font-size:13px;color:var(--muted);margin-top:14px">
+    Didn't get a code? <a href="#" onclick="switchAccountMode('forgot');return false;" style="color:var(--gold);font-weight:700">Try again</a>
+   </p>
+  `;
+ }else{
+  const isLogin = acctMode === "login";
+  box.innerHTML = `
+   <div class="modalHead"><h2>${isLogin?"Log in":"Create account"}</h2><button class="close" onclick="closeAccount()">×</button></div>
+   <p style="color:var(--muted);font-size:13px;margin-bottom:16px">${isLogin?"See your past orders anytime.":"Optional — you can still check out as a guest without an account."}</p>
+   <form id="acctForm" onsubmit="${isLogin?'submitLogin(event)':'submitSignup(event)'}">
+    <div class="formGrid">
+     ${isLogin?"":'<div class="field full"><label>Full name</label><input required name="name" placeholder="Your name"></div>'}
+     <div class="field full"><label>Email</label><input required type="email" name="email" placeholder="you@example.com"></div>
+     ${isLogin?"":'<div class="field full"><label>Phone (optional)</label><input name="phone" placeholder="98XXXXXXXX"></div>'}
+     <div class="field full"><label>Password</label><input required type="password" name="password" minlength="6" placeholder="At least 6 characters"></div>
+    </div>
+    <button class="btn" id="acctSubmitBtn" style="width:100%;margin-top:5px">${isLogin?"Log in":"Create account"}</button>
+   </form>
+   ${isLogin?'<p style="text-align:right;margin-top:8px"><a href="#" onclick="switchAccountMode(\'forgot\');return false;" style="color:var(--muted);font-size:12.5px">Forgot password?</a></p>':""}
+   <p style="text-align:center;font-size:13px;color:var(--muted);margin-top:14px">
+    ${isLogin
+     ? `New here? <a href="#" onclick="switchAccountMode('signup');return false;" style="color:var(--gold);font-weight:700">Create an account</a>`
+     : `Already have an account? <a href="#" onclick="switchAccountMode('login');return false;" style="color:var(--gold);font-weight:700">Log in</a>`}
+   </p>
+  `;
+ }
+}
+
+async function submitLogin(e){
+ e.preventDefault();
+ const btn = document.querySelector("#acctSubmitBtn");
+ const form = new FormData(e.target);
+ btn.disabled = true; btn.textContent = "Logging in…";
+ try{
+  const res = await fetch(SCRIPT_URL, { method:"POST", body: JSON.stringify({ action:"login", email: form.get("email"), password: form.get("password") }) });
+  const data = await res.json();
+  if(!data.success) throw new Error(data.error || "Couldn't log in");
+  session = { token: data.token, email: data.email, name: data.name };
+  localStorage.setItem("ss-session", JSON.stringify(session));
+  updateAccountBadge();
+  renderAccountModal();
+  toast("Logged in");
+ }catch(err){
+  toast(err.message || "Couldn't log in — check your email and password.");
+  btn.disabled = false; btn.textContent = "Log in";
+ }
+}
+async function submitSignup(e){
+ e.preventDefault();
+ const btn = document.querySelector("#acctSubmitBtn");
+ const form = new FormData(e.target);
+ btn.disabled = true; btn.textContent = "Creating account…";
+ try{
+  const res = await fetch(SCRIPT_URL, { method:"POST", body: JSON.stringify({ action:"signup", name: form.get("name"), email: form.get("email"), phone: form.get("phone"), password: form.get("password") }) });
+  const data = await res.json();
+  if(!data.success) throw new Error(data.error || "Couldn't create account");
+  session = { token: data.token, email: data.email, name: data.name };
+  localStorage.setItem("ss-session", JSON.stringify(session));
+  updateAccountBadge();
+  renderAccountModal();
+  toast("Account created");
+ }catch(err){
+  toast(err.message || "Couldn't create account — please try again.");
+  btn.disabled = false; btn.textContent = "Create account";
+ }
+}
+async function submitForgot(e){
+ e.preventDefault();
+ const btn = document.querySelector("#acctSubmitBtn");
+ const form = new FormData(e.target);
+ resetEmail = (form.get("email")||"").trim();
+ btn.disabled = true; btn.textContent = "Sending…";
+ try{
+  const res = await fetch(SCRIPT_URL, { method:"POST", body: JSON.stringify({ action:"requestPasswordReset", email: resetEmail }) });
+  const data = await res.json();
+  if(!data.success) throw new Error(data.error || "Couldn't send reset code");
+  acctMode = "resetCode";
+  renderAccountModal();
+  toast("Check your email for the code");
+ }catch(err){
+  toast(err.message || "Couldn't send reset code — please try again.");
+  btn.disabled = false; btn.textContent = "Send reset code";
+ }
+}
+async function submitReset(e){
+ e.preventDefault();
+ const btn = document.querySelector("#acctSubmitBtn");
+ const form = new FormData(e.target);
+ btn.disabled = true; btn.textContent = "Resetting…";
+ try{
+  const res = await fetch(SCRIPT_URL, { method:"POST", body: JSON.stringify({ action:"resetPassword", email: resetEmail, code: form.get("code"), newPassword: form.get("newPassword") }) });
+  const data = await res.json();
+  if(!data.success) throw new Error(data.error || "Couldn't reset password");
+  session = { token: data.token, email: data.email, name: data.name };
+  localStorage.setItem("ss-session", JSON.stringify(session));
+  updateAccountBadge();
+  acctMode = "login";
+  renderAccountModal();
+  toast("Password reset — you're logged in");
+ }catch(err){
+  toast(err.message || "Couldn't reset password — check the code and try again.");
+  btn.disabled = false; btn.textContent = "Reset password";
+ }
+}
+function logoutAccount(){
+ session = null;
+ localStorage.removeItem("ss-session");
+ updateAccountBadge();
+ acctMode = "login";
+ closeAccount();
+ toast("Logged out");
+}
+async function loadMyOrders(){
+ const wrap = document.querySelector("#acctOrdersWrap");
+ if(!wrap || !session) return;
+ try{
+  const res = await fetch(`${SCRIPT_URL}?action=myOrders&token=${encodeURIComponent(session.token)}`);
+  const data = await res.json();
+  if(data.error){
+   // Token invalid or expired — sign out client-side so they can log back in.
+   session = null;
+   localStorage.removeItem("ss-session");
+   updateAccountBadge();
+   acctMode = "login";
+   renderAccountModal();
+   toast("Your session expired — please log in again");
+   return;
+  }
+  const orders = data.orders || [];
+  if(!orders.length){
+   wrap.innerHTML = `<p style="color:var(--muted);font-size:13px">No orders yet — once you place one with this email, it'll show up here.</p>`;
+   return;
+  }
+  wrap.innerHTML = orders.map(o=>`
+   <div style="border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+     <b style="font-size:13.5px">${escapeHtml(o.orderId)}</b>
+     <span style="font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)">${escapeHtml(o.status||"New")}</span>
+    </div>
+    <div style="font-size:12.5px;color:var(--muted)">${o.timestamp?new Date(o.timestamp).toLocaleDateString():""} · ${money(o.total)}</div>
+   </div>
+  `).join("");
+ }catch(err){
+  wrap.innerHTML = `<p style="color:var(--muted);font-size:13px">Couldn't load your orders — check your connection.</p>`;
+ }
+}
+updateAccountBadge();
+
 
 function escapeHtml(s){ const d=document.createElement("div"); d.textContent=s||""; return d.innerHTML; }
 
