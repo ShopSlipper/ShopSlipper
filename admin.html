@@ -257,6 +257,38 @@ tr:last-child td{border-bottom:0}
     <button class="btn danger" id="bn_deleteBtn" onclick="deleteBanner()">Delete banner</button>
     <button class="btn" id="bn_saveBtn" onclick="saveBanner()">Save banner</button>
    </div>
+
+   <div class="panelHead" style="margin-top:36px"><h2>In-grid banner</h2></div>
+   <div class="note">An extra promo tile that appears inside the product grid on your storefront, after the 8th product — good for a mid-scroll sale ad or a link out to a specific collection. Optional; leave the image blank to keep it off. Tapping it takes shoppers to the link below.</div>
+   <div class="bannerPreviewWrap">
+    <img id="mb_preview" src="" alt="In-grid banner preview">
+   </div>
+   <div class="formGrid">
+    <div class="field full">
+     <label>Banner image</label>
+     <div class="imgUploadRow">
+      <div class="imgUploadCol">
+       <input type="file" id="mb_imageFile" accept="image/*" style="display:none" onchange="handleMidBannerUpload(this.files[0])">
+       <button type="button" class="btn light sm" style="width:fit-content" onclick="document.querySelector('#mb_imageFile').click()">📷 Upload banner image</button>
+       <span class="uploadStatus" id="mb_uploadStatus"></span>
+       <span class="urlToggle" id="mb_urlToggle" onclick="toggleMidBannerUrlField()">or paste an image URL instead</span>
+       <input id="mb_image" placeholder="https://..." oninput="updateMidBannerPreview()" style="display:none">
+      </div>
+     </div>
+    </div>
+    <div class="field full">
+     <label>Link (where tapping this banner takes shoppers)</label>
+     <input id="mb_link" placeholder="https://... or #shop">
+    </div>
+    <div class="field full">
+     <label>Caption (optional — short text overlaid on the image)</label>
+     <input id="mb_text" placeholder="e.g. Up to 30% off winter styles" maxlength="60">
+    </div>
+   </div>
+   <div class="formFoot">
+    <button class="btn danger" id="mb_deleteBtn" onclick="deleteMidBanner()">Delete banner</button>
+    <button class="btn" id="mb_saveBtn" onclick="saveMidBanner()">Save banner</button>
+   </div>
   </div>
 
   <div class="panel" id="panel-delivery" style="display:none">
@@ -477,6 +509,7 @@ async function loadAll(){
   renderOrders();
   renderChatSessions();
   loadBannerIntoForm(sData.settings || {});
+  loadMidBannerIntoForm(sData.settings || {});
   loadDeliveryIntoForm(sData.settings || {});
  }catch(err){
   document.querySelector("#sourceNote").innerHTML = `Couldn't reach the Sheet. Check <code>SCRIPT_URL</code> is set correctly in admin.html and that the Apps Script is deployed with "Anyone" access.`;
@@ -957,6 +990,89 @@ async function deleteBanner(){
   document.querySelector("#bn_link").value = "";
   updateBannerPreview();
   toast("Banner removed from your storefront");
+ }catch(err){
+  toast("Couldn't delete — check your connection and try again.");
+ }finally{
+  btn.disabled = false; btn.textContent = "Delete banner";
+ }
+}
+
+/* ================== In-grid banner ==================
+   Same pattern as the hero banner above, stored under different
+   setting keys (midBannerImage/midBannerLink/midBannerText) so the
+   two don't overwrite each other. index.html shows this one inside
+   the product grid, after the 8th product.
+=================================================== */
+function loadMidBannerIntoForm(settings){
+ document.querySelector("#mb_image").value = settings.midBannerImage || "";
+ document.querySelector("#mb_link").value = settings.midBannerLink || "";
+ document.querySelector("#mb_text").value = settings.midBannerText || "";
+ document.querySelector("#mb_uploadStatus").textContent = "";
+ document.querySelector("#mb_uploadStatus").classList.remove("err");
+ updateMidBannerPreview();
+}
+function updateMidBannerPreview(){
+ const url = document.querySelector("#mb_image").value.trim();
+ document.querySelector("#mb_preview").src = url || "https://placehold.co/1600x500/eef6f2/182220?text=No+banner+set+yet";
+}
+function toggleMidBannerUrlField(){
+ const urlField = document.querySelector("#mb_image");
+ const showing = urlField.style.display !== "none";
+ urlField.style.display = showing ? "none" : "block";
+ document.querySelector("#mb_urlToggle").textContent = showing ? "or paste an image URL instead" : "hide URL field";
+}
+function handleMidBannerUpload(file){
+ if(!file) return;
+ const status = document.querySelector("#mb_uploadStatus");
+ status.classList.remove("err");
+ status.textContent = "Uploading…";
+ resizeAndUploadImage_(file).then(({url})=>{
+  document.querySelector("#mb_image").value = url;
+  updateMidBannerPreview();
+  status.textContent = "Uploaded ✓ — click Save banner to publish it";
+ }).catch(()=>{
+  status.classList.add("err");
+  status.textContent = "Couldn't upload — try again or paste a URL instead.";
+ });
+}
+async function saveMidBanner(){
+ const midBannerImage = document.querySelector("#mb_image").value.trim();
+ const midBannerLink = document.querySelector("#mb_link").value.trim();
+ const midBannerText = document.querySelector("#mb_text").value.trim();
+ if(!midBannerImage){
+  toast("Upload or paste a banner image first");
+  return;
+ }
+ if(!midBannerLink){
+  toast("Add a link for this banner first");
+  return;
+ }
+ const btn = document.querySelector("#mb_saveBtn");
+ btn.disabled = true; btn.textContent = "Saving…";
+ try{
+  const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"updateSettings",key:ADMIN_KEY,settings:{midBannerImage,midBannerLink,midBannerText}})});
+  const data = await res.json();
+  if(!data.success) throw new Error(data.error||"failed");
+  toast("In-grid banner saved — it's live on your storefront");
+ }catch(err){
+  toast("Couldn't save — check your connection and try again.");
+ }finally{
+  btn.disabled = false; btn.textContent = "Save banner";
+ }
+}
+async function deleteMidBanner(){
+ if(!confirm("Remove the in-grid banner from your storefront? This can't be undone.")) return;
+ const btn = document.querySelector("#mb_deleteBtn");
+ btn.disabled = true; btn.textContent = "Deleting…";
+ try{
+  const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"updateSettings",key:ADMIN_KEY,settings:{midBannerImage:"",midBannerLink:"",midBannerText:""}})});
+  const data = await res.json();
+  if(!data.success) throw new Error(data.error||"failed");
+  document.querySelector("#mb_image").value = "";
+  document.querySelector("#mb_link").value = "";
+  document.querySelector("#mb_text").value = "";
+  updateMidBannerPreview();
+  toast("In-grid banner removed from your storefront");
  }catch(err){
   toast("Couldn't delete — check your connection and try again.");
  }finally{
