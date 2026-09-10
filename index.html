@@ -50,6 +50,9 @@ header{position:sticky;top:0;z-index:30;background:rgba(7,127,56,.96);backdrop-f
 .hero p{color:var(--muted);font-size:15px;max-width:480px;margin:0 auto}
 .bannerLink{display:block;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow);position:relative}
 .bannerLink img{width:100%;height:auto;aspect-ratio:16/5;object-fit:cover;display:block;background:var(--soft)}
+.midBanner{grid-column:1/-1;display:block;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow);position:relative}
+.midBanner img{width:100%;height:auto;aspect-ratio:21/6;object-fit:cover;display:block;background:var(--soft)}
+.midBannerText{position:absolute;left:18px;bottom:16px;background:rgba(20,26,22,.6);color:#fff;padding:8px 16px;border-radius:10px;font-size:14px;font-weight:700;letter-spacing:.2px}
 .eyebrow{text-transform:uppercase;letter-spacing:2.5px;font-size:11px;font-weight:700;color:var(--gold);margin-bottom:14px}
 .rail{display:flex;gap:16px;overflow:auto;padding-bottom:10px;scroll-snap-type:x proximity}
 .rail .product{flex:0 0 220px;scroll-snap-align:start}
@@ -256,6 +259,7 @@ footer .logo span{color:#c8f0d6}
  #searchIconBtn{display:none}
  .introBand{padding:14px 0 4px}
  .bannerLink img{aspect-ratio:16/7}
+ .midBanner img{aspect-ratio:16/8}
  .section{padding:22px 0 50px}
  .sectionHead{flex-wrap:wrap;gap:6px;margin-bottom:18px}
  .sectionHead h2{font-size:24px}
@@ -991,7 +995,25 @@ function renderProductBlocks(pageItems){
   el.innerHTML = `<div class="empty" style="grid-column:1/-1">No products found.</div>`;
   return;
  }
- el.innerHTML = pageItems.map(cardHTML).join("");
+ const cards = pageItems.map(cardHTML);
+ // In-grid promo tile: only shown once an image/link has actually been
+ // saved in the admin Banner tab, and only when there are more than 8
+ // products on this page to put it after — same on/off behavior as the
+ // hero banner, just placed mid-grid instead of above it.
+ const midBanner = midBannerHTML();
+ if(midBanner && cards.length>8){
+  cards.splice(8,0,midBanner);
+ }
+ el.innerHTML = cards.join("");
+}
+function midBannerHTML(){
+ if(!siteSettings.midBannerImage) return "";
+ const link = siteSettings.midBannerLink || "#shop";
+ const text = siteSettings.midBannerText || "";
+ return `<a class="midBanner" href="${escapeHtml(link)}">
+  <img src="${siteSettings.midBannerImage}" alt="Promotion" loading="lazy" onerror="this.style.display='none'">
+  ${text?`<span class="midBannerText">${escapeHtml(text)}</span>`:""}
+ </a>`;
 }
 function renderPagination(totalPages){
  const el=document.querySelector("#pagination");
@@ -1308,15 +1330,21 @@ function updateChatFabBadge(){
 }
 if(chatSessionId) startChatPolling();
 
+let siteSettings = {}; // last-loaded ?action=settings payload — read by midBannerHTML()
 async function loadBanner(){
  const fallbackImg = "https://placehold.co/1600x500/eef6f2/182220?text=Your+Banner+Here";
  try{
   const res = await fetch(`${SCRIPT_URL}?action=settings`);
   const data = await res.json();
   const settings = data.settings || {};
+  siteSettings = settings;
   document.querySelector("#heroBannerImg").src = settings.bannerImage || fallbackImg;
   document.querySelector("#heroBanner").href = settings.bannerLink || "#shop";
   applyDeliverySettings(settings);
+  // Settings can arrive after the first product render (loadBanner and
+  // loadProducts fire in parallel below), so re-render once we have
+  // them, in case the in-grid promo tile needs to appear.
+  renderProducts();
  }catch(err){
   document.querySelector("#heroBannerImg").src = fallbackImg;
   document.querySelector("#heroBanner").href = "#shop";
