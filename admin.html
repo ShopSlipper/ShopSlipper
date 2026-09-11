@@ -479,10 +479,16 @@ function switchTab(t){
  document.querySelector("#tab-delivery").classList.toggle("active", t==="delivery");
 }
 
-if(refreshBtn){
- refreshBtn.blur();
- refreshBtn.disabled = true;
-}
+async function loadAll(){
+ const refreshIcon = document.querySelector("#refreshIcon");
+ const refreshBtn = document.querySelector("#refreshBtn");
+ if(refreshIcon){
+  refreshIcon.classList.remove("spinning");
+  void refreshIcon.offsetWidth; // restart animation if clicked again mid-spin
+  refreshIcon.classList.add("spinning");
+ }
+ if(refreshBtn) refreshBtn.disabled = true;
+ document.querySelector("#sourceNote").textContent = "Loading products and orders from your Google Sheet…";
  try{
   const [pRes, oRes, cRes, sRes] = await Promise.all([
    fetch(`${SCRIPT_URL}?action=products`),
