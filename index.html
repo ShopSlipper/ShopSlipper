@@ -553,29 +553,9 @@ footer .logo span{color:#c8f0d6}
 
 <div class="toast" id="toast"></div>
 
-<button class="chatFab" id="chatFab" onclick="openChat()" aria-label="Chat with us">
+<a class="chatFab" id="chatFab" href="chat.html" aria-label="Chat with us">
  💬<span class="chatFabBadge" id="chatFabBadge">0</span>
-</button>
-
-<div class="chatWidget" id="chatWidget">
- <div class="chatHead">
-  <div><b>Chat with us</b><small>We usually reply within a few hours</small></div>
-  <button class="close" onclick="closeChat()">×</button>
- </div>
- <form id="chatStartForm" class="chatStartForm" onsubmit="startChatWithInfo(event)">
-  <p>Tell us a little about you so our team can get back to you.</p>
-  <div class="field"><label>Name</label><input required name="name" placeholder="Your name"></div>
-  <div class="field"><label>Phone (optional)</label><input name="phone" placeholder="98XXXXXXXX"></div>
-  <button class="btn" style="width:100%">Start chat</button>
- </form>
- <div class="chatThreadWrap" id="chatThreadWrap" style="display:none">
-  <div class="chatMessages" id="chatMessages"></div>
-  <form class="chatInputRow" onsubmit="sendChatMessage(event)">
-   <input id="chatInput" placeholder="Type a message…" autocomplete="off">
-   <button class="chatSendBtn" aria-label="Send">➤</button>
-  </form>
- </div>
-</div>
+</a>
 
 <script>
 /* ================== CONFIG — set this to your Apps Script Web App URL ================== */
@@ -1385,66 +1365,17 @@ updateAccountBadge();
 function escapeHtml(s){ const d=document.createElement("div"); d.textContent=s||""; return d.innerHTML; }
 
 let chatSessionId = localStorage.getItem("shopslipper-chat-id");
-let chatInfo = JSON.parse(localStorage.getItem("shopslipper-chat-info")||"null");
 let chatMessages = JSON.parse(localStorage.getItem("shopslipper-chat-msgs")||"[]");
 let chatUnread = 0, chatPollStarted = false;
 
-function ensureChatSession(){
- if(!chatSessionId){
-  chatSessionId = "C"+Date.now().toString(36).toUpperCase()+Math.random().toString(36).slice(2,6).toUpperCase();
-  localStorage.setItem("shopslipper-chat-id", chatSessionId);
- }
- startChatPolling();
-}
+/* Starting a chat, sending messages, and the message thread now live on
+   chat.html — the chat button above just links straight there. This page
+   only polls quietly for an unread count, shown as a badge on the button. */
 function startChatPolling(){
  if(chatPollStarted) return;
  chatPollStarted = true;
  fetchChatMessages();
  setInterval(fetchChatMessages, 8000);
-}
-function openChat(){
- ensureChatSession();
- document.querySelector("#chatWidget").classList.add("open");
- chatUnread = 0; updateChatFabBadge();
- if(!chatInfo){
-  document.querySelector("#chatStartForm").style.display="block";
-  document.querySelector("#chatThreadWrap").style.display="none";
- }else{
-  document.querySelector("#chatStartForm").style.display="none";
-  document.querySelector("#chatThreadWrap").style.display="flex";
-  renderChatMessages();
- }
-}
-function closeChat(){ document.querySelector("#chatWidget").classList.remove("open"); }
-function startChatWithInfo(e){
- e.preventDefault();
- const form = new FormData(e.target);
- chatInfo = { name: form.get("name"), phone: form.get("phone") };
- localStorage.setItem("shopslipper-chat-info", JSON.stringify(chatInfo));
- document.querySelector("#chatStartForm").style.display="none";
- document.querySelector("#chatThreadWrap").style.display="flex";
- renderChatMessages();
-}
-function renderChatMessages(){
- const el = document.querySelector("#chatMessages");
- if(!chatMessages.length){
-  el.innerHTML = `<div class="chatEmpty">Say hello! Our team will reply here shortly.</div>`;
- }else{
-  el.innerHTML = chatMessages.map(m=>`<div class="chatBubble ${m.from==='staff'?'staff':'me'}"><span>${escapeHtml(m.text)}</span><small>${m.time||""}</small></div>`).join("");
- }
- el.scrollTop = el.scrollHeight;
-}
-async function sendChatMessage(e){
- e.preventDefault();
- const input = document.querySelector("#chatInput");
- const text = input.value.trim();
- if(!text) return;
- chatMessages.push({from:"customer", text, time:new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})});
- localStorage.setItem("shopslipper-chat-msgs", JSON.stringify(chatMessages));
- renderChatMessages(); input.value="";
- try{
-  await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"sendChatMessage",sessionId:chatSessionId,name:chatInfo?.name||"",phone:chatInfo?.phone||"",message:text})});
- }catch(err){ /* message stays visible locally; will sync again on next poll */ }
 }
 async function fetchChatMessages(){
  if(!chatSessionId) return;
@@ -1452,12 +1383,10 @@ async function fetchChatMessages(){
   const res = await fetch(`${SCRIPT_URL}?action=chatMessages&sessionId=${encodeURIComponent(chatSessionId)}`);
   const data = await res.json();
   if(data && Array.isArray(data.messages)){
-   const isOpen = document.querySelector("#chatWidget").classList.contains("open");
    const prevCount = chatMessages.length;
    chatMessages = data.messages;
    localStorage.setItem("shopslipper-chat-msgs", JSON.stringify(chatMessages));
-   if(isOpen) renderChatMessages();
-   else if(chatMessages.length > prevCount){ chatUnread += (chatMessages.length - prevCount); updateChatFabBadge(); }
+   if(chatMessages.length > prevCount){ chatUnread += (chatMessages.length - prevCount); updateChatFabBadge(); }
   }
  }catch(err){ /* backend not reachable yet — ignore, will retry on next poll */ }
 }
