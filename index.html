@@ -108,6 +108,7 @@ header.scrolled{box-shadow:0 10px 30px rgba(6,50,28,.22)}
 select{width:100%;height:48px;border:1px solid var(--line);background:#fff;border-radius:14px;padding:0 14px;outline:none;font-size:13.5px}
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
 .product{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;position:relative;transition:transform .3s var(--ease),box-shadow .3s var(--ease),border-color .3s;cursor:pointer}
+a.product{display:block;text-decoration:none;color:inherit}
 .product:hover{transform:translateY(-5px);box-shadow:var(--shadow-lg);border-color:transparent}
 .productImg{aspect-ratio:1/1;background:#efece3;position:relative}
 .productImg img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s ease}
@@ -742,7 +743,7 @@ function cardHTML(p){
  const hasDesc = !!p.description;
  const metaRow = (hasColor||hasDesc) ? `<div class="cardMeta">${hasColor?`<span class="cardColorDot" style="background:${escapeHtml(p.color)}"></span>`:""}${hasDesc?`<span class="cardDesc">${escapeHtml(p.description)}</span>`:""}</div>` : "";
  const outOfStock = !productHasAnyStock(p);
- return `<article class="product ${outOfStock?'outOfStock':''}" onclick="openProduct(${p.id})">
+ return `<a href="/product/${p.id}" class="product ${outOfStock?'outOfStock':''}" onclick="event.preventDefault();openProduct(${p.id})">
   <div class="productImg">
    <img src="${p.image}" alt="${escapeHtml(p.name)}" loading="lazy" onerror="this.style.display='none'">
    ${outOfStock?`<span class="outBadge">${TEXT.outOfStock}</span>`:(p.new?'<span class="bestBadge">BEST</span>':'')}
@@ -757,7 +758,7 @@ function cardHTML(p){
    ${metaRow}
    <button class="add cardAddBtn" ${outOfStock?'disabled':''} onclick="event.stopPropagation();openProduct(${p.id})">${outOfStock?TEXT.outOfStock:(sizes.length?TEXT.selectSize:TEXT.addToCart)}</button>
   </div>
- </article>`;
+ </a>`;
 }
 
 let pdProduct=null, pdSize=null, pdQty=1, pdVariantIdx=0;
@@ -1432,6 +1433,22 @@ function applyDeliverySettings(settings){
 
 loadBanner();
 loadProducts();
+
+// If someone arrives via a shared product link or a search result
+// (e.g. shopslipper.online/?product=123, which the SEO product pages
+// link to), open that product's modal automatically once products
+// have loaded.
+(function(){
+ const productParam = new URLSearchParams(location.search).get("product");
+ if(!productParam) return;
+ const id = Number(productParam);
+ const waitForProducts = setInterval(()=>{
+  if(productsLoaded){
+   clearInterval(waitForProducts);
+   if(products.some(p=>p.id===id)) openProduct(id);
+  }
+ }, 150);
+})();
 </script>
 </body>
 </html>
