@@ -41,6 +41,13 @@ main{flex:1;display:flex;flex-direction:column;max-width:640px;width:100%;margin
 .chatBubble.me{align-self:flex-end;background:var(--gold);color:#fff;border-bottom-right-radius:4px}
 .chatBubble.staff{align-self:flex-start;background:#fff;border:1px solid var(--line);border-bottom-left-radius:4px}
 .chatBubble small{display:block;margin-top:4px;font-size:10.5px;opacity:.65}
+/* Typing animation: shown as a staff-style bubble with three bouncing
+   dots instead of text, while the backend says staff is typing. */
+.chatBubble.typingDots{display:flex;align-items:center;gap:5px;padding:14px 16px}
+.chatBubble.typingDots span{width:6px;height:6px;border-radius:50%;background:var(--gold);opacity:.5;animation:typingBounce 1s infinite ease-in-out}
+.chatBubble.typingDots span:nth-child(2){animation-delay:.15s}
+.chatBubble.typingDots span:nth-child(3){animation-delay:.3s}
+@keyframes typingBounce{0%,60%,100%{transform:translateY(0);opacity:.5}30%{transform:translateY(-4px);opacity:1}}
 .chatInputRow{display:flex;gap:8px;padding:14px;border-top:1px solid var(--line);background:#fff;flex-shrink:0}
 .chatInputRow input{flex:1;border:1px solid var(--line);border-radius:999px;padding:12px 16px;outline:none;font-size:14px}
 .chatInputRow input:focus{border-color:var(--text)}
@@ -82,6 +89,7 @@ main{flex:1;display:flex;flex-direction:column;max-width:640px;width:100%;margin
    chat badge, and vice versa. */
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzKHLu21Y5oJeM7KQ5dcI3mTXpNnZlDRoTn19nCuqZ7SNb73S6cj9QaTY2Sd-QHTFoE/exec";
 const POLL_MS = 5000;
+const TYPING_POLL_MS = 2500;
 
 function escapeHtml(s){ const d=document.createElement("div"); d.textContent=s||""; return d.innerHTML; }
 
@@ -89,6 +97,8 @@ let chatSessionId = localStorage.getItem("shopslipper-chat-id");
 let chatInfo = JSON.parse(localStorage.getItem("shopslipper-chat-info")||"null");
 let chatMessages = JSON.parse(localStorage.getItem("shopslipper-chat-msgs")||"[]");
 let pollTimer = null;
+let typingPollTimer = null;
+let isStaffTypingNow = false;
 
 function ensureChatSession(){
  if(!chatSessionId){
@@ -102,6 +112,7 @@ function showThread(){
  renderChatMessages();
  fetchChatMessages();
  if(!pollTimer) pollTimer = setInterval(fetchChatMessages, POLL_MS);
+ if(!typingPollTimer) typingPollTimer = setInterval(pollStaffTyping, TYPING_POLL_MS);
  document.querySelector("#chatInput").focus();
 }
 function init(){
@@ -122,10 +133,14 @@ function startChatWithInfo(e){
 }
 function renderChatMessages(){
  const el = document.querySelector("#chatMessages");
- if(!chatMessages.length){
+ if(!chatMessages.length && !isStaffTypingNow){
   el.innerHTML = `<div class="chatEmpty">Say hello! Our team will reply here shortly.</div>`;
  }else{
-  el.innerHTML = chatMessages.map(m=>`<div class="chatBubble ${m.from==='staff'?'staff':'me'}"><span>${escapeHtml(m.text)}</span><small>${m.time||""}</small></div>`).join("");
+  let html = chatMessages.map(m=>`<div class="chatBubble ${m.from==='staff'?'staff':'me'}"><span>${escapeHtml(m.text)}</span><small>${m.time||""}</small></div>`).join("");
+  if(isStaffTypingNow){
+   html += `<div class="chatBubble staff typingDots"><span></span><span></span><span></span></div>`;
+  }
+  el.innerHTML = html;
  }
  el.scrollTop = el.scrollHeight;
 }
@@ -154,12 +169,11 @@ async function fetchChatMessages(){
  }catch(err){ /* backend unreachable — ignore, retry next poll */ }
 }
 
-/* ================== Typing indicator ================== */
-// Lets the staff chat page (chat.html) show "X is typing…" while this
-// customer has text in the box. Fire-and-forget: throttled to at most
-// once every 2 seconds so fast typists don't spam the backend, and
-// silently ignored on failure — a missed ping just means the staff
-// dots show up a beat late, nothing breaks either side.
+/* ================== Typing indicator (both directions) ==================
+   Outgoing: let staff know THIS customer is typing (existing behavior).
+   Incoming: poll whether STAFF is typing back, and show animated dots
+   for it — this is the actual "typing…" animation the customer sees.
+========================================================================= */
 let typingLastPing = 0;
 function pingTyping(){
  if(!chatSessionId) return;
@@ -169,6 +183,19 @@ function pingTyping(){
  fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"setTyping",sessionId:chatSessionId,name:chatInfo?.name||"",phone:chatInfo?.phone||""})}).catch(()=>{});
 }
 document.querySelector("#chatInput").addEventListener("input", pingTyping);
+
+async function pollStaffTyping(){
+ if(!chatSessionId) return;
+ try{
+  const res = await fetch(`${SCRIPT_URL}?action=staffTypingForSession&sessionId=${encodeURIComponent(chatSessionId)}`);
+  const data = await res.json();
+  const nowTyping = !!(data && data.typing);
+  if(nowTyping !== isStaffTypingNow){
+   isStaffTypingNow = nowTyping;
+   renderChatMessages();
+  }
+ }catch(err){ /* silent — indicator just won't update this tick */ }
+}
 
 init();
 </script>
