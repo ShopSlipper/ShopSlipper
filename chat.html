@@ -78,6 +78,11 @@ tr:last-child td{border-bottom:0}
 .chatReplyRow input{flex:1;border:1px solid var(--line);border-radius:999px;padding:11px 15px;outline:none;font-size:13.5px}
 .chatReplyRow input:focus{border-color:var(--text)}
 .chatSendBtn{width:42px;height:42px;border-radius:50%;background:var(--gold);color:#fff;font-size:16px;flex-shrink:0}
+.typingDots{display:inline-flex;align-items:center;gap:4px;padding:12px 15px}
+.typingDots span{width:6px;height:6px;border-radius:50%;background:#fff;opacity:.5;animation:typingBounce 1s infinite ease-in-out}
+.typingDots span:nth-child(2){animation-delay:.15s}
+.typingDots span:nth-child(3){animation-delay:.3s}
+@keyframes typingBounce{0%,60%,100%{transform:translateY(0);opacity:.5}30%{transform:translateY(-4px);opacity:1}}
 @media(max-width:700px){table,thead,tbody,th,td,tr{display:block}thead{display:none}td{border:0;padding:4px 8px}tr{border-bottom:1px solid var(--line);padding:10px 0}}
 </style>
 </head>
@@ -119,7 +124,7 @@ tr:last-child td{border-bottom:0}
   <div class="note" id="sourceNote">Loading conversations…</div>
   <div class="panel">
    <div class="panelHead"><h2>Chat <span style="color:var(--muted);font-weight:400" id="chatCountLabel"></span><span class="tabDot" id="chatTabDot">0</span></h2></div>
-   <div class="note">Customers message you from the chat bubble on your site. Click a conversation below to reply — replies appear for the customer within a few seconds. This page checks for new messages automatically every 15 seconds.</div>
+   <div class="note">Customers message you from the chat bubble on your site. Click a conversation below to reply — replies appear for the customer within a few seconds. This page checks for new messages automatically every 5 seconds, and newest conversations always float to the top.</div>
    <div style="overflow:auto">
    <table>
     <thead><tr><th>Customer</th><th>Last message</th><th>When</th><th>Status</th></tr></thead>
@@ -203,9 +208,10 @@ async function loadChatSessions(){
   if(refreshBtn) refreshBtn.disabled = false;
  }
 }
-setInterval(()=>{ if(sessionStorage.getItem("ss-chat-ok")==="1") loadChatSessions(); }, 15000);
+setInterval(()=>{ if(sessionStorage.getItem("ss-chat-ok")==="1") loadChatSessions(); }, 5000);
 
 function renderChatSessions(){
+ chatSessions = [...chatSessions].sort((a,b)=> new Date(b.lastTime) - new Date(a.lastTime));
  const rows = document.querySelector("#chatRows");
  document.querySelector("#chatCountLabel").textContent = `(${chatSessions.length})`;
  document.querySelector("#emptyChat").style.display = chatSessions.length ? "none" : "block";
@@ -256,10 +262,27 @@ async function sendStaffReply(e){
  const text = input.value.trim();
  if(!text || !activeChatSessionId) return;
  input.value="";
+
+ // Show a "sending…" bubble with animated dots right away — this is the
+ // typing animation. It only ever shows while we're waiting on Apps
+ // Script; it's removed the instant we hear back, whether that's a
+ // success (replaced by the real reloaded thread) or a failure (removed
+ // with no message left behind — never gets stuck on screen).
+ const thread = document.querySelector("#chatThread");
+ const indicator = document.createElement("div");
+ indicator.className = "chatBubble staff typingDots";
+ indicator.id = "sendingIndicator";
+ indicator.innerHTML = "<span></span><span></span><span></span>";
+ thread.appendChild(indicator);
+ thread.scrollTop = thread.scrollHeight;
+
  try{
   await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"sendChatMessage",key:ADMIN_KEY,sessionId:activeChatSessionId,message:text})});
+  document.getElementById("sendingIndicator")?.remove();
   await loadChatThread(activeChatSessionId);
+  loadChatSessions(); // background refresh so this chat jumps to the top immediately, not on the next 5s poll
  }catch(err){
+  document.getElementById("sendingIndicator")?.remove();
   toast("Couldn't send — check your connection and try again.");
  }
 }
