@@ -83,6 +83,13 @@ tr:last-child td{border-bottom:0}
 .typingDots span:nth-child(2){animation-delay:.15s}
 .typingDots span:nth-child(3){animation-delay:.3s}
 @keyframes typingBounce{0%,60%,100%{transform:translateY(0);opacity:.5}30%{transform:translateY(-4px);opacity:1}}
+.typingBar{display:none;align-items:center;justify-content:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:13px 22px;font-size:13px;color:var(--muted);box-shadow:var(--shadow)}
+.typingBar.show{display:flex}
+.typingBar b{color:var(--text)}
+.typingBarDots{display:inline-flex;align-items:center;gap:4px}
+.typingBarDots span{width:6px;height:6px;border-radius:50%;background:var(--gold);opacity:.5;animation:typingBounce 1s infinite ease-in-out}
+.typingBarDots span:nth-child(2){animation-delay:.15s}
+.typingBarDots span:nth-child(3){animation-delay:.3s}
 @media(max-width:700px){table,thead,tbody,th,td,tr{display:block}thead{display:none}td{border:0;padding:4px 8px}tr{border-bottom:1px solid var(--line);padding:10px 0}}
 </style>
 </head>
@@ -133,6 +140,10 @@ tr:last-child td{border-bottom:0}
    </div>
    <div class="emptyMsg" id="emptyChat" style="display:none">No conversations yet.</div>
   </div>
+  <div class="typingBar" id="typingBar">
+   <span class="typingBarDots"><span></span><span></span><span></span></span>
+   <span id="typingBarText"></span>
+  </div>
  </div>
 </main>
 </div>
@@ -171,6 +182,7 @@ function tryLogin(){
   document.querySelector("#gate").style.display="none";
   document.querySelector("#app").style.display="block";
   loadChatSessions();
+  loadTypingStatus();
  }else{
   document.querySelector("#gateErr").style.display="block";
  }
@@ -182,6 +194,8 @@ function logout(){
 if(sessionStorage.getItem("ss-chat-ok")==="1"){
  document.querySelector("#gate").style.display="none";
  document.querySelector("#app").style.display="block";
+ loadChatSessions();
+ loadTypingStatus();
 }
 
 function escapeHtml(s){ const d=document.createElement("div"); d.textContent=s||""; return d.innerHTML; }
@@ -208,7 +222,28 @@ async function loadChatSessions(){
   if(refreshBtn) refreshBtn.disabled = false;
  }
 }
-setInterval(()=>{ if(sessionStorage.getItem("ss-chat-ok")==="1") loadChatSessions(); }, 5000);
+setInterval(()=>{ if(sessionStorage.getItem("ss-chat-ok")==="1"){ loadChatSessions(); loadTypingStatus(); } }, 5000);
+
+async function loadTypingStatus(){
+ try{
+  const res = await fetch(`${SCRIPT_URL}?action=typingStatus&key=${encodeURIComponent(ADMIN_KEY)}`);
+  const data = await res.json();
+  const typing = data.typing || [];
+  const bar = document.querySelector("#typingBar");
+  const text = document.querySelector("#typingBarText");
+  if(!typing.length){
+   bar.classList.remove("show");
+   return;
+  }
+  const label = typing.length === 1
+   ? `<b>${escapeHtml(typing[0].name || "A customer")}</b> is typing…`
+   : `<b>${typing.length}</b> customers are typing…`;
+  text.innerHTML = label;
+  bar.classList.add("show");
+ }catch(err){
+  // Silent — the typing bar just stays as it was; this isn't worth a toast.
+ }
+}
 
 function renderChatSessions(){
  chatSessions = [...chatSessions].sort((a,b)=> new Date(b.lastTime) - new Date(a.lastTime));
