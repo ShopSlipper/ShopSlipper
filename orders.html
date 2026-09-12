@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShopSlipper — Orders</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eef6f2;--card:#fffefe;--text:#182220;--muted:#6f8582;
+  --line:#8fd3a6;--accent:var(--gold);--soft:#e6f2ee;--danger:#b5493e;
+  --gold:#077F38;--sage:#077F38;--radius:18px;--shadow:0 20px 50px rgba(20,40,38,.08);
+  --serif:'Fraunces',Georgia,serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:linear-gradient(160deg,#eef7f1 0%,#eaf2f2 45%,#e9f0f6 100%) fixed;color:var(--text);line-height:1.5;min-height:100vh}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer;border:0}
+.container{width:min(1100px,calc(100% - 32px));margin:auto}
+a{color:inherit}
+#gate{min-height:100vh;display:grid;place-items:center;padding:20px}
+.gateBox{background:var(--card);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);padding:40px;width:min(380px,100%);text-align:center}
+.gateBox h1{font-family:var(--serif);font-weight:600;font-size:24px;margin-bottom:6px}
+.gateBox p{color:var(--muted);font-size:13.5px;margin-bottom:22px}
+.gateBox input{width:100%;border:1px solid var(--line);border-radius:12px;padding:13px 14px;outline:none;margin-bottom:12px;font-size:14px}
+.gateBox input:focus{border-color:var(--text)}
+.gateErr{color:var(--danger);font-size:12.5px;margin-bottom:10px;display:none}
+#app{display:none}
+header{background:rgba(248,246,241,.9);backdrop-filter:blur(18px);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10}
+.nav{height:74px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-weight:600;font-size:18px}
+.brand .mark{width:36px;height:36px;border-radius:50%;object-fit:cover}
+.brand small{display:block;color:var(--muted);font-weight:400;font-size:11px;letter-spacing:.4px;text-transform:uppercase}
+.headActions{display:flex;gap:10px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px 18px;border-radius:999px;background:var(--gold);color:#fff;font-weight:600;font-size:13px;transition:.2s transform,.2s opacity}
+.btn:hover{transform:translateY(-1px);opacity:.9}
+.btn.light{background:#fff;color:var(--gold);border:1px solid var(--gold)}
+.btn.sm{padding:8px 13px;font-size:12px}
+main{padding:34px 0 80px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px;margin-bottom:22px}
+.panelHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+.panelHead h2{font-family:var(--serif);font-weight:600;font-size:19px}
+.note{background:var(--soft);border:1px solid var(--line);border-radius:14px;padding:13px 16px;font-size:12.5px;color:var(--muted);margin-bottom:18px}
+.note b{color:var(--text)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{text-align:left;padding:10px 8px;color:var(--muted);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--line)}
+td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+.skuTag{font-family:monospace;font-size:11.5px;background:var(--soft);padding:3px 7px;border-radius:6px;color:var(--gold)}
+.emptyMsg{text-align:center;color:var(--muted);padding:40px 10px;font-size:13.5px}
+.statusTag{padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700;background:var(--soft)}
+.toast{position:fixed;left:50%;bottom:25px;transform:translate(-50%,20px);background:var(--gold);color:#fff;padding:12px 18px;border-radius:999px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:100}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.spinning{display:inline-block;animation:spin360 .7s linear}
+@keyframes spin360{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@media(max-width:700px){table,thead,tbody,th,td,tr{display:block}thead{display:none}td{border:0;padding:4px 8px}tr{border-bottom:1px solid var(--line);padding:10px 0}}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+ PASSWORD: change ADMIN_KEY in the <script> below to match
+ ADMIN_KEY in Code.gs (same value used in admin.html) — the
+ backend only knows one key, so this page and the main admin
+ page must use the same one. This is a simple client-side gate,
+ not real security: anyone who reads this file's source can see
+ it. Fine for keeping casual visitors out, not for anything
+ truly sensitive.
+============================================================= -->
+
+<div id="gate">
+ <div class="gateBox">
+  <h1>Orders access</h1>
+  <p>Enter your admin password to view incoming orders.</p>
+  <div class="gateErr" id="gateErr">Incorrect password. Try again.</div>
+  <input type="password" id="gatePass" placeholder="Password" onkeydown="if(event.key==='Enter')tryLogin()">
+  <button class="btn" style="width:100%" onclick="tryLogin()">Enter →</button>
+ </div>
+</div>
+
+<div id="app">
+<header>
+ <div class="container nav">
+  <div class="brand"><img class="mark" src="https://raw.githubusercontent.com/ShopSlipper/ShopSlipper/main/shop_slipper_transparent.png" alt="Shop Slipper logo"><div>Shop Slipper<small>Orders</small></div></div>
+  <div class="headActions">
+   <button class="btn light sm" id="refreshBtn" onclick="loadOrders()"><span id="refreshIcon">↻</span> Refresh</button>
+   <button class="btn light sm" onclick="logout()">Log out</button>
+  </div>
+ </div>
+</header>
+
+<main>
+ <div class="container">
+  <div class="note" id="sourceNote">Loading orders from your Google Sheet…</div>
+  <div class="panel">
+   <div class="panelHead"><h2>Orders <span style="color:var(--muted);font-weight:400" id="orderCountLabel"></span></h2></div>
+   <div style="overflow:auto">
+   <table>
+    <thead><tr><th>When</th><th>Order</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th></tr></thead>
+    <tbody id="orderRows"></tbody>
+   </table>
+   </div>
+   <div class="emptyMsg" id="emptyOrders" style="display:none">No orders yet.</div>
+  </div>
+ </div>
+</main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================== CONFIG ==================
+ Must match SCRIPT_URL and ADMIN_KEY in admin.html / Code.gs.
+=============================================== */
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzKHLu21Y5oJeM7KQ5dcI3mTXpNnZlDRoTn19nCuqZ7SNb73S6cj9QaTY2Sd-QHTFoE/exec";
+const ADMIN_KEY  = "shopslipper2026";
+
+let orders = [];
+
+function tryLogin(){
+ const val = document.querySelector("#gatePass").value;
+ if(val === ADMIN_KEY){
+  sessionStorage.setItem("ss-orders-ok","1");
+  document.querySelector("#gate").style.display="none";
+  document.querySelector("#app").style.display="block";
+  loadOrders();
+ }else{
+  document.querySelector("#gateErr").style.display="block";
+ }
+}
+function logout(){
+ sessionStorage.removeItem("ss-orders-ok");
+ location.reload();
+}
+if(sessionStorage.getItem("ss-orders-ok")==="1"){
+ document.querySelector("#gate").style.display="none";
+ document.querySelector("#app").style.display="block";
+}
+
+function money(n){return "Rs. "+Number(n).toLocaleString("en-IN")}
+function escapeHtml(s){ const d=document.createElement("div"); d.textContent=s||""; return d.innerHTML; }
+
+async function loadOrders(){
+ const refreshIcon = document.querySelector("#refreshIcon");
+ const refreshBtn = document.querySelector("#refreshBtn");
+ if(refreshIcon){
+  refreshIcon.classList.remove("spinning");
+  void refreshIcon.offsetWidth;
+  refreshIcon.classList.add("spinning");
+ }
+ if(refreshBtn) refreshBtn.disabled = true;
+ try{
+  const res = await fetch(`${SCRIPT_URL}?action=orders&key=${encodeURIComponent(ADMIN_KEY)}`);
+  const data = await res.json();
+  if(data.error) throw new Error(data.error);
+  orders = (data.orders || []).reverse();
+  document.querySelector("#sourceNote").innerHTML = `Connected to your Google Sheet — <b>${orders.length}</b> orders.`;
+  renderOrders();
+ }catch(err){
+  document.querySelector("#sourceNote").innerHTML = `Couldn't reach the Sheet. Check your connection and try refreshing.`;
+ }finally{
+  if(refreshBtn) refreshBtn.disabled = false;
+ }
+}
+setInterval(()=>{ if(sessionStorage.getItem("ss-orders-ok")==="1") loadOrders(); }, 15000);
+
+function renderOrders(){
+ const rows = document.querySelector("#orderRows");
+ document.querySelector("#orderCountLabel").textContent = `(${orders.length})`;
+ document.querySelector("#emptyOrders").style.display = orders.length ? "none" : "block";
+ rows.innerHTML = orders.map(o=>{
+  let items=[]; try{items=JSON.parse(o.items||"[]")}catch(e){}
+  const when = o.timestamp ? new Date(o.timestamp).toLocaleString() : "";
+  return `<tr>
+   <td>${when}</td>
+   <td><span class="skuTag">${escapeHtml(o.orderId||"")}</span></td>
+   <td>${escapeHtml(o.name||"")}<br><small style="color:var(--muted)">${escapeHtml(o.phone||"")}</small></td>
+   <td>${items.map(i=>`${i.qty}× ${escapeHtml(i.name)}${i.color?` (${escapeHtml(i.color)})`:""}`).join("<br>")}</td>
+   <td>${money(o.total||0)}</td>
+   <td><span class="statusTag">${escapeHtml(o.status||"New")}</span></td>
+  </tr>`;
+ }).join("");
+}
+
+let toastTimer;
+function toast(t){
+ const e = document.querySelector("#toast");
+ e.textContent = t; e.classList.add("show");
+ clearTimeout(toastTimer);
+ toastTimer = setTimeout(()=>e.classList.remove("show"), 2200);
+}
+</script>
+</body>
+</html>
