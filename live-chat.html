@@ -153,6 +153,23 @@ async function fetchChatMessages(){
   }
  }catch(err){ /* backend unreachable — ignore, retry next poll */ }
 }
+
+/* ================== Typing indicator ================== */
+// Lets the staff chat page (chat.html) show "X is typing…" while this
+// customer has text in the box. Fire-and-forget: throttled to at most
+// once every 2 seconds so fast typists don't spam the backend, and
+// silently ignored on failure — a missed ping just means the staff
+// dots show up a beat late, nothing breaks either side.
+let typingLastPing = 0;
+function pingTyping(){
+ if(!chatSessionId) return;
+ const now = Date.now();
+ if(now - typingLastPing < 2000) return;
+ typingLastPing = now;
+ fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"setTyping",sessionId:chatSessionId,name:chatInfo?.name||"",phone:chatInfo?.phone||""})}).catch(()=>{});
+}
+document.querySelector("#chatInput").addEventListener("input", pingTyping);
+
 init();
 </script>
 </body>
