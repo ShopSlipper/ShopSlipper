@@ -99,6 +99,8 @@ let chatMessages = JSON.parse(localStorage.getItem("shopslipper-chat-msgs")||"[]
 let pollTimer = null;
 let typingPollTimer = null;
 let isStaffTypingNow = false;
+let awaitingStaffMessage = false; // true = staff just stopped typing; keep dots on until the real message actually arrives
+let awaitingTimeout = null;
 
 function ensureChatSession(){
  if(!chatSessionId){
@@ -164,6 +166,15 @@ async function fetchChatMessages(){
   if(data && Array.isArray(data.messages)){
    chatMessages = data.messages;
    localStorage.setItem("shopslipper-chat-msgs", JSON.stringify(chatMessages));
+   // If we were holding the typing dots on because staff had just
+   // stopped typing, this fetch is what finally clears them — the
+   // dots stay up right through until the real reply lands, so
+   // there's no gap where it looks like nothing happened.
+   if(awaitingStaffMessage){
+    awaitingStaffMessage = false;
+    isStaffTypingNow = false;
+    clearTimeout(awaitingTimeout);
+   }
    renderChatMessages();
   }
  }catch(err){ /* backend unreachable — ignore, retry next poll */ }
@@ -190,9 +201,28 @@ async function pollStaffTyping(){
   const res = await fetch(`${SCRIPT_URL}?action=staffTypingForSession&sessionId=${encodeURIComponent(chatSessionId)}`);
   const data = await res.json();
   const nowTyping = !!(data && data.typing);
-  if(nowTyping !== isStaffTypingNow){
-   isStaffTypingNow = nowTyping;
-   renderChatMessages();
+  if(nowTyping){
+   // Staff is actively typing — show dots right away.
+   awaitingStaffMessage = false;
+   clearTimeout(awaitingTimeout);
+   if(!isStaffTypingNow){ isStaffTypingNow = true; renderChatMessages(); }
+  }else if(isStaffTypingNow && !awaitingStaffMessage){
+   // Staff just stopped typing (their reply is on its way). Keep the
+   // dots showing and fetch immediately instead of waiting up to
+   // POLL_MS for the next scheduled poll — fetchChatMessages() is what
+   // actually turns the dots off, right when the real message shows up.
+   awaitingStaffMessage = true;
+   fetchChatMessages();
+   // Safety net: if the message never arrives (send failed, etc.),
+   // don't leave the dots up forever.
+   clearTimeout(awaitingTimeout);
+   awaitingTimeout = setTimeout(()=>{
+    if(awaitingStaffMessage){
+     awaitingStaffMessage = false;
+     isStaffTypingNow = false;
+     renderChatMessages();
+    }
+   }, 8000);
   }
  }catch(err){ /* silent — indicator just won't update this tick */ }
 }
