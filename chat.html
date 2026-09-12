@@ -86,10 +86,16 @@ main{flex:1;min-height:0;display:flex}
 .iconBtn{width:32px;height:32px;border-radius:9px;background:var(--soft);display:grid;place-items:center;font-size:13px;flex-shrink:0}
 .iconBtn:hover{background:var(--line)}
 .chatThread{flex:1;overflow:auto;padding:18px 22px;display:flex;flex-direction:column;gap:10px;background:var(--bg)}
-.chatBubble{max-width:78%;padding:10px 13px;border-radius:16px;font-size:13.5px;line-height:1.4}
+.chatBubble{max-width:78%;padding:10px 13px;border-radius:16px;font-size:13.5px;line-height:1.4;position:relative}
 .chatBubble.customer{align-self:flex-start;background:#fff;border:1px solid var(--line);border-bottom-left-radius:4px}
 .chatBubble.staff{align-self:flex-end;background:var(--gold);color:#fff;border-bottom-right-radius:4px}
 .chatBubble small{display:block;margin-top:4px;font-size:10px;opacity:.6}
+.chatBubble.hasImg{padding:6px}
+.chatImg{display:block;max-width:220px;max-height:220px;width:100%;object-fit:cover;border-radius:12px;cursor:zoom-in;margin-bottom:4px}
+.msgDelBtn{position:absolute;top:-9px;right:-9px;width:22px;height:22px;border-radius:50%;background:var(--danger);color:#fff;font-size:11px;line-height:1;display:grid;place-items:center;opacity:0;transition:.15s;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.chatBubble:hover .msgDelBtn{opacity:1}
+.imgLightbox{position:fixed;inset:0;background:rgba(10,20,18,.85);display:grid;place-items:center;z-index:200;padding:24px;cursor:zoom-out}
+.imgLightbox img{max-width:100%;max-height:100%;border-radius:10px}
 
 .typingBar{display:none;align-items:center;gap:10px;padding:10px 22px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);background:var(--card);flex-shrink:0}
 .typingBar.show{display:flex}
@@ -310,7 +316,12 @@ async function loadChatThread(sessionId){
   const el = document.querySelector("#chatThread");
   const msgs = data.messages || [];
   el.innerHTML = msgs.length
-   ? msgs.map(m=>`<div class="chatBubble ${m.from}"><span>${escapeHtml(m.text)}</span><small>${m.time||""}</small></div>`).join("")
+   ? msgs.map(m=>{
+      const imgPart = m.imageUrl ? `<img class="chatImg" src="${escapeHtml(m.imageUrl)}" onclick="openImageLightbox('${escapeHtml(m.imageUrl)}')" alt="photo">` : ``;
+      const textPart = m.text ? `<span>${escapeHtml(m.text)}</span>` : ``;
+      const delBtn = m.messageId ? `<button type="button" class="msgDelBtn" title="Hide this message" onclick="deleteMessage('${m.messageId}')">✕</button>` : ``;
+      return `<div class="chatBubble ${m.from}${m.imageUrl?' hasImg':''}">${delBtn}${imgPart}${textPart}<small>${m.time||""}</small></div>`;
+     }).join("")
    : `<div style="text-align:center;color:var(--muted);font-size:12.5px;padding:20px">No messages yet.</div>`;
   el.scrollTop = el.scrollHeight;
  }catch(err){
@@ -344,6 +355,34 @@ async function sendStaffReply(e){
  }catch(err){
   toast("Couldn't send — check your connection and try again.");
  }
+}
+
+// Staff-side moderation: hides a bad/inappropriate message (image or
+// text) from the conversation. Soft-delete on the backend (see
+// deleteChatMessage_ in Code.gs) — the row stays in the sheet marked
+// "deleted", it's just filtered out of chatMessages/chatSessions from
+// then on, so there's still a record if you ever need to check it.
+async function deleteMessage(messageId){
+ if(!confirm("Hide this message from the conversation? The customer will no longer see it either.")) return;
+ try{
+  const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"deleteChatMessage",key:ADMIN_KEY,messageId})});
+  const data = await res.json();
+  if(data.error) throw new Error(data.error);
+  await loadChatThread(activeChatSessionId);
+ }catch(err){
+  toast("Couldn't remove — check your connection and try again.");
+ }
+}
+
+function openImageLightbox(url){
+ const overlay = document.createElement("div");
+ overlay.className = "imgLightbox";
+ overlay.onclick = ()=> overlay.remove();
+ const img = document.createElement("img");
+ img.src = url;
+ img.onclick = (e)=> e.stopPropagation();
+ overlay.appendChild(img);
+ document.body.appendChild(overlay);
 }
 
 /* ================== Staff -> customer typing indicator ==================
