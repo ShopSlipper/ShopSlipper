@@ -128,6 +128,7 @@ let isStaffTypingNow = false;
 let awaitingStaffMessage = false; // true = staff just stopped typing; keep dots on until the real message actually arrives
 let awaitingTimeout = null;
 let pendingImage = null; // {base64, mimeType, filename, dataUrl} staged but not yet sent
+let hasFetchedMessagesOnce = false; // guards the "received" sound from firing on the very first load
 
 function ensureChatSession(){
  if(!chatSessionId){
@@ -220,6 +221,7 @@ async function sendChatMessage(e){
  chatMessages.push({from:"customer", text, imageUrl, time:new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})});
  localStorage.setItem("shopslipper-chat-msgs", JSON.stringify(chatMessages));
  renderChatMessages();
+ playSentSound();
  try{
   await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"sendChatMessage",sessionId:chatSessionId,name:chatInfo?.name||"",phone:chatInfo?.phone||"",message:text,imageUrl})});
  }catch(err){ /* stays visible locally; will sync on next poll */ }
@@ -230,8 +232,17 @@ async function fetchChatMessages(){
   const res = await fetch(`${SCRIPT_URL}?action=chatMessages&sessionId=${encodeURIComponent(chatSessionId)}`);
   const data = await res.json();
   if(data && Array.isArray(data.messages)){
+   // Count staff messages before/after this fetch so we can tell a
+   // genuinely NEW staff reply arrived, rather than dinging on every
+   // poll or on the very first load of an existing conversation.
+   const prevStaffCount = chatMessages.filter(m=>m.from==='staff').length;
    chatMessages = data.messages;
    localStorage.setItem("shopslipper-chat-msgs", JSON.stringify(chatMessages));
+   const newStaffCount = chatMessages.filter(m=>m.from==='staff').length;
+   if(hasFetchedMessagesOnce && newStaffCount > prevStaffCount){
+    playReceivedSound();
+   }
+   hasFetchedMessagesOnce = true;
    // If we were holding the typing dots on because staff had just
    // stopped typing, this fetch is what finally clears them — the
    // dots stay up right through until the real reply lands, so
@@ -368,6 +379,49 @@ async function pollStaffTyping(){
   }
  }catch(err){ /* silent — indicator just won't update this tick */ }
 }
+
+/* ================== Notification sounds ==================
+   Tiny synthesized beeps via the Web Audio API — no audio files to
+   host or fetch, so this works offline and never hits the network.
+   Browsers block audio until the page has had a user gesture, so the
+   AudioContext is created lazily (on first use, e.g. the customer's
+   first tap/keystroke) and resumed on every play call.
+============================================================= */
+let audioCtx = null;
+function getAudioCtx(){
+ if(!audioCtx){
+  try{ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }
+  catch(e){ return null; }
+ }
+ if(audioCtx.state === "suspended") audioCtx.resume().catch(()=>{});
+ return audioCtx;
+}
+// freqs: array of tone frequencies played back-to-back; each tone gets
+// a quick attack + exponential decay so it sounds like a soft "blip"
+// rather than a harsh square-wave beep.
+function playTone(freqs, stepMs, gainVal){
+ const ctx = getAudioCtx();
+ if(!ctx) return;
+ const now = ctx.currentTime;
+ freqs.forEach((freq, i)=>{
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = "sine";
+  osc.frequency.value = freq;
+  const start = now + i*(stepMs/1000);
+  const dur = stepMs/1000;
+  gain.gain.setValueAtTime(0, start);
+  gain.gain.linearRampToValueAtTime(gainVal, start+0.008);
+  gain.gain.exponentialRampToValueAtTime(0.0001, start+dur);
+  osc.connect(gain); gain.connect(ctx.destination);
+  osc.start(start);
+  osc.stop(start+dur+0.02);
+ });
+}
+// Played when the customer sends a message.
+function playSentSound(){ playTone([680], 90, 0.10); }
+// Played when a new staff reply arrives.
+function playReceivedSound(){ playTone([520, 780], 110, 0.13); }
 
 init();
 </script>
