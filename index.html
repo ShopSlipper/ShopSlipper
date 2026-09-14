@@ -443,7 +443,7 @@ footer .logo span{color:#c8f0d6}
    </div>
    <div class="dealCard">
     <span class="dealBadge" id="dl_badgeOut" style="display:none">Sale</span>
-    <div class="dealImgWrap"><img id="dl_imgOut" src="" alt="" onerror="this.style.display='none'"></div>
+    <div class="dealImgWrap" id="dl_imgWrap"><img id="dl_imgOut" src="" alt="" onerror="this.parentElement.style.display='none'" onload="this.parentElement.style.display='flex'"></div>
     <div class="dealOnlyAt">Only at</div>
     <div class="dealPriceOut" id="dl_priceOut"></div>
    </div>
@@ -1471,7 +1471,23 @@ function renderDeal(settings){
  document.querySelector("#dl_subtitleOut").textContent = settings.dealSubtitle || "";
  const btn = document.querySelector("#dl_btnOut");
  btn.textContent = settings.dealButtonText || "Shop Now";
- btn.href = settings.dealButtonLink || "#shop";
+ const dealLink = settings.dealButtonLink || "#shop";
+ btn.href = dealLink;
+ // Native "#hash" anchor jumps can silently fail on mobile here because
+ // <html> has overflow-x:clip (same reason #searchIconBtn above already
+ // uses an explicit scrollIntoView instead of a plain href jump) — so we
+ // do the same for in-page links. External links (not starting with #)
+ // are left to navigate normally.
+ btn.onclick = function(e){
+  if(dealLink.startsWith("#")){
+   const target = document.querySelector(dealLink);
+   if(target){
+    e.preventDefault();
+    target.scrollIntoView({behavior:"smooth", block:"start"});
+   }
+  }
+ };
+ document.querySelector("#dl_imgWrap").style.display = "flex";
  document.querySelector("#dl_imgOut").src = settings.dealImage;
  const badge = document.querySelector("#dl_badgeOut");
  if(settings.dealBadgeText){ badge.style.display="inline-block"; badge.textContent = settings.dealBadgeText; }
