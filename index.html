@@ -144,6 +144,7 @@ a.product{display:block;text-decoration:none;color:inherit}
 .returnSteps div{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px}
 .returnSteps b{display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:var(--gold);color:#fff;font-size:12px;margin-bottom:10px}
 .returnSteps span{display:block;font-size:12.5px;color:var(--muted);line-height:1.5}
+@media(max-width:700px){.returnSteps.)
 @media(max-width:700px){.returnSteps{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:390px){.returnSteps{grid-template-columns:1fr}}
 .feature{background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px}
@@ -420,7 +421,12 @@ footer .logo span{color:#c8f0d6}
 </section>
 </main>
 
+<section class="section dealSection" id="dealSection" style="display:none">
+ ...
+</section>
+
 <footer>
+ <div class="container">
  <div class="container">
   <div class="footerGrid">
    <div>
@@ -559,6 +565,14 @@ footer .logo span{color:#c8f0d6}
 </a>
 
 <script>
+function applyDeliverySettings(settings){
+ deliveryThreshold = (settings.freeDeliveryThreshold!==undefined && settings.freeDeliveryThreshold!==null && settings.freeDeliveryThreshold!=="")
+  ? Number(settings.freeDeliveryThreshold) : deliveryThreshold;
+ deliveryCharge = (settings.deliveryCharge!==undefined && settings.deliveryCharge!==null && settings.deliveryCharge!=="")
+  ? Number(settings.deliveryCharge) : deliveryCharge;
+ updateCart();
+renderDeal(settings){...}
+}  
 /* ================== CONFIG — set this to your Apps Script Web App URL ================== */
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzKHLu21Y5oJeM7KQ5dcI3mTXpNnZlDRoTn19nCuqZ7SNb73S6cj9QaTY2Sd-QHTFoE/exec"; // ends in /exec
 /* ========================================================================================= */
@@ -1409,6 +1423,7 @@ async function loadBanner(){
   document.querySelector("#heroBannerImg").src = settings.bannerImage || fallbackImg;
   document.querySelector("#heroBanner").href = settings.bannerLink || "#shop";
   applyDeliverySettings(settings);
+  renderDeal(settings);
   // Settings can arrive after the first product render (loadBanner and
   // loadProducts fire in parallel below), so re-render once we have
   // them, in case the in-grid promo tile needs to appear.
