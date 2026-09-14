@@ -156,6 +156,7 @@ a.product{display:block;text-decoration:none;color:inherit}
 .dealImgWrap img{width:100%;height:100%;object-fit:contain}
 .dealOnlyAt{font-size:11.5px;color:var(--muted);margin-bottom:4px}
 .dealPriceOut{font-weight:800;font-size:17px}
+.dealSelectBtn{margin-top:14px}
 @media(max-width:900px){.dealWrap{grid-template-columns:1fr;text-align:center}.dealCard{max-width:100%;margin:0 auto}.dealSubtitle{margin-left:auto;margin-right:auto}}
 @media(max-width:700px){.returnSteps{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:390px){.returnSteps{grid-template-columns:1fr}}
@@ -439,13 +440,13 @@ footer .logo span{color:#c8f0d6}
    <div>
     <h2 class="dealTitle" id="dl_titleOut"></h2>
     <p class="dealSubtitle" id="dl_subtitleOut"></p>
-    <a class="dealBtn" id="dl_btnOut" href="#shop">Shop Now</a>
    </div>
    <div class="dealCard">
     <span class="dealBadge" id="dl_badgeOut" style="display:none">Sale</span>
     <div class="dealImgWrap" id="dl_imgWrap"><img id="dl_imgOut" src="" alt="" onerror="this.parentElement.style.display='none'" onload="this.parentElement.style.display='flex'"></div>
     <div class="dealOnlyAt">Only at</div>
     <div class="dealPriceOut" id="dl_priceOut"></div>
+    <button class="add dealSelectBtn" id="dl_selectSizeBtn" type="button" onclick="openDealProduct()">Select size</button>
    </div>
   </div>
  </div>
@@ -1463,30 +1464,27 @@ function applyDeliverySettings(settings){
  updateCart();
 }
 
+function openDealProduct(){
+ if(!productsLoaded) return;
+ const link = siteSettings.dealButtonLink || "";
+ let id = Number(siteSettings.dealProductId);
+ if(!id && link){
+  const m = link.match(/(?:\/product\/|[?&]product=)(\d+)/i);
+  if(m) id = Number(m[1]);
+ }
+ let product = id ? products.find(p=>p.id===id) : null;
+ if(!product && siteSettings.dealImage) product = products.find(p=>p.image===siteSettings.dealImage);
+ if(product){ openProduct(product.id); return; }
+ const target = link && link.startsWith("#") ? document.querySelector(link) : document.querySelector("#shop");
+ if(target) target.scrollIntoView({behavior:"smooth", block:"start"});
+}
+
 function renderDeal(settings){
  const wrap = document.querySelector("#dealSection");
  if(!settings.dealImage){ wrap.style.display="none"; return; }
  wrap.style.display="block";
  document.querySelector("#dl_titleOut").textContent = settings.dealTitle || "Exclusive Deal of the Week";
  document.querySelector("#dl_subtitleOut").textContent = settings.dealSubtitle || "";
- const btn = document.querySelector("#dl_btnOut");
- btn.textContent = settings.dealButtonText || "Shop Now";
- const dealLink = settings.dealButtonLink || "#shop";
- btn.href = dealLink;
- // Native "#hash" anchor jumps can silently fail on mobile here because
- // <html> has overflow-x:clip (same reason #searchIconBtn above already
- // uses an explicit scrollIntoView instead of a plain href jump) — so we
- // do the same for in-page links. External links (not starting with #)
- // are left to navigate normally.
- btn.onclick = function(e){
-  if(dealLink.startsWith("#")){
-   const target = document.querySelector(dealLink);
-   if(target){
-    e.preventDefault();
-    target.scrollIntoView({behavior:"smooth", block:"start"});
-   }
-  }
- };
  document.querySelector("#dl_imgWrap").style.display = "flex";
  document.querySelector("#dl_imgOut").src = settings.dealImage;
  const badge = document.querySelector("#dl_badgeOut");
