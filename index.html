@@ -146,17 +146,17 @@ a.product{display:block;text-decoration:none;color:inherit}
 .returnSteps span{display:block;font-size:12.5px;color:var(--muted);line-height:1.5}
 .dealSection{padding:20px 0 70px}
 .dealWrap{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center}
-.dealTitle{font-family:var(--serif);font-weight:800;font-size:clamp(24px,3.4vw,36px);line-height:1.15;margin-bottom:14px;color:var(--gold)}
-.dealSubtitle{color:var(--muted);font-size:14.5px;margin-bottom:22px;max-width:420px}
+.dealTitle{font-family:var(--serif);font-weight:800;font-size:clamp(26px,3.8vw,42px);line-height:1.15;margin-bottom:14px;color:var(--gold)}
+.dealSubtitle{color:var(--muted);font-size:15.5px;margin-bottom:22px;max-width:440px}
 .dealBtn{display:inline-flex;align-items:center;justify-content:center;padding:15px 30px;border-radius:12px;background:var(--text);color:#fff;font-weight:700;font-size:14px;transition:.2s opacity}
 .dealBtn:hover{opacity:.85}
-.dealCard{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;position:relative;max-width:360px}
-.dealBadge{position:absolute;left:18px;top:18px;background:var(--danger);color:#fff;padding:6px 16px;border-radius:999px;font-size:12px;font-weight:700;z-index:2}
-.dealImgWrap{aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;background:var(--soft);border-radius:14px;overflow:hidden;margin-bottom:14px}
+.dealCard{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow-lg);padding:32px;position:relative;max-width:480px;width:100%}
+.dealBadge{position:absolute;left:24px;top:24px;background:var(--danger);color:#fff;padding:7px 18px;border-radius:999px;font-size:13px;font-weight:700;z-index:2}
+.dealImgWrap{aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;background:var(--soft);border-radius:16px;overflow:hidden;margin-bottom:18px}
 .dealImgWrap img{width:100%;height:100%;object-fit:contain}
-.dealOnlyAt{font-size:11.5px;color:var(--muted);margin-bottom:4px}
-.dealPriceOut{font-weight:800;font-size:17px}
-.dealSelectBtn{margin-top:14px}
+.dealOnlyAt{font-size:12.5px;color:var(--muted);margin-bottom:6px}
+.dealPriceOut{font-weight:800;font-size:24px}
+.dealSelectBtn{margin-top:18px;width:100%;padding:16px 24px;font-size:15px}
 @media(max-width:900px){.dealWrap{grid-template-columns:1fr;text-align:center}.dealCard{max-width:100%;margin:0 auto}.dealSubtitle{margin-left:auto;margin-right:auto}}
 @media(max-width:700px){.returnSteps{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:390px){.returnSteps{grid-template-columns:1fr}}
@@ -793,11 +793,11 @@ function cardHTML(p){
  </a>`;
 }
 
-let pdProduct=null, pdSize=null, pdQty=1, pdVariantIdx=0, pdHideSuggestions=false;
-function openProduct(id, hideSuggestions){
+let pdProduct=null, pdSize=null, pdQty=1, pdVariantIdx=0;
+function openProduct(id){
  const p = products.find(x=>x.id===id);
  if(!p) return;
- pdProduct=p; pdQty=1; pdVariantIdx=0; pdHideSuggestions=!!hideSuggestions;
+ pdProduct=p; pdQty=1; pdVariantIdx=0;
  const sizes = (p.sizes||"").split(",").map(s=>s.trim()).filter(Boolean);
  // default to the first size that's actually in stock, if any are tracked
  pdSize = sizes.find(s=>!isCombinationOut(p,0,s)) || sizes[0] || null;
@@ -885,7 +885,7 @@ function renderProductDetail(){
  }else if(curQty!==null && curQty<=5){
   stockMsgHtml = `<div class="stockMsg low">${TEXT.onlyLeft.replace("{n}",curQty)}</div>`;
  }
- const suggestBlock = pdHideSuggestions ? "" : `
+ const suggestBlock = `
    <div class="pdSuggest">
     <div class="eyebrow">You might also like</div>
     <h3>Suggested for you</h3>
@@ -1467,15 +1467,13 @@ function applyDeliverySettings(settings){
 }
 
 /* ================== Deal-of-the-week "Select size" button ==================
-   Bug fixes:
-   1) The button used to silently do nothing when the admin hadn't set a
-      dealProductId (or a working dealButtonLink/dealImage match) — it just
-      called openProduct() on an id that was never found. Now it tells the
-      shopper something went wrong instead of doing nothing.
-   2) Opening a product from the deal card must show ONLY that product —
-      not the normal "You might also like" grid underneath it — so a
-      pdHideSuggestions flag is set before opening and cleared afterward
-      (openProduct() from anywhere else always clears it back to false).
+   Just resolves which product the deal card points to, then opens it with
+   the exact same openProduct() used everywhere else — same modal, same
+   size/color picker, same "You might also like", same add-to-cart. The
+   card is only different visually (bigger, pinned at the bottom).
+   Bug fix: previously this silently did nothing when admin hadn't set a
+   dealProductId (or a working dealButtonLink/dealImage match). Now it
+   tells the shopper instead of doing nothing.
 ================================================================= */
 function openDealProduct(){
  if(!productsLoaded){ toast("Still loading products — try again in a moment"); return; }
@@ -1491,7 +1489,7 @@ function openDealProduct(){
   product = products.find(p=>String(p.image||"").split("?")[0].replace(/\/+/g,"/").replace(/\/$/,"").toLowerCase()===dealImg);
  }
  if(product){
-  openProduct(product.id, true); // true = hide "You might also like" so only the deal product shows
+  openProduct(product.id);
  }else{
   toast("Couldn't find this deal's product — set a product link in admin");
  }
