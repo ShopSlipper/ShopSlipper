@@ -123,6 +123,8 @@ tr:last-child td{border-bottom:0}
 /* ---- Banner tab ---- */
 .bannerPreviewWrap{border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--soft);margin-bottom:18px}
 .bannerPreviewWrap img{width:100%;height:auto;aspect-ratio:16/5;object-fit:cover;display:block}
+.dealPreviewWrap{border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--soft);margin-bottom:18px;max-width:260px}
+.dealPreviewWrap img{width:100%;height:auto;aspect-ratio:1/1;object-fit:contain;display:block;background:#fff}
 
 /* ---- Stock tracker (admin-only — never sent to storefront) ---- */
 .stockNote{font-size:11px;color:var(--muted);margin-bottom:8px;display:block}
@@ -288,6 +290,54 @@ tr:last-child td{border-bottom:0}
    <div class="formFoot">
     <button class="btn danger" id="mb_deleteBtn" onclick="deleteMidBanner()">Delete banner</button>
     <button class="btn" id="mb_saveBtn" onclick="saveMidBanner()">Save banner</button>
+   </div>
+
+   <div class="panelHead" style="margin-top:36px"><h2>Deal of the week</h2></div>
+   <div class="note">A dedicated promo block shown near the top of your storefront, above "New arrivals" — a headline, short description, a "Shop Now" button, and a featured product photo with an optional Sale badge and price. Optional; leave the photo blank to keep it off.</div>
+   <div class="dealPreviewWrap">
+    <img id="dl_preview" src="" alt="Deal photo preview">
+   </div>
+   <div class="formGrid">
+    <div class="field full">
+     <label>Headline</label>
+     <input id="dl_title" placeholder="e.g. Exclusive Deal of the Week" maxlength="80">
+    </div>
+    <div class="field full">
+     <label>Description</label>
+     <input id="dl_subtitle" placeholder="e.g. Discover our handpicked selection at unbeatable prices." maxlength="160">
+    </div>
+    <div class="field">
+     <label>Button text</label>
+     <input id="dl_buttonText" placeholder="Shop Now" maxlength="30">
+    </div>
+    <div class="field">
+     <label>Button link</label>
+     <input id="dl_buttonLink" placeholder="#shop, or a full product/category URL">
+    </div>
+    <div class="field full">
+     <label>Featured photo</label>
+     <div class="imgUploadRow">
+      <div class="imgUploadCol">
+       <input type="file" id="dl_imageFile" accept="image/*" style="display:none" onchange="handleDealUpload(this.files[0])">
+       <button type="button" class="btn light sm" style="width:fit-content" onclick="document.querySelector('#dl_imageFile').click()">📷 Upload photo</button>
+       <span class="uploadStatus" id="dl_uploadStatus"></span>
+       <span class="urlToggle" id="dl_urlToggle" onclick="toggleDealUrlField()">or paste an image URL instead</span>
+       <input id="dl_image" placeholder="https://..." oninput="updateDealPreview()" style="display:none">
+      </div>
+     </div>
+    </div>
+    <div class="field">
+     <label>Sale badge text (optional)</label>
+     <input id="dl_badgeText" placeholder="e.g. Sale" maxlength="20">
+    </div>
+    <div class="field">
+     <label>Price text</label>
+     <input id="dl_price" placeholder="e.g. NPR 1,699.00">
+    </div>
+   </div>
+   <div class="formFoot">
+    <button class="btn danger" id="dl_deleteBtn" onclick="deleteDeal()">Delete deal</button>
+    <button class="btn" id="dl_saveBtn" onclick="saveDeal()">Save deal</button>
    </div>
   </div>
 
@@ -510,6 +560,7 @@ async function loadAll(){
   renderChatSessions();
   loadBannerIntoForm(sData.settings || {});
   loadMidBannerIntoForm(sData.settings || {});
+  loadDealIntoForm(sData.settings || {});
   loadDeliveryIntoForm(sData.settings || {});
  }catch(err){
   document.querySelector("#sourceNote").innerHTML = `Couldn't reach the Sheet. Check <code>SCRIPT_URL</code> is set correctly in admin.html and that the Apps Script is deployed with "Anyone" access.`;
@@ -1077,6 +1128,96 @@ async function deleteMidBanner(){
   toast("Couldn't delete — check your connection and try again.");
  }finally{
   btn.disabled = false; btn.textContent = "Delete banner";
+ }
+}
+
+/* ================== Deal of the week ==================
+   Same upload/preview pattern as the two banners above, stored under
+   its own setting keys (dealTitle/dealSubtitle/dealButtonText/
+   dealButtonLink/dealImage/dealBadgeText/dealPrice) so it never
+   collides with them. index.html shows this as its own section, above
+   "New arrivals", and keeps it hidden until dealImage is set.
+=================================================== */
+function loadDealIntoForm(settings){
+ document.querySelector("#dl_title").value = settings.dealTitle || "";
+ document.querySelector("#dl_subtitle").value = settings.dealSubtitle || "";
+ document.querySelector("#dl_buttonText").value = settings.dealButtonText || "";
+ document.querySelector("#dl_buttonLink").value = settings.dealButtonLink || "";
+ document.querySelector("#dl_image").value = settings.dealImage || "";
+ document.querySelector("#dl_badgeText").value = settings.dealBadgeText || "";
+ document.querySelector("#dl_price").value = settings.dealPrice || "";
+ document.querySelector("#dl_uploadStatus").textContent = "";
+ document.querySelector("#dl_uploadStatus").classList.remove("err");
+ updateDealPreview();
+}
+function updateDealPreview(){
+ const url = document.querySelector("#dl_image").value.trim();
+ document.querySelector("#dl_preview").src = url || "https://placehold.co/600x600/eef6f2/182220?text=No+photo+set+yet";
+}
+function toggleDealUrlField(){
+ const urlField = document.querySelector("#dl_image");
+ const showing = urlField.style.display !== "none";
+ urlField.style.display = showing ? "none" : "block";
+ document.querySelector("#dl_urlToggle").textContent = showing ? "or paste an image URL instead" : "hide URL field";
+}
+function handleDealUpload(file){
+ if(!file) return;
+ const status = document.querySelector("#dl_uploadStatus");
+ status.classList.remove("err");
+ status.textContent = "Uploading…";
+ resizeAndUploadImage_(file).then(({url})=>{
+  document.querySelector("#dl_image").value = url;
+  updateDealPreview();
+  status.textContent = "Uploaded ✓ — click Save deal to publish it";
+ }).catch(()=>{
+  status.classList.add("err");
+  status.textContent = "Couldn't upload — try again or paste a URL instead.";
+ });
+}
+async function saveDeal(){
+ const dealImage = document.querySelector("#dl_image").value.trim();
+ if(!dealImage){
+  toast("Upload or paste a featured photo first");
+  return;
+ }
+ const settings = {
+  dealTitle: document.querySelector("#dl_title").value.trim(),
+  dealSubtitle: document.querySelector("#dl_subtitle").value.trim(),
+  dealButtonText: document.querySelector("#dl_buttonText").value.trim(),
+  dealButtonLink: document.querySelector("#dl_buttonLink").value.trim(),
+  dealImage,
+  dealBadgeText: document.querySelector("#dl_badgeText").value.trim(),
+  dealPrice: document.querySelector("#dl_price").value.trim()
+ };
+ const btn = document.querySelector("#dl_saveBtn");
+ btn.disabled = true; btn.textContent = "Saving…";
+ try{
+  const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"updateSettings",key:ADMIN_KEY,settings})});
+  const data = await res.json();
+  if(!data.success) throw new Error(data.error||"failed");
+  toast("Deal saved — it's live on your storefront");
+ }catch(err){
+  toast("Couldn't save — check your connection and try again.");
+ }finally{
+  btn.disabled = false; btn.textContent = "Save deal";
+ }
+}
+async function deleteDeal(){
+ if(!confirm("Remove the Deal of the week section from your storefront? This can't be undone.")) return;
+ const btn = document.querySelector("#dl_deleteBtn");
+ btn.disabled = true; btn.textContent = "Deleting…";
+ try{
+  const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"updateSettings",key:ADMIN_KEY,settings:{
+   dealTitle:"",dealSubtitle:"",dealButtonText:"",dealButtonLink:"",dealImage:"",dealBadgeText:"",dealPrice:""
+  }})});
+  const data = await res.json();
+  if(!data.success) throw new Error(data.error||"failed");
+  loadDealIntoForm({});
+  toast("Deal removed from your storefront");
+ }catch(err){
+  toast("Couldn't delete — check your connection and try again.");
+ }finally{
+  btn.disabled = false; btn.textContent = "Delete deal";
  }
 }
 
