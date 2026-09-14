@@ -446,7 +446,7 @@ footer .logo span{color:#c8f0d6}
     <div class="dealImgWrap" id="dl_imgWrap"><img id="dl_imgOut" src="" alt="" onerror="this.parentElement.style.display='none'" onload="this.parentElement.style.display='flex'"></div>
     <div class="dealOnlyAt">Only at</div>
     <div class="dealPriceOut" id="dl_priceOut"></div>
-    <button class="add dealSelectBtn" id="dl_selectSizeBtn" type="button" onclick="openDealProduct()">Select size</button>
+    <button class="add dealSelectBtn" id="dl_selectSizeBtn" type="button" onclick="event.preventDefault();event.stopPropagation();openDealProduct()">Select size</button>
    </div>
   </div>
  </div>
@@ -1473,10 +1473,13 @@ function openDealProduct(){
   if(m) id = Number(m[1]);
  }
  let product = id ? products.find(p=>p.id===id) : null;
- if(!product && siteSettings.dealImage) product = products.find(p=>p.image===siteSettings.dealImage);
- if(product){ openProduct(product.id); return; }
- const target = link && link.startsWith("#") ? document.querySelector(link) : document.querySelector("#shop");
- if(target) target.scrollIntoView({behavior:"smooth", block:"start"});
+ if(!product && siteSettings.dealImage){
+  const dealImg = String(siteSettings.dealImage).split("?")[0].replace(/\/+/g,"/").replace(/\/$/,"").toLowerCase();
+  product = products.find(p=>String(p.image||"").split("?")[0].replace(/\/+/g,"/").replace(/\/$/,"").toLowerCase()===dealImg);
+ }
+ if(product){
+  openProduct(product.id);
+ }
 }
 
 function renderDeal(settings){
