@@ -1471,27 +1471,31 @@ function applyDeliverySettings(settings){
    the exact same openProduct() used everywhere else — same modal, same
    size/color picker, same "You might also like", same add-to-cart. The
    card is only different visually (bigger, pinned at the bottom).
-   Bug fix: previously this silently did nothing when admin hadn't set a
-   dealProductId (or a working dealButtonLink/dealImage match). Now it
-   tells the shopper instead of doing nothing.
+
+   The ONLY source of truth for which product this is: siteSettings.dealProductId
+   (or a numeric id parsed out of siteSettings.dealButtonLink, e.g. a link
+   ending in /product/12 or ?product=12). There used to be a third fallback
+   here that guessed the product by comparing the deal banner image against
+   every product photo — that's what was opening the wrong product (any
+   accidental match, e.g. a shared placeholder image, would "win"). Removed.
+   If neither dealProductId nor dealButtonLink resolves to a real product,
+   this now fails loudly (console + toast) instead of guessing.
 ================================================================= */
 function openDealProduct(){
  if(!productsLoaded){ toast("Still loading products — try again in a moment"); return; }
  const link = siteSettings.dealButtonLink || "";
  let id = Number(siteSettings.dealProductId);
+ let source = "dealProductId";
  if(!id && link){
   const m = link.match(/(?:\/product\/|[?&]product=)(\d+)/i);
-  if(m) id = Number(m[1]);
+  if(m){ id = Number(m[1]); source = "dealButtonLink"; }
  }
- let product = id ? products.find(p=>p.id===id) : null;
- if(!product && siteSettings.dealImage){
-  const dealImg = String(siteSettings.dealImage).split("?")[0].replace(/\/+/g,"/").replace(/\/$/,"").toLowerCase();
-  product = products.find(p=>String(p.image||"").split("?")[0].replace(/\/+/g,"/").replace(/\/$/,"").toLowerCase()===dealImg);
- }
+ const product = id ? products.find(p=>p.id===id) : null;
+ console.log(`[deal] dealProductId=${siteSettings.dealProductId} dealButtonLink=${JSON.stringify(link)} -> resolved id=${id||"(none)"} via ${source} -> product=${product?product.name+" (id "+product.id+")":"NOT FOUND"}`);
  if(product){
   openProduct(product.id);
  }else{
-  toast("Couldn't find this deal's product — set a product link in admin");
+  toast("This deal isn't linked to a product yet — set 'Deal product' in admin");
  }
 }
 
