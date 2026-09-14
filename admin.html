@@ -293,11 +293,16 @@ tr:last-child td{border-bottom:0}
    </div>
 
    <div class="panelHead" style="margin-top:36px"><h2>Deal of the week</h2></div>
-   <div class="note">A dedicated promo block shown near the top of your storefront, above "New arrivals" — a headline, short description, a "Shop Now" button, and a featured product photo with an optional Sale badge and price. Optional; leave the photo blank to keep it off.</div>
+   <div class="note">A dedicated promo block shown near the top of your storefront, above "New arrivals" — a headline, short description, a photo, and a real product tied to it so shoppers can pick a size and add it to cart directly from this card, just like a normal product. Optional; leave the product unset to keep it off.</div>
    <div class="dealPreviewWrap">
     <img id="dl_preview" src="" alt="Deal photo preview">
    </div>
    <div class="formGrid">
+    <div class="field full">
+     <label>Linked product</label>
+     <select id="dl_productId"></select>
+     <span style="font-size:11px;color:var(--muted)">The product shoppers actually buy from this card — its sizes, stock, and add-to-cart behave exactly like the product grid.</span>
+    </div>
     <div class="field full">
      <label>Headline</label>
      <input id="dl_title" placeholder="e.g. Exclusive Deal of the Week" maxlength="80">
@@ -305,14 +310,6 @@ tr:last-child td{border-bottom:0}
     <div class="field full">
      <label>Description</label>
      <input id="dl_subtitle" placeholder="e.g. Discover our handpicked selection at unbeatable prices." maxlength="160">
-    </div>
-    <div class="field">
-     <label>Button text</label>
-     <input id="dl_buttonText" placeholder="Shop Now" maxlength="30">
-    </div>
-    <div class="field">
-     <label>Button link</label>
-     <input id="dl_buttonLink" placeholder="#shop, or a full product/category URL">
     </div>
     <div class="field full">
      <label>Featured photo</label>
@@ -645,6 +642,22 @@ function render(){
 
  const cats = [...new Set(products.map(p=>p.category))];
  document.querySelector("#catList").innerHTML = cats.map(c=>`<option value="${escapeHtml(c)}">`).join("");
+ populateDealProductSelect();
+}
+
+/* ================== Deal-of-the-week product picker ==================
+   Populates the <select> in the Deal tab from the live products list,
+   so the Deal card can be tied to a real catalog product (its sizes,
+   stock, and add-to-cart flow) instead of standing on its own. Keeps
+   whatever is currently selected if it still exists after a refresh.
+======================================================================= */
+function populateDealProductSelect(){
+ const sel = document.querySelector("#dl_productId");
+ if(!sel) return;
+ const current = sel.value;
+ sel.innerHTML = `<option value="">— none (just a static promo, no cart action) —</option>` +
+  products.map(p=>`<option value="${p.id}">${escapeHtml(p.name)} (${escapeHtml(p.sku||'')})</option>`).join("");
+ if(current && products.some(p=>String(p.id)===String(current))) sel.value = current;
 }
 
 function renderOrders(){
@@ -1133,16 +1146,18 @@ async function deleteMidBanner(){
 
 /* ================== Deal of the week ==================
    Same upload/preview pattern as the two banners above, stored under
-   its own setting keys (dealTitle/dealSubtitle/dealButtonText/
-   dealButtonLink/dealImage/dealBadgeText/dealPrice) so it never
-   collides with them. index.html shows this as its own section, above
-   "New arrivals", and keeps it hidden until dealImage is set.
+   its own setting keys (dealTitle/dealSubtitle/dealProductId/
+   dealImage/dealBadgeText/dealPrice) so it never collides with them.
+   index.html shows this as its own section, above "New arrivals",
+   and keeps it hidden until dealImage is set. dealProductId ties the
+   card to a real catalog product so the storefront can reuse its
+   normal size-select / add-to-cart flow.
 =================================================== */
 function loadDealIntoForm(settings){
+ populateDealProductSelect();
+ document.querySelector("#dl_productId").value = settings.dealProductId || "";
  document.querySelector("#dl_title").value = settings.dealTitle || "";
  document.querySelector("#dl_subtitle").value = settings.dealSubtitle || "";
- document.querySelector("#dl_buttonText").value = settings.dealButtonText || "";
- document.querySelector("#dl_buttonLink").value = settings.dealButtonLink || "";
  document.querySelector("#dl_image").value = settings.dealImage || "";
  document.querySelector("#dl_badgeText").value = settings.dealBadgeText || "";
  document.querySelector("#dl_price").value = settings.dealPrice || "";
@@ -1183,8 +1198,7 @@ async function saveDeal(){
  const settings = {
   dealTitle: document.querySelector("#dl_title").value.trim(),
   dealSubtitle: document.querySelector("#dl_subtitle").value.trim(),
-  dealButtonText: document.querySelector("#dl_buttonText").value.trim(),
-  dealButtonLink: document.querySelector("#dl_buttonLink").value.trim(),
+  dealProductId: document.querySelector("#dl_productId").value,
   dealImage,
   dealBadgeText: document.querySelector("#dl_badgeText").value.trim(),
   dealPrice: document.querySelector("#dl_price").value.trim()
@@ -1208,7 +1222,7 @@ async function deleteDeal(){
  btn.disabled = true; btn.textContent = "Deleting…";
  try{
   const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"updateSettings",key:ADMIN_KEY,settings:{
-   dealTitle:"",dealSubtitle:"",dealButtonText:"",dealButtonLink:"",dealImage:"",dealBadgeText:"",dealPrice:""
+   dealTitle:"",dealSubtitle:"",dealProductId:"",dealImage:"",dealBadgeText:"",dealPrice:""
   }})});
   const data = await res.json();
   if(!data.success) throw new Error(data.error||"failed");
