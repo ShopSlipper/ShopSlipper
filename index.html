@@ -324,21 +324,19 @@ footer .logo span{color:#c8f0d6}
 .mobileNavPanel a{display:block;padding:15px 22px;font-size:15px;font-weight:600;border-bottom:1px solid var(--soft)}
 .mobileNavPanel a:last-child{border-bottom:0}
 .mobileNavPanel a:active{background:var(--soft)}
-.dealPageHead{padding:26px 28px 18px;border-bottom:1px solid var(--line);background:linear-gradient(135deg,var(--gold),var(--sage));color:#fff}
+.dealPageHead{padding:26px 0 28px;background:linear-gradient(135deg,var(--gold),var(--sage));color:#fff}
 .dealPageHead .eyebrow{color:#e6ffee}
 .dealPageHead .eyebrow::before{background:#e6ffee}
-.dealPageHead h2{font-family:var(--serif);font-weight:800;font-size:26px;margin-bottom:6px}
-.dealPageHead p{font-size:13px;color:#e6ffee;max-width:480px}
+.dealPageHead h2{font-family:var(--serif);font-weight:800;font-size:clamp(24px,3.2vw,34px);margin-bottom:6px}
+.dealPageHead p{font-size:13.5px;color:#e6ffee;max-width:520px}
 .dealTimerRow{display:flex;align-items:center;gap:10px;margin-top:16px;flex-wrap:wrap}
 .dealTimerLabel{font-size:12px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:#e6ffee}
 .dealTimerUnits{display:flex;gap:6px}
 .dealTimerUnit{background:rgba(255,255,255,.18);border-radius:10px;padding:8px 10px;min-width:52px;text-align:center}
 .dealTimerUnit b{display:block;font-family:var(--serif);font-size:18px;line-height:1}
 .dealTimerUnit span{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.4px;opacity:.85;margin-top:2px}
-.dealPageBody{padding:22px 28px 30px}
-.dealPageBody .grid{grid-template-columns:repeat(4,1fr);gap:16px}
-@media(max-width:920px){.dealPageBody .grid{grid-template-columns:repeat(2,1fr)}}
-.dealPageEmpty{text-align:center;color:var(--muted);padding:50px 10px}
+.dealPageEmpty{text-align:center;color:var(--muted);padding:50px 10px;grid-column:1/-1}
+@media(max-width:650px){.dealPageHead{padding:18px 0 20px}}
 </style>
 </head>
 <body>
@@ -346,15 +344,15 @@ footer .logo span{color:#c8f0d6}
 
 <header>
   <div class="container nav">
-    <a class="logo" href="#"><img class="logoMark" src="https://raw.githubusercontent.com/ShopSlipper/ShopSlipper/main/shop_slipper_transparent.png" alt="ShopSlipper logo"><span class="logoText">SHOP<span class="logoAccent">SLIPPER</span></span></a>
+    <a class="logo" href="#" onclick="closeDealPage()"><img class="logoMark" src="https://raw.githubusercontent.com/ShopSlipper/ShopSlipper/main/shop_slipper_transparent.png" alt="ShopSlipper logo"><span class="logoText">SHOP<span class="logoAccent">SLIPPER</span></span></a>
     <nav class="navlinks">
-      <a href="#shop">Shop</a>
-      <a href="#new">New arrivals</a>
-      <a href="#about">Why us</a>
-      <a href="#" onclick="openReturns();return false;">Returns</a>
+      <a href="#shop" onclick="closeDealPage()">Shop</a>
+      <a href="#new" onclick="closeDealPage()">New arrivals</a>
+      <a href="#about" onclick="closeDealPage()">Why us</a>
+      <a href="#" onclick="closeDealPage();openReturns();return false;">Returns</a>
     </nav>
     <div class="actions">
-      <button class="iconbtn" id="searchIconBtn" aria-label="Search" onclick="document.querySelector('#search').focus();document.querySelector('#shop').scrollIntoView({behavior:'smooth'})">⌕</button>
+      <button class="iconbtn" id="searchIconBtn" aria-label="Search" onclick="closeDealPage();document.querySelector('#search').focus();document.querySelector('#shop').scrollIntoView({behavior:'smooth'})">⌕</button>
       <button class="iconbtn" aria-label="Account" onclick="window.location.href='account.html'">👤<span class="badge" id="acctBadge" style="display:none">•</span></button>
       <button class="iconbtn" aria-label="Cart" onclick="openCart()">🛒<span class="badge" id="cartCount">0</span></button>
       <button class="iconbtn menuBtn" id="menuBtn" aria-label="Open menu" aria-expanded="false" onclick="toggleMobileNav()">☰</button>
@@ -365,10 +363,10 @@ footer .logo span{color:#c8f0d6}
 <div class="mobileNav" id="mobileNav" onclick="if(event.target===this)closeMobileNav()">
   <div class="mobileNavScrim"></div>
   <nav class="mobileNavPanel">
-    <a href="#shop" onclick="closeMobileNav()">Shop</a>
-    <a href="#new" onclick="closeMobileNav()">New arrivals</a>
-    <a href="#about" onclick="closeMobileNav()">Why us</a>
-    <a href="#" onclick="closeMobileNav();openReturns();return false;">Returns</a>
+    <a href="#shop" onclick="closeMobileNav();closeDealPage()">Shop</a>
+    <a href="#new" onclick="closeMobileNav();closeDealPage()">New arrivals</a>
+    <a href="#about" onclick="closeMobileNav();closeDealPage()">Why us</a>
+    <a href="#" onclick="closeMobileNav();closeDealPage();openReturns();return false;">Returns</a>
   </nav>
 </div>
 
@@ -448,6 +446,34 @@ footer .logo span{color:#c8f0d6}
  </div>
 </section>
 </main>
+
+<!-- ================== Exclusive Deal of the Week — dedicated page ==================
+     Not a modal: clicking "Shop Now" hides the regular shop (main),
+     the deal promo band, and the footer, and shows this section instead
+     — so the customer is "on" a page that only has the offer products,
+     with no way to browse the regular catalog until they tap Back.
+====================================================================== -->
+<section id="dealPage" style="display:none;padding:0">
+ <div class="dealPageHead">
+  <div class="container">
+   <button class="btn light" type="button" onclick="closeDealPage()" style="margin-bottom:16px;padding:9px 18px;font-size:12.5px">← Back to shop</button>
+   <div class="eyebrow">Limited-time offer</div>
+   <h2 id="dp_title"></h2>
+   <p id="dp_subtitle"></p>
+   <div class="dealTimerRow">
+    <span class="dealTimerLabel">Deal ends in</span>
+    <div class="dealTimerUnits">
+     <div class="dealTimerUnit"><b id="dt_h">00</b><span>Hrs</span></div>
+     <div class="dealTimerUnit"><b id="dt_m">00</b><span>Min</span></div>
+     <div class="dealTimerUnit"><b id="dt_s">00</b><span>Sec</span></div>
+    </div>
+   </div>
+  </div>
+ </div>
+ <div class="container" style="padding:22px 0 70px">
+  <div class="grid" id="dp_grid"></div>
+ </div>
+</section>
 
 <section class="section dealSection" id="dealSection" style="display:none">
  <div class="container">
@@ -535,13 +561,6 @@ footer .logo span{color:#c8f0d6}
  <div class="modalBox productModalBox" style="position:relative">
   <button class="productModalClose" onclick="closeProduct()">×</button>
   <div id="productModalContent"></div>
- </div>
-</div>
-
-<div class="modal" id="dealPageModal" role="dialog" aria-modal="true" aria-label="Exclusive Deal of the Week" onclick="if(event.target===this)closeDealPage()">
- <div class="modalBox productModalBox" style="position:relative;padding:0">
-  <button class="productModalClose" onclick="closeDealPage()">×</button>
-  <div id="dealPageContent"></div>
  </div>
 </div>
 
@@ -852,7 +871,7 @@ document.addEventListener("keydown", e=>{
  if(e.key !== "Escape") return;
  if(document.querySelector("#zoomModal").classList.contains("open")) closeZoom();
  else if(document.querySelector("#productModal").classList.contains("open")) closeProduct();
- else if(document.querySelector("#dealPageModal").classList.contains("open")) closeDealPage();
+ else if(document.querySelector("#dealPage").style.display !== "none") closeDealPage();
  else if(document.querySelector("#checkout").classList.contains("open")) closeCheckout();
  else if(document.querySelector("#returnsModal").classList.contains("open")) closeReturns();
  else if(document.querySelector("#orderSuccessModal").classList.contains("open")) closeOrderSuccess();
@@ -1049,7 +1068,7 @@ function removeItem(id,size,color){cart=cart.filter(i=>!(i.id===id && i.size===s
 function updateCart(){
  const count=cart.reduce((s,i)=>s+i.qty,0);document.querySelector("#cartCount").textContent=count;
  const el=document.querySelector("#cartItems");
- if(!cart.length){el.innerHTML='<div class="empty">Your cart is empty.<br><br><a class="btn" href="#shop" onclick="closeCart()">Start shopping</a></div>';}
+ if(!cart.length){el.innerHTML='<div class="empty">Your cart is empty.<br><br><a class="btn" href="#shop" onclick="closeCart();closeDealPage()">Start shopping</a></div>';}
  else el.innerHTML=cart.map(i=>{
   const p=products.find(x=>x.id===i.id);if(!p)return "";
   const img=i.image||p.image;
@@ -1438,17 +1457,22 @@ updateAccountBadge();
 
 function escapeHtml(s){ const d=document.createElement("div"); d.textContent=s||""; return d.innerHTML; }
 
-/* ================== Exclusive Deal of the Week — full page ==================
-   Clicking "Shop Now" on the deal card opens this dedicated view instead
-   of a single product's modal. It lists the current offer products (the
-   linked deal product first, then anything else on sale), shows a
-   scarcity badge sourced from the same admin stock data used everywhere
-   else on the site, and runs a live countdown to midnight so the deal
-   reads as time-limited. Products are opened the normal way (openProduct)
-   from inside this view, so add-to-cart, sizes, and colors all work
-   exactly as they do from the main grid.
+/* ================== Exclusive Deal of the Week — dedicated page ==================
+   Clicking "Shop Now" on the deal card takes the customer to a real
+   full-page view instead of a popup: the regular shop (<main>), the
+   deal promo band, and the footer are all hidden, and only the offer
+   products show — there's no way to browse the regular catalog while
+   here, only "← Back to shop" (or the browser Back button, via the
+   #deal hash) returns them to the normal store.
+   Offer list = the linked "Deal product" from admin first, then any
+   other product currently on sale, capped to a small curated set.
+   Each card is the normal cardHTML() with a scarcity line (from the
+   same admin stock data used elsewhere) inserted above the title, and
+   opening one still uses the regular openProduct() modal, so sizes,
+   colors and add-to-cart all behave exactly as they do on the main grid.
 ================================================================= */
 let dealPageTimerHandle = null;
+let dealPageOpen = false;
 
 function dealPageOfferProducts(){
  const linkedId = Number(siteSettings.dealProductId) || null;
@@ -1473,16 +1497,6 @@ function dealPageDeadline(){
  d.setHours(24,0,0,0);
  return d;
 }
-function dealPageTimerHTML(){
- return `<div class="dealTimerRow">
-  <span class="dealTimerLabel">Deal ends in</span>
-  <div class="dealTimerUnits" id="dealTimerUnits">
-   <div class="dealTimerUnit"><b id="dt_h">00</b><span>Hrs</span></div>
-   <div class="dealTimerUnit"><b id="dt_m">00</b><span>Min</span></div>
-   <div class="dealTimerUnit"><b id="dt_s">00</b><span>Sec</span></div>
-  </div>
- </div>`;
-}
 function tickDealPageTimer(){
  const h = document.querySelector("#dt_h"), m = document.querySelector("#dt_m"), s = document.querySelector("#dt_s");
  if(!h || !m || !s){ clearInterval(dealPageTimerHandle); dealPageTimerHandle=null; return; }
@@ -1500,32 +1514,47 @@ function openDealPage(){
  const offers = dealPageOfferProducts();
  const title = siteSettings.dealTitle || "Exclusive Deal of the Week";
  const subtitle = siteSettings.dealSubtitle || "A hand-picked set of offers — limited stock, while it lasts.";
- const cardsHtml = offers.length
+ document.querySelector("#dp_title").textContent = title;
+ document.querySelector("#dp_subtitle").textContent = subtitle;
+ document.querySelector("#dp_grid").innerHTML = offers.length
   ? offers.map(p=>{
      const scarcity = dealScarcityBadgeHTML(p);
      return scarcity ? cardHTML(p).replace('<div class="productInfo">', `<div class="productInfo">${scarcity}`) : cardHTML(p);
     }).join("")
   : `<div class="dealPageEmpty">No offer products are set up yet — add a "Deal product" or a sale price in admin.</div>`;
- document.querySelector("#dealPageContent").innerHTML = `
-  <div class="dealPageHead">
-   <div class="eyebrow">Limited-time offer</div>
-   <h2>${escapeHtml(title)}</h2>
-   <p>${escapeHtml(subtitle)}</p>
-   ${dealPageTimerHTML()}
-  </div>
-  <div class="dealPageBody">
-   <div class="grid">${cardsHtml}</div>
-  </div>`;
- document.querySelector("#dealPageModal").classList.add("open");
+
+ // Hide the regular shop and show only the deal page.
+ document.querySelector("main").style.display = "none";
+ document.querySelector("#dealSection").style.display = "none";
+ document.querySelector("footer").style.display = "none";
+ document.querySelector("#chatFab").style.display = "none";
+ document.querySelector("#dealPage").style.display = "block";
+ dealPageOpen = true;
+ window.scrollTo({top:0, behavior:"instant" in window ? "instant" : "auto"});
+ if(location.hash !== "#deal") history.pushState({dealPage:true}, "", "#deal");
+
  tickDealPageTimer();
  clearInterval(dealPageTimerHandle);
  dealPageTimerHandle = setInterval(tickDealPageTimer, 1000);
 }
 function closeDealPage(){
- document.querySelector("#dealPageModal").classList.remove("open");
+ if(!dealPageOpen) return;
+ document.querySelector("#dealPage").style.display = "none";
+ document.querySelector("main").style.display = "";
+ document.querySelector("#chatFab").style.display = "grid";
+ // Restore the promo band only if a deal is actually configured.
+ if(siteSettings.dealImage) document.querySelector("#dealSection").style.display = "block";
+ document.querySelector("footer").style.display = "";
+ dealPageOpen = false;
  clearInterval(dealPageTimerHandle);
  dealPageTimerHandle = null;
+ if(location.hash === "#deal") history.back();
 }
+// Browser Back button while on the deal page closes it instead of
+// leaving the site, since it was opened via a pushState hash.
+window.addEventListener("popstate", ()=>{
+ if(dealPageOpen && location.hash !== "#deal") closeDealPage();
+});
 
 let chatSessionId = localStorage.getItem("shopslipper-chat-id");
 let chatMessages = JSON.parse(localStorage.getItem("shopslipper-chat-msgs")||"[]");
