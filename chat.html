@@ -210,6 +210,7 @@ const ADMIN_KEY  = "shopslipper2026";
 let chatSessions = [];
 let activeChatSessionId = null;
 let currentTypingSessions = []; // last result of action=typingStatus
+let prevTotalUnread = null; // null = "haven't rendered yet" so the first render never dings
 
 function tryLogin(){
  const val = document.querySelector("#gatePass").value;
@@ -293,6 +294,15 @@ function renderChatSessions(){
  const dot = document.querySelector("#chatTabDot");
  if(totalUnread>0){ dot.style.display="inline-grid"; dot.textContent = totalUnread>9?"9+":totalUnread; }
  else dot.style.display="none";
+
+ // New-message notification sound: only fires once we've already
+ // rendered at least once (prevTotalUnread !== null), so logging in to
+ // a pile of existing unread chats doesn't blast a sound immediately —
+ // it only dings when the unread count actually goes UP from here on.
+ if(prevTotalUnread !== null && totalUnread > prevTotalUnread){
+  playReceivedSound();
+ }
+ prevTotalUnread = totalUnread;
 
  // Rows show ONLY the customer's name and phone number — no message
  // preview, no timestamp — swapping to a "Typing…" label in place of
@@ -394,6 +404,7 @@ async function sendStaffReply(e){
  // clearTyping_ in Code.gs).
  try{
   await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"sendChatMessage",key:ADMIN_KEY,sessionId:activeChatSessionId,message:text,imageUrl})});
+  playSentSound();
   await loadChatThread(activeChatSessionId);
   loadChatSessions(); // background refresh so this chat jumps to the top immediately, not on the next 5s poll
  }catch(err){
@@ -509,6 +520,51 @@ function pingStaffTyping(){
  fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"setTyping",key:ADMIN_KEY,sessionId:activeChatSessionId})}).catch(()=>{});
 }
 document.querySelector("#chatReplyInput").addEventListener("input", pingStaffTyping);
+
+/* ================== Notification sounds ==================
+   Tiny synthesized beeps via the Web Audio API — no audio files to
+   host or fetch, so this works offline and never hits the network.
+   Browsers block audio until the page has had a user gesture, so the
+   AudioContext is created lazily (on first use) and resumed each time;
+   the very first sound after page load may be silently skipped by the
+   browser if no gesture has happened yet (e.g. logging in via Enter
+   key counts as a gesture, so this is rarely an issue in practice).
+============================================================= */
+let audioCtx = null;
+function getAudioCtx(){
+ if(!audioCtx){
+  try{ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }
+  catch(e){ return null; }
+ }
+ if(audioCtx.state === "suspended") audioCtx.resume().catch(()=>{});
+ return audioCtx;
+}
+// freqs: array of tone frequencies played back-to-back; each tone gets
+// a quick attack + exponential decay so it sounds like a soft "blip"
+// rather than a harsh square-wave beep.
+function playTone(freqs, stepMs, gainVal){
+ const ctx = getAudioCtx();
+ if(!ctx) return;
+ const now = ctx.currentTime;
+ freqs.forEach((freq, i)=>{
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = "sine";
+  osc.frequency.value = freq;
+  const start = now + i*(stepMs/1000);
+  const dur = stepMs/1000;
+  gain.gain.setValueAtTime(0, start);
+  gain.gain.linearRampToValueAtTime(gainVal, start+0.008);
+  gain.gain.exponentialRampToValueAtTime(0.0001, start+dur);
+  osc.connect(gain); gain.connect(ctx.destination);
+  osc.start(start);
+  osc.stop(start+dur+0.02);
+ });
+}
+// Played when a staff member successfully sends a reply.
+function playSentSound(){ playTone([680], 90, 0.10); }
+// Played when a new customer message arrives (unread count goes up).
+function playReceivedSound(){ playTone([520, 780], 110, 0.13); }
 
 let toastTimer;
 function toast(t){
