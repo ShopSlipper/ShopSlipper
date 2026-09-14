@@ -638,7 +638,18 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzKHLu21Y5oJeM7KQ5dc
 
 let products = [], cart = JSON.parse(localStorage.getItem("shopslipper-cart")||"[]");
 let category="All", page=1, imageMatch=null, productsLoaded=false;
-const PER_PAGE=12;
+const FIRST_PAGE_SIZE = 12;
+const OTHER_PAGE_SIZE = 15;
+
+function pageBounds(n){
+ if(n<=1) return {start:0, end:FIRST_PAGE_SIZE};
+ const start = FIRST_PAGE_SIZE + (n-2)*OTHER_PAGE_SIZE;
+ return {start, end:start+OTHER_PAGE_SIZE};
+}
+function totalPagesFor(count){
+ if(count<=FIRST_PAGE_SIZE) return 1;
+ return 1 + Math.ceil((count-FIRST_PAGE_SIZE)/OTHER_PAGE_SIZE);
+}
 
 /* ================== Delivery settings (read live from admin) ==================
    Defaults here are only a fallback used before settings load (or if the
@@ -980,10 +991,10 @@ function renderProducts(){
  if(!productsLoaded) return;
  document.querySelector("#products").removeAttribute("aria-busy");
  const list=getFilteredList();
- const totalPages=Math.max(1,Math.ceil(list.length/PER_PAGE));
+ const totalPages=totalPagesFor(list.length);
  if(page>totalPages)page=totalPages;
- const start=(page-1)*PER_PAGE;
- const pageItems=list.slice(start,start+PER_PAGE);
+ const {start,end}=pageBounds(page);
+ const pageItems=list.slice(start,end);
  document.querySelector("#resultText").textContent=`${list.length} product${list.length!==1?"s":""}`;
  renderProductBlocks(pageItems);
  renderPagination(totalPages);
@@ -995,13 +1006,12 @@ function renderProductBlocks(pageItems){
   return;
  }
  const cards = pageItems.map(cardHTML);
- // In-grid promo tile: only shown once an image/link has actually been
- // saved in the admin Banner tab, and only when there are more than 8
- // products on this page to put it after — same on/off behavior as the
- // hero banner, just placed mid-grid instead of above it.
- const midBanner = midBannerHTML();
- if(midBanner && cards.length>8){
-  cards.splice(8,0,midBanner);
+ // Promo tile only on page 1 — page 2+ is products only, per request.
+ if(page===1){
+  const midBanner = midBannerHTML();
+  if(midBanner && cards.length>8){
+   cards.splice(8,0,midBanner);
+  }
  }
  el.innerHTML = cards.join("");
 }
