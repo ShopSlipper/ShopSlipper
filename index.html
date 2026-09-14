@@ -324,6 +324,21 @@ footer .logo span{color:#c8f0d6}
 .mobileNavPanel a{display:block;padding:15px 22px;font-size:15px;font-weight:600;border-bottom:1px solid var(--soft)}
 .mobileNavPanel a:last-child{border-bottom:0}
 .mobileNavPanel a:active{background:var(--soft)}
+.dealPageHead{padding:26px 28px 18px;border-bottom:1px solid var(--line);background:linear-gradient(135deg,var(--gold),var(--sage));color:#fff}
+.dealPageHead .eyebrow{color:#e6ffee}
+.dealPageHead .eyebrow::before{background:#e6ffee}
+.dealPageHead h2{font-family:var(--serif);font-weight:800;font-size:26px;margin-bottom:6px}
+.dealPageHead p{font-size:13px;color:#e6ffee;max-width:480px}
+.dealTimerRow{display:flex;align-items:center;gap:10px;margin-top:16px;flex-wrap:wrap}
+.dealTimerLabel{font-size:12px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:#e6ffee}
+.dealTimerUnits{display:flex;gap:6px}
+.dealTimerUnit{background:rgba(255,255,255,.18);border-radius:10px;padding:8px 10px;min-width:52px;text-align:center}
+.dealTimerUnit b{display:block;font-family:var(--serif);font-size:18px;line-height:1}
+.dealTimerUnit span{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.4px;opacity:.85;margin-top:2px}
+.dealPageBody{padding:22px 28px 30px}
+.dealPageBody .grid{grid-template-columns:repeat(4,1fr);gap:16px}
+@media(max-width:920px){.dealPageBody .grid{grid-template-columns:repeat(2,1fr)}}
+.dealPageEmpty{text-align:center;color:var(--muted);padding:50px 10px}
 </style>
 </head>
 <body>
@@ -446,7 +461,7 @@ footer .logo span{color:#c8f0d6}
     <div class="dealImgWrap" id="dl_imgWrap"><img id="dl_imgOut" src="" alt="" onerror="this.parentElement.style.display='none'" onload="this.parentElement.style.display='flex'"></div>
     <div class="dealOnlyAt">Only at</div>
     <div class="dealPriceOut" id="dl_priceOut"></div>
-    <button class="add dealSelectBtn" id="dl_selectSizeBtn" type="button" onclick="event.preventDefault();event.stopPropagation();openDealProduct()">Select size</button>
+    <button class="add dealSelectBtn" id="dl_selectSizeBtn" type="button" onclick="event.preventDefault();event.stopPropagation();openDealPage()">Shop Now</button>
    </div>
   </div>
  </div>
@@ -520,6 +535,13 @@ footer .logo span{color:#c8f0d6}
  <div class="modalBox productModalBox" style="position:relative">
   <button class="productModalClose" onclick="closeProduct()">×</button>
   <div id="productModalContent"></div>
+ </div>
+</div>
+
+<div class="modal" id="dealPageModal" role="dialog" aria-modal="true" aria-label="Exclusive Deal of the Week" onclick="if(event.target===this)closeDealPage()">
+ <div class="modalBox productModalBox" style="position:relative;padding:0">
+  <button class="productModalClose" onclick="closeDealPage()">×</button>
+  <div id="dealPageContent"></div>
  </div>
 </div>
 
@@ -699,6 +721,22 @@ function productHasAnyStock(product){
  }
  return false;
 }
+// Sum of all tracked quantities across every color/size combination.
+// Returns null when nothing is tracked at all (treated as "unlimited"
+// upstream), so callers can tell "no stock data" apart from "0 left".
+function productTotalStock(product){
+ if(!product.stock || !Object.keys(product.stock).length) return null;
+ let total = 0, tracked = false;
+ Object.values(product.stock).forEach(sizes=>{
+  Object.values(sizes||{}).forEach(n=>{
+   const q = Number(n);
+   if(isNaN(q)) return;
+   tracked = true;
+   total += Math.max(0,q);
+  });
+ });
+ return tracked ? total : null;
+}
 
 /* ================== New arrivals rail ================== */
 function renderNewArrivals(){
@@ -814,6 +852,7 @@ document.addEventListener("keydown", e=>{
  if(e.key !== "Escape") return;
  if(document.querySelector("#zoomModal").classList.contains("open")) closeZoom();
  else if(document.querySelector("#productModal").classList.contains("open")) closeProduct();
+ else if(document.querySelector("#dealPageModal").classList.contains("open")) closeDealPage();
  else if(document.querySelector("#checkout").classList.contains("open")) closeCheckout();
  else if(document.querySelector("#returnsModal").classList.contains("open")) closeReturns();
  else if(document.querySelector("#orderSuccessModal").classList.contains("open")) closeOrderSuccess();
@@ -1399,6 +1438,95 @@ updateAccountBadge();
 
 function escapeHtml(s){ const d=document.createElement("div"); d.textContent=s||""; return d.innerHTML; }
 
+/* ================== Exclusive Deal of the Week — full page ==================
+   Clicking "Shop Now" on the deal card opens this dedicated view instead
+   of a single product's modal. It lists the current offer products (the
+   linked deal product first, then anything else on sale), shows a
+   scarcity badge sourced from the same admin stock data used everywhere
+   else on the site, and runs a live countdown to midnight so the deal
+   reads as time-limited. Products are opened the normal way (openProduct)
+   from inside this view, so add-to-cart, sizes, and colors all work
+   exactly as they do from the main grid.
+================================================================= */
+let dealPageTimerHandle = null;
+
+function dealPageOfferProducts(){
+ const linkedId = Number(siteSettings.dealProductId) || null;
+ const linked = linkedId ? products.find(p=>p.id===linkedId) : null;
+ const onSale = products
+  .filter(p=>p.old && p.old>p.price && (!linked || p.id!==linked.id))
+  .sort((a,b)=>(b.old-b.price)/b.old - (a.old-a.price)/a.old);
+ const list = linked ? [linked, ...onSale] : onSale;
+ return list.slice(0,8); // keep the page to a limited, curated set of offers
+}
+function dealScarcityBadgeHTML(p){
+ const total = productTotalStock(p);
+ if(total===null) return "";
+ if(total<=0) return `<div class="stockMsg out" style="margin:0 0 6px">${TEXT.outOfStock}</div>`;
+ if(total<=10) return `<div class="stockMsg low" style="margin:0 0 6px">Only ${total} left in stock</div>`;
+ return "";
+}
+function dealPageDeadline(){
+ // Resets nightly at midnight so the countdown always has something
+ // meaningful to show without needing a dedicated end-date setting.
+ const d = new Date();
+ d.setHours(24,0,0,0);
+ return d;
+}
+function dealPageTimerHTML(){
+ return `<div class="dealTimerRow">
+  <span class="dealTimerLabel">Deal ends in</span>
+  <div class="dealTimerUnits" id="dealTimerUnits">
+   <div class="dealTimerUnit"><b id="dt_h">00</b><span>Hrs</span></div>
+   <div class="dealTimerUnit"><b id="dt_m">00</b><span>Min</span></div>
+   <div class="dealTimerUnit"><b id="dt_s">00</b><span>Sec</span></div>
+  </div>
+ </div>`;
+}
+function tickDealPageTimer(){
+ const h = document.querySelector("#dt_h"), m = document.querySelector("#dt_m"), s = document.querySelector("#dt_s");
+ if(!h || !m || !s){ clearInterval(dealPageTimerHandle); dealPageTimerHandle=null; return; }
+ let diff = dealPageDeadline().getTime() - Date.now();
+ if(diff<0) diff = 0;
+ const hh = Math.floor(diff/3600000);
+ const mm = Math.floor((diff%3600000)/60000);
+ const ss = Math.floor((diff%60000)/1000);
+ h.textContent = String(hh).padStart(2,"0");
+ m.textContent = String(mm).padStart(2,"0");
+ s.textContent = String(ss).padStart(2,"0");
+}
+function openDealPage(){
+ if(!productsLoaded){ toast("Still loading products — try again in a moment"); return; }
+ const offers = dealPageOfferProducts();
+ const title = siteSettings.dealTitle || "Exclusive Deal of the Week";
+ const subtitle = siteSettings.dealSubtitle || "A hand-picked set of offers — limited stock, while it lasts.";
+ const cardsHtml = offers.length
+  ? offers.map(p=>{
+     const scarcity = dealScarcityBadgeHTML(p);
+     return scarcity ? cardHTML(p).replace('<div class="productInfo">', `<div class="productInfo">${scarcity}`) : cardHTML(p);
+    }).join("")
+  : `<div class="dealPageEmpty">No offer products are set up yet — add a "Deal product" or a sale price in admin.</div>`;
+ document.querySelector("#dealPageContent").innerHTML = `
+  <div class="dealPageHead">
+   <div class="eyebrow">Limited-time offer</div>
+   <h2>${escapeHtml(title)}</h2>
+   <p>${escapeHtml(subtitle)}</p>
+   ${dealPageTimerHTML()}
+  </div>
+  <div class="dealPageBody">
+   <div class="grid">${cardsHtml}</div>
+  </div>`;
+ document.querySelector("#dealPageModal").classList.add("open");
+ tickDealPageTimer();
+ clearInterval(dealPageTimerHandle);
+ dealPageTimerHandle = setInterval(tickDealPageTimer, 1000);
+}
+function closeDealPage(){
+ document.querySelector("#dealPageModal").classList.remove("open");
+ clearInterval(dealPageTimerHandle);
+ dealPageTimerHandle = null;
+}
+
 let chatSessionId = localStorage.getItem("shopslipper-chat-id");
 let chatMessages = JSON.parse(localStorage.getItem("shopslipper-chat-msgs")||"[]");
 let chatUnread = 0, chatPollStarted = false;
@@ -1464,39 +1592,6 @@ function applyDeliverySettings(settings){
  deliveryCharge = (settings.deliveryCharge!==undefined && settings.deliveryCharge!==null && settings.deliveryCharge!=="")
   ? Number(settings.deliveryCharge) : deliveryCharge;
  updateCart();
-}
-
-/* ================== Deal-of-the-week "Select size" button ==================
-   Just resolves which product the deal card points to, then opens it with
-   the exact same openProduct() used everywhere else — same modal, same
-   size/color picker, same "You might also like", same add-to-cart. The
-   card is only different visually (bigger, pinned at the bottom).
-
-   The ONLY source of truth for which product this is: siteSettings.dealProductId
-   (or a numeric id parsed out of siteSettings.dealButtonLink, e.g. a link
-   ending in /product/12 or ?product=12). There used to be a third fallback
-   here that guessed the product by comparing the deal banner image against
-   every product photo — that's what was opening the wrong product (any
-   accidental match, e.g. a shared placeholder image, would "win"). Removed.
-   If neither dealProductId nor dealButtonLink resolves to a real product,
-   this now fails loudly (console + toast) instead of guessing.
-================================================================= */
-function openDealProduct(){
- if(!productsLoaded){ toast("Still loading products — try again in a moment"); return; }
- const link = siteSettings.dealButtonLink || "";
- let id = Number(siteSettings.dealProductId);
- let source = "dealProductId";
- if(!id && link){
-  const m = link.match(/(?:\/product\/|[?&]product=)(\d+)/i);
-  if(m){ id = Number(m[1]); source = "dealButtonLink"; }
- }
- const product = id ? products.find(p=>p.id===id) : null;
- console.log(`[deal] dealProductId=${siteSettings.dealProductId} dealButtonLink=${JSON.stringify(link)} -> resolved id=${id||"(none)"} via ${source} -> product=${product?product.name+" (id "+product.id+")":"NOT FOUND"}`);
- if(product){
-  openProduct(product.id);
- }else{
-  toast("This deal isn't linked to a product yet — set 'Deal product' in admin");
- }
 }
 
 function renderDeal(settings){
