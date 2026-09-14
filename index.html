@@ -639,7 +639,7 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzKHLu21Y5oJeM7KQ5dc
 let products = [], cart = JSON.parse(localStorage.getItem("shopslipper-cart")||"[]");
 let category="All", page=1, imageMatch=null, productsLoaded=false;
 const FIRST_PAGE_SIZE = 12;
-const OTHER_PAGE_SIZE = 15;
+const OTHER_PAGE_SIZE = 22;
 
 function pageBounds(n){
  if(n<=1) return {start:0, end:FIRST_PAGE_SIZE};
