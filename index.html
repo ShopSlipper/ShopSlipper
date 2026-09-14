@@ -793,11 +793,11 @@ function cardHTML(p){
  </a>`;
 }
 
-let pdProduct=null, pdSize=null, pdQty=1, pdVariantIdx=0;
-function openProduct(id){
+let pdProduct=null, pdSize=null, pdQty=1, pdVariantIdx=0, pdHideSuggestions=false;
+function openProduct(id, hideSuggestions){
  const p = products.find(x=>x.id===id);
  if(!p) return;
- pdProduct=p; pdQty=1; pdVariantIdx=0;
+ pdProduct=p; pdQty=1; pdVariantIdx=0; pdHideSuggestions=!!hideSuggestions;
  const sizes = (p.sizes||"").split(",").map(s=>s.trim()).filter(Boolean);
  // default to the first size that's actually in stock, if any are tracked
  pdSize = sizes.find(s=>!isCombinationOut(p,0,s)) || sizes[0] || null;
@@ -885,6 +885,12 @@ function renderProductDetail(){
  }else if(curQty!==null && curQty<=5){
   stockMsgHtml = `<div class="stockMsg low">${TEXT.onlyLeft.replace("{n}",curQty)}</div>`;
  }
+ const suggestBlock = pdHideSuggestions ? "" : `
+   <div class="pdSuggest">
+    <div class="eyebrow">You might also like</div>
+    <h3>Suggested for you</h3>
+    <div class="pdSuggestGrid">${suggestions.map(s=>`<article class="product" onclick="openProduct(${s.id})"><div class="productImg"><img src="${s.image}" alt="${escapeHtml(s.name)}" loading="lazy" onerror="this.style.display='none'"></div><div class="productInfo"><h3>${escapeHtml(s.name)}</h3><p>${escapeHtml(s.category)}</p><span class="price">${money(s.price)}</span></div></article>`).join("")}</div>
+   </div>`;
  document.querySelector("#productModalContent").innerHTML = `
   <div class="pdWrap">
    <div class="pdImg"><img src="${shownImage}" alt="${escapeHtml(p.name)}" onerror="this.style.display='none'" onclick="openZoom(this.src)"><button class="zoomBtn" onclick="event.stopPropagation();openZoom('${shownImage}')" aria-label="Zoom photo" title="Zoom in">🔍</button></div>
@@ -909,11 +915,7 @@ function renderProductDetail(){
     </div>
     <button class="add" ${combinationOut?'disabled':''} onclick="pdAddToCart()">${combinationOut?TEXT.outOfStock:'Add to cart'}</button>
    </div>
-   <div class="pdSuggest">
-    <div class="eyebrow">You might also like</div>
-    <h3>Suggested for you</h3>
-    <div class="pdSuggestGrid">${suggestions.map(s=>`<article class="product" onclick="openProduct(${s.id})"><div class="productImg"><img src="${s.image}" alt="${escapeHtml(s.name)}" loading="lazy" onerror="this.style.display='none'"></div><div class="productInfo"><h3>${escapeHtml(s.name)}</h3><p>${escapeHtml(s.category)}</p><span class="price">${money(s.price)}</span></div></article>`).join("")}</div>
-   </div>
+   ${suggestBlock}
   </div>`;
 }
 function renderProducts(){
@@ -1464,8 +1466,19 @@ function applyDeliverySettings(settings){
  updateCart();
 }
 
+/* ================== Deal-of-the-week "Select size" button ==================
+   Bug fixes:
+   1) The button used to silently do nothing when the admin hadn't set a
+      dealProductId (or a working dealButtonLink/dealImage match) — it just
+      called openProduct() on an id that was never found. Now it tells the
+      shopper something went wrong instead of doing nothing.
+   2) Opening a product from the deal card must show ONLY that product —
+      not the normal "You might also like" grid underneath it — so a
+      pdHideSuggestions flag is set before opening and cleared afterward
+      (openProduct() from anywhere else always clears it back to false).
+================================================================= */
 function openDealProduct(){
- if(!productsLoaded) return;
+ if(!productsLoaded){ toast("Still loading products — try again in a moment"); return; }
  const link = siteSettings.dealButtonLink || "";
  let id = Number(siteSettings.dealProductId);
  if(!id && link){
@@ -1478,7 +1491,9 @@ function openDealProduct(){
   product = products.find(p=>String(p.image||"").split("?")[0].replace(/\/+/g,"/").replace(/\/$/,"").toLowerCase()===dealImg);
  }
  if(product){
-  openProduct(product.id);
+  openProduct(product.id, true); // true = hide "You might also like" so only the deal product shows
+ }else{
+  toast("Couldn't find this deal's product — set a product link in admin");
  }
 }
 
