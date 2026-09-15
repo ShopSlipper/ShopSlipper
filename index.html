@@ -358,7 +358,7 @@ footer .logo span{color:#c8f0d6}
 .reviewSliderTrack{display:flex;transition:transform .4s var(--ease)}
 .reviewSlide{flex:0 0 100%;padding:0 10px;text-align:center}
 .reviewSlideStars{color:#e0a825;letter-spacing:3px;font-size:18px;margin-bottom:12px}
-.reviewSlideText{font-family:var(--serif);font-style:italic;font-size:16px;color:var(--text);line-height:1.65;max-width:600px;margin:0 auto 14px}
+.reviewSlideText{font-size:15px;color:var(--text);line-height:1.65;max-width:600px;margin:0 auto 14px}
 .reviewSlideName{font-weight:700;font-size:13px;color:var(--gold);letter-spacing:.3px}
 .reviewNavBtn{width:42px;height:42px;border-radius:50%;background:#fff;border:1px solid var(--line);flex-shrink:0;font-size:16px;color:var(--text);transition:.2s border-color,.2s background,.2s color}
 .reviewNavBtn:hover{border-color:var(--text);background:var(--gold);color:#fff}
@@ -472,24 +472,8 @@ footer .logo span{color:#c8f0d6}
     <div><b>3</b><span>Pack the item unused, with tags/packaging</span></div>
     <div><b>4</b><span>We arrange pickup and process your refund</span></div>
    </div>
-   <button class="btn light" onclick="openReturns()">Start a return</button>
+      <button class="btn light" onclick="openReturns()">Start a return</button>
   </div>
- </div>
-</section>
-
-<section class="section" id="testimonials" style="padding-top:0">
- <div class="container">
-  <div class="sectionHead"><div><div class="eyebrow">What customers say</div><h2>Real reviews</h2></div></div>
-  <div class="reviewSliderWrap">
-   <button class="reviewNavBtn" onclick="reviewSlide(-1)" aria-label="Previous review">←</button>
-   <div class="reviewSliderViewport"><div class="reviewSliderTrack" id="reviewSliderTrack"><div class="reviewsEmpty" style="padding:30px 0;text-align:center">Loading reviews…</div></div></div>
-   <button class="reviewNavBtn" onclick="reviewSlide(1)" aria-label="Next review">→</button>
-  </div>
-  <div class="reviewDots" id="reviewDots"></div>
-  <div style="text-align:center;margin-top:22px">
-   <button class="btn" id="writeReviewBtn" onclick="toggleSiteReviewForm()">Write your review</button>
-  </div>
-  <div id="siteReviewFormWrap" style="display:none;margin-top:20px"></div>
  </div>
 </section>
 </main>
@@ -537,6 +521,22 @@ footer .logo span{color:#c8f0d6}
     <button class="add dealSelectBtn" id="dl_selectSizeBtn" type="button" onclick="event.preventDefault();event.stopPropagation();openDealPage()">Shop Now</button>
    </div>
   </div>
+ </div>
+</section>
+
+<section class="section" id="testimonials" style="padding-top:0">
+ <div class="container">
+  <div class="sectionHead"><div><div class="eyebrow">What customers say</div><h2>Real reviews</h2></div></div>
+  <div class="reviewSliderWrap">
+   <button class="reviewNavBtn" onclick="reviewSlide(-1)" aria-label="Previous review">←</button>
+   <div class="reviewSliderViewport"><div class="reviewSliderTrack" id="reviewSliderTrack"><div class="reviewsEmpty" style="padding:30px 0;text-align:center">Loading reviews…</div></div></div>
+   <button class="reviewNavBtn" onclick="reviewSlide(1)" aria-label="Next review">→</button>
+  </div>
+  <div class="reviewDots" id="reviewDots"></div>
+  <div style="text-align:center;margin-top:22px">
+   <button class="btn" id="writeReviewBtn" onclick="toggleSiteReviewForm()">Write your review</button>
+  </div>
+  <div id="siteReviewFormWrap" style="display:none;margin-top:20px"></div>
  </div>
 </section>
 
@@ -1941,6 +1941,7 @@ function openDealPage(){
  // Hide the regular shop and show only the deal page.
  document.querySelector("main").style.display = "none";
  document.querySelector("#dealSection").style.display = "none";
+ document.querySelector("#testimonials").style.display = "none";
  document.querySelector("footer").style.display = "none";
  document.querySelector("#chatFab").style.display = "none";
  document.querySelector("#dealPage").style.display = "block";
@@ -1957,8 +1958,8 @@ function closeDealPage(){
  document.querySelector("#dealPage").style.display = "none";
  document.querySelector("main").style.display = "";
  document.querySelector("#chatFab").style.display = "grid";
- // Restore the promo band only if a deal is actually configured.
  if(siteSettings.dealImage) document.querySelector("#dealSection").style.display = "block";
+ document.querySelector("#testimonials").style.display = "";
  document.querySelector("footer").style.display = "";
  dealPageOpen = false;
  clearInterval(dealPageTimerHandle);
