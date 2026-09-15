@@ -98,6 +98,8 @@ header{background:var(--brand);color:#fff;flex:0 0 auto}
 .iconBtn:hover{background:#d9f0e2}
 .iconBtn.danger{background:var(--danger-soft);color:var(--danger)}
 .iconBtn.danger:hover{background:#f6d5d0}
+.iconBtn.close{background:#f1f3f2;color:var(--muted)}
+.iconBtn.close:hover{background:#e4e8e6;color:var(--text)}
 
 select.statusSelect{border:1px solid var(--line);border-radius:999px;padding:7px 28px 7px 12px;font-size:12px;font-weight:700;background:var(--soft);color:var(--brand);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23127a3e'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center}
 select.statusSelect[data-status="Cancelled"]{background-color:var(--danger-soft);color:var(--danger)}
@@ -348,6 +350,13 @@ function selectOrder(id){
  renderList();
  renderDetail();
 }
+// Closes the open order and returns to the "select an order" placeholder,
+// without touching search/filter state or the checkbox selection.
+function closeDetail(){
+ activeId = null;
+ renderList();
+ renderDetail();
+}
 function renderList(){
  const list = document.querySelector("#orderList");
  document.querySelector("#orderCountLabel").textContent = `(${filtered.length})`;
@@ -402,6 +411,7 @@ function renderDetail(){
      </select>
      <button class="iconBtn" title="Edit" onclick="openEditModal('${escapeHtml(o.orderId)}')">✎</button>
      <button class="iconBtn danger" title="Delete" onclick="confirmSingleDelete('${escapeHtml(o.orderId)}')">🗑</button>
+     <button class="iconBtn close" title="Close" onclick="closeDetail()">✕</button>
     </div>
    </div>
 
