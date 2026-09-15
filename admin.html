@@ -10,41 +10,59 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#eef6f2;--card:#fffefe;--text:#182220;--muted:#6f8582;
+  --bg:#eef1f6;--card:#fffefe;--text:#182220;--muted:#6f8582;
   --line:#8fd3a6;--accent:var(--gold);--soft:#e6f2ee;--danger:#b5493e;
   --gold:#077F38;--sage:#077F38;--radius:18px;--shadow:0 20px 50px rgba(20,40,38,.08);
   --serif:'Fraunces',Georgia,serif;
+  --side-bg:#0b2e1f;--side-text:#c9dcd2;--side-muted:#7fa090;--side-active:#077F38;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Inter',system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:linear-gradient(160deg,#eef7f1 0%,#eaf2f2 45%,#e9f0f6 100%) fixed;color:var(--text);line-height:1.5;min-height:100vh}
+body{font-family:'Inter',system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh}
 button,input,select,textarea{font:inherit}
 button{cursor:pointer;border:0}
-.container{width:min(1100px,calc(100% - 32px));margin:auto}
-a{color:inherit}
-#gate{min-height:100vh;display:grid;place-items:center;padding:20px}
-.gateBox{background:var(--card);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);padding:40px;width:min(380px,100%);text-align:center}
-.gateBox h1{font-family:var(--serif);font-weight:600;font-size:24px;margin-bottom:6px}
-.gateBox p{color:var(--muted);font-size:13.5px;margin-bottom:22px}
-.gateBox input{width:100%;border:1px solid var(--line);border-radius:12px;padding:13px 14px;outline:none;margin-bottom:12px;font-size:14px}
-.gateBox input:focus{border-color:var(--text)}
+a{color:inherit;text-decoration:none}
+
+/* ---- Shell: sidebar + main area ---- */
+.appShell{display:flex;min-height:100vh}
+.sidebar{width:232px;flex-shrink:0;background:var(--side-bg);color:var(--side-text);display:flex;flex-direction:column;padding:22px 14px;position:sticky;top:0;height:100vh;z-index:20}
+.sidebar .brand{display:flex;align-items:center;gap:10px;padding:4px 10px 26px;font-family:var(--serif);font-weight:600;font-size:16px;color:#fff}
+.sidebar .brand .mark{width:34px;height:34px;border-radius:50%;object-fit:cover;flex-shrink:0}
+.sidebar .brand small{display:block;color:var(--side-muted);font-weight:400;font-size:10.5px;letter-spacing:.5px;text-transform:uppercase;margin-top:1px}
+.sideNav{display:flex;flex-direction:column;gap:3px;flex:1}
+.sideLink{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:11px 12px;border-radius:11px;background:transparent;color:var(--side-text);font-size:13.5px;font-weight:600;position:relative}
+.sideLink .dot{width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.45;flex-shrink:0}
+.sideLink:hover{background:rgba(255,255,255,.06)}
+.sideLink.active{background:var(--side-active);color:#fff}
+.sideLink.active .dot{opacity:1}
+.sideLink .tabDot{margin-left:auto;background:var(--danger);color:#fff;min-width:17px;height:17px;padding:0 4px;border-radius:999px;font-size:10px;font-weight:700;display:none;place-items:center}
+.sidebar .backLink{margin-top:auto;padding:12px 12px 4px;color:var(--side-muted);font-size:12.5px;font-weight:600}
+.sidebar .backLink:hover{color:#fff}
+
+.mainArea{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{padding:26px 36px 0}
+.topbar h1{font-family:var(--serif);font-weight:600;font-size:21px}
+.topbar .sub{color:var(--muted);font-size:13px;margin-top:5px}
+.topbarActions{display:flex;gap:10px;margin-top:16px}
+.mainContent{padding:22px 36px 80px;flex:1}
+
+/* ---- Password gate (centered card within main content) ---- */
+#gate{min-height:60vh;display:grid;place-items:center;padding:20px}
+.gateBox{background:var(--card);border:1px solid #e4e8ee;border-radius:20px;box-shadow:var(--shadow);padding:34px;width:min(380px,100%)}
+.gateBox label{display:block;font-weight:700;font-size:13px;margin-bottom:8px}
 .gateErr{color:var(--danger);font-size:12.5px;margin-bottom:10px;display:none}
-#app{display:none}
-header{background:rgba(248,246,241,.9);backdrop-filter:blur(18px);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10}
-.nav{height:74px;display:flex;align-items:center;justify-content:space-between;gap:16px}
-.brand{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-weight:600;font-size:18px}
-.brand .mark{width:36px;height:36px;border-radius:50%;object-fit:cover}
-.brand small{display:block;color:var(--muted);font-weight:400;font-size:11px;letter-spacing:.4px;text-transform:uppercase}
-.headActions{display:flex;gap:10px;flex-wrap:wrap}
+.gateBox input{width:100%;border:1px solid #d7dce6;border-radius:12px;padding:13px 14px;outline:none;margin-bottom:14px;font-size:14px}
+.gateBox input:focus{border-color:var(--text)}
+.gateBox .btn{width:100%}
+#appPanels{display:none}
+
+button,input,select,textarea{font:inherit}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px 18px;border-radius:999px;background:var(--gold);color:#fff;font-weight:600;font-size:13px;transition:.2s transform,.2s opacity}
 .btn:hover{transform:translateY(-1px);opacity:.9}
 .btn.light{background:#fff;color:var(--gold);border:1px solid var(--gold)}
 .btn.danger{background:var(--danger)}
 .btn.sm{padding:8px 13px;font-size:12px}
-main{padding:34px 0 80px}
-.tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
-.tabBtn{padding:9px 16px;border-radius:999px;background:#fff;border:1px solid var(--line);font-size:13px;font-weight:600;position:relative}
-.tabBtn.active{background:var(--gold);color:#fff;border-color:var(--gold)}
-.tabDot{position:absolute;top:-3px;right:-3px;background:var(--danger);color:#fff;min-width:17px;height:17px;padding:0 4px;border-radius:999px;font-size:10px;font-weight:700;display:none;place-items:center;border:2px solid var(--bg)}
+.container{width:min(1100px,calc(100% - 32px));margin:auto}
+
 .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px;margin-bottom:22px}
 .panelHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px}
 .panelHead h2{font-family:var(--serif);font-weight:600;font-size:19px}
@@ -88,6 +106,7 @@ tr:last-child td{border-bottom:0}
 .modalBg.open{display:grid}
 .modalBox{background:#fff;border-radius:22px;width:min(560px,100%);max-height:90vh;overflow:auto;padding:26px}
 .modalBox h3{font-family:var(--serif);font-weight:600;font-size:19px;margin-bottom:16px}
+@media(max-width:900px){.sidebar{position:fixed;left:0;bottom:0;top:auto;height:auto;width:100%;flex-direction:row;align-items:center;padding:10px 12px;overflow-x:auto}.sidebar .brand,.sidebar .backLink{display:none}.sideNav{flex-direction:row;flex:none}.sideLink{white-space:nowrap}.mainArea{padding-bottom:70px}}
 @media(max-width:700px){.formGrid{grid-template-columns:1fr}.field.full{grid-column:auto}table,thead,tbody,th,td,tr{display:block}thead{display:none}td{border:0;padding:4px 8px}tr{border-bottom:1px solid var(--line);padding:10px 0}}
 
 /* ---- Chat tab ---- */
@@ -162,202 +181,212 @@ tr:last-child td{border-bottom:0}
  not for anything truly sensitive.
 ============================================================= -->
 
-<div id="gate">
- <div class="gateBox">
-  <h1>Admin access</h1>
-  <p>Enter your admin password to manage the ShopSlipper catalog.</p>
-  <div class="gateErr" id="gateErr">Incorrect password. Try again.</div>
-  <input type="password" id="gatePass" placeholder="Password" onkeydown="if(event.key==='Enter')tryLogin()">
-  <button class="btn" style="width:100%" onclick="tryLogin()">Enter →</button>
- </div>
-</div>
-
-<div id="app">
-<header>
- <div class="container nav">
-  <div class="brand"><img class="mark" src="https://raw.githubusercontent.com/ShopSlipper/ShopSlipper/main/shop_slipper_transparent.png" alt="Shop Slipper logo"><div>Shop Slipper<small>Admin panel</small></div></div>
-  <div class="headActions">
-   <button class="btn light sm" id="refreshBtn" onclick="loadAll()"><span id="refreshIcon">↻</span> Refresh</button>
-   <button class="btn light sm" onclick="logout()">Log out</button>
+<div class="appShell">
+ <aside class="sidebar">
+  <div class="brand">
+   <img class="mark" src="https://raw.githubusercontent.com/ShopSlipper/ShopSlipper/main/shop_slipper_transparent.png" alt="Shop Slipper logo">
+   <div>Shop Slipper<small>Admin</small></div>
   </div>
- </div>
-</header>
+  <nav class="sideNav">
+   <button class="sideLink active" id="tab-products" onclick="switchTab('products')"><span class="dot"></span>Products</button>
+   <button class="sideLink" id="tab-orders" onclick="switchTab('orders')"><span class="dot"></span>Orders</button>
+   <button class="sideLink" id="tab-chat" onclick="switchTab('chat')"><span class="dot"></span>Chat<span class="tabDot" id="chatTabDot">0</span></button>
+   <button class="sideLink" id="tab-banner" onclick="switchTab('banner')"><span class="dot"></span>Banner</button>
+   <button class="sideLink" id="tab-delivery" onclick="switchTab('delivery')"><span class="dot"></span>Delivery</button>
+  </nav>
+  <a class="backLink" href="index.html">← Back to store</a>
+ </aside>
 
-<main>
- <div class="container">
-  <div class="note" id="sourceNote">Loading products and orders from your Google Sheet…</div>
-  <div class="tabs">
-   <button class="tabBtn active" id="tab-products" onclick="switchTab('products')">Products</button>
-   <button class="tabBtn" id="tab-orders" onclick="switchTab('orders')">Orders</button>
-   <button class="tabBtn" id="tab-chat" onclick="switchTab('chat')">Chat<span class="tabDot" id="chatTabDot">0</span></button>
-   <button class="tabBtn" id="tab-banner" onclick="switchTab('banner')">Banner</button>
-   <button class="tabBtn" id="tab-delivery" onclick="switchTab('delivery')">Delivery</button>
+ <div class="mainArea">
+  <div class="topbar">
+   <h1 id="pageTitle">Products</h1>
+   <div class="sub" id="pageSub">Add, edit, and manage your product catalog.</div>
+   <div class="topbarActions" id="topbarActions" style="display:none">
+    <button class="btn light sm" id="refreshBtn" onclick="loadAll()"><span id="refreshIcon">↻</span> Refresh</button>
+    <button class="btn light sm" onclick="logout()">Log out</button>
+   </div>
   </div>
 
-  <div class="panel" id="panel-products">
-   <div class="panelHead">
-    <h2>Products <span style="color:var(--muted);font-weight:400" id="countLabel"></span></h2>
-    <button class="btn" onclick="openForm(null)">+ Add product</button>
-   </div>
-   <div style="overflow:auto">
-   <table>
-    <thead><tr><th></th><th>Name</th><th>SKU</th><th>Category</th><th>Price</th><th>Flags</th><th>Stock</th><th></th></tr></thead>
-    <tbody id="rows"></tbody>
-   </table>
-   </div>
-   <div class="emptyMsg" id="emptyMsg" style="display:none">No products yet — click "Add product" to create your first one.</div>
-  </div>
+  <div class="mainContent">
 
-  <div class="panel" id="panel-orders" style="display:none">
-   <div class="panelHead"><h2>Orders <span style="color:var(--muted);font-weight:400" id="orderCountLabel"></span></h2></div>
-   <div style="overflow:auto">
-   <table>
-    <thead><tr><th>When</th><th>Order</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th></tr></thead>
-    <tbody id="orderRows"></tbody>
-   </table>
+   <div id="gate">
+    <div class="gateBox">
+     <label>Admin password</label>
+     <div class="gateErr" id="gateErr">Incorrect password. Try again.</div>
+     <input type="password" id="gatePass" placeholder="Enter password" onkeydown="if(event.key==='Enter')tryLogin()">
+     <button class="btn" onclick="tryLogin()">Unlock</button>
+    </div>
    </div>
-   <div class="emptyMsg" id="emptyOrders" style="display:none">No orders yet.</div>
-  </div>
 
-  <div class="panel" id="panel-chat" style="display:none">
-   <div class="panelHead"><h2>Chat <span style="color:var(--muted);font-weight:400" id="chatCountLabel"></span></h2></div>
-   <div class="note">Customers message you from the chat bubble on your site. Click a conversation below to reply — replies appear for the customer within a few seconds.</div>
-   <div style="overflow:auto">
-   <table>
-    <thead><tr><th>Customer</th><th>Last message</th><th>When</th><th>Status</th></tr></thead>
-    <tbody id="chatRows"></tbody>
-   </table>
-   </div>
-   <div class="emptyMsg" id="emptyChat" style="display:none">No conversations yet.</div>
-  </div>
+   <div id="appPanels">
+    <div class="note" id="sourceNote">Loading products and orders from your Google Sheet…</div>
 
-  <div class="panel" id="panel-banner" style="display:none">
-   <div class="panelHead"><h2>Hero banner</h2></div>
-   <div class="note">This is the banner/ad image shown at the top of your storefront, above the product grid. Upload a wide image (roughly 1600×500px, a 16:5 ratio works best) and, optionally, where it should link to when tapped.</div>
-   <div class="bannerPreviewWrap">
-    <img id="bn_preview" src="" alt="Banner preview">
-   </div>
-   <div class="formGrid">
-    <div class="field full">
-     <label>Banner image</label>
-     <div class="imgUploadRow">
-      <div class="imgUploadCol">
-       <input type="file" id="bn_imageFile" accept="image/*" style="display:none" onchange="handleBannerUpload(this.files[0])">
-       <button type="button" class="btn light sm" style="width:fit-content" onclick="document.querySelector('#bn_imageFile').click()">📷 Upload banner image</button>
-       <span class="uploadStatus" id="bn_uploadStatus"></span>
-       <span class="urlToggle" id="bn_urlToggle" onclick="toggleBannerUrlField()">or paste an image URL instead</span>
-       <input id="bn_image" placeholder="https://..." oninput="updateBannerPreview()" style="display:none">
+    <div class="panel" id="panel-products">
+     <div class="panelHead">
+      <h2>Products <span style="color:var(--muted);font-weight:400" id="countLabel"></span></h2>
+      <button class="btn" onclick="openForm(null)">+ Add product</button>
+     </div>
+     <div style="overflow:auto">
+     <table>
+      <thead><tr><th></th><th>Name</th><th>SKU</th><th>Category</th><th>Price</th><th>Flags</th><th>Stock</th><th></th></tr></thead>
+      <tbody id="rows"></tbody>
+     </table>
+     </div>
+     <div class="emptyMsg" id="emptyMsg" style="display:none">No products yet — click "Add product" to create your first one.</div>
+    </div>
+
+    <div class="panel" id="panel-orders" style="display:none">
+     <div class="panelHead"><h2>Orders <span style="color:var(--muted);font-weight:400" id="orderCountLabel"></span></h2></div>
+     <div style="overflow:auto">
+     <table>
+      <thead><tr><th>When</th><th>Order</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th></tr></thead>
+      <tbody id="orderRows"></tbody>
+     </table>
+     </div>
+     <div class="emptyMsg" id="emptyOrders" style="display:none">No orders yet.</div>
+    </div>
+
+    <div class="panel" id="panel-chat" style="display:none">
+     <div class="panelHead"><h2>Chat <span style="color:var(--muted);font-weight:400" id="chatCountLabel"></span></h2></div>
+     <div class="note">Customers message you from the chat bubble on your site. Click a conversation below to reply — replies appear for the customer within a few seconds.</div>
+     <div style="overflow:auto">
+     <table>
+      <thead><tr><th>Customer</th><th>Last message</th><th>When</th><th>Status</th></tr></thead>
+      <tbody id="chatRows"></tbody>
+     </table>
+     </div>
+     <div class="emptyMsg" id="emptyChat" style="display:none">No conversations yet.</div>
+    </div>
+
+    <div class="panel" id="panel-banner" style="display:none">
+     <div class="panelHead"><h2>Hero banner</h2></div>
+     <div class="note">This is the banner/ad image shown at the top of your storefront, above the product grid. Upload a wide image (roughly 1600×500px, a 16:5 ratio works best) and, optionally, where it should link to when tapped.</div>
+     <div class="bannerPreviewWrap">
+      <img id="bn_preview" src="" alt="Banner preview">
+     </div>
+     <div class="formGrid">
+      <div class="field full">
+       <label>Banner image</label>
+       <div class="imgUploadRow">
+        <div class="imgUploadCol">
+         <input type="file" id="bn_imageFile" accept="image/*" style="display:none" onchange="handleBannerUpload(this.files[0])">
+         <button type="button" class="btn light sm" style="width:fit-content" onclick="document.querySelector('#bn_imageFile').click()">📷 Upload banner image</button>
+         <span class="uploadStatus" id="bn_uploadStatus"></span>
+         <span class="urlToggle" id="bn_urlToggle" onclick="toggleBannerUrlField()">or paste an image URL instead</span>
+         <input id="bn_image" placeholder="https://..." oninput="updateBannerPreview()" style="display:none">
+        </div>
+       </div>
+      </div>
+      <div class="field full">
+       <label>Link (optional — where tapping the banner takes shoppers)</label>
+       <input id="bn_link" placeholder="#shop, or a full product/category URL">
       </div>
      </div>
-    </div>
-    <div class="field full">
-     <label>Link (optional — where tapping the banner takes shoppers)</label>
-     <input id="bn_link" placeholder="#shop, or a full product/category URL">
-    </div>
-   </div>
-   <div class="formFoot">
-    <button class="btn danger" id="bn_deleteBtn" onclick="deleteBanner()">Delete banner</button>
-    <button class="btn" id="bn_saveBtn" onclick="saveBanner()">Save banner</button>
-   </div>
+     <div class="formFoot">
+      <button class="btn danger" id="bn_deleteBtn" onclick="deleteBanner()">Delete banner</button>
+      <button class="btn" id="bn_saveBtn" onclick="saveBanner()">Save banner</button>
+     </div>
 
-   <div class="panelHead" style="margin-top:36px"><h2>In-grid banner</h2></div>
-   <div class="note">An extra promo tile that appears inside the product grid on your storefront, after the 8th product — good for a mid-scroll sale ad or a link out to a specific collection. Optional; leave the image blank to keep it off. Tapping it takes shoppers to the link below.</div>
-   <div class="bannerPreviewWrap">
-    <img id="mb_preview" src="" alt="In-grid banner preview">
-   </div>
-   <div class="formGrid">
-    <div class="field full">
-     <label>Banner image</label>
-     <div class="imgUploadRow">
-      <div class="imgUploadCol">
-       <input type="file" id="mb_imageFile" accept="image/*" style="display:none" onchange="handleMidBannerUpload(this.files[0])">
-       <button type="button" class="btn light sm" style="width:fit-content" onclick="document.querySelector('#mb_imageFile').click()">📷 Upload banner image</button>
-       <span class="uploadStatus" id="mb_uploadStatus"></span>
-       <span class="urlToggle" id="mb_urlToggle" onclick="toggleMidBannerUrlField()">or paste an image URL instead</span>
-       <input id="mb_image" placeholder="https://..." oninput="updateMidBannerPreview()" style="display:none">
+     <div class="panelHead" style="margin-top:36px"><h2>In-grid banner</h2></div>
+     <div class="note">An extra promo tile that appears inside the product grid on your storefront, after the 8th product — good for a mid-scroll sale ad or a link out to a specific collection. Optional; leave the image blank to keep it off. Tapping it takes shoppers to the link below.</div>
+     <div class="bannerPreviewWrap">
+      <img id="mb_preview" src="" alt="In-grid banner preview">
+     </div>
+     <div class="formGrid">
+      <div class="field full">
+       <label>Banner image</label>
+       <div class="imgUploadRow">
+        <div class="imgUploadCol">
+         <input type="file" id="mb_imageFile" accept="image/*" style="display:none" onchange="handleMidBannerUpload(this.files[0])">
+         <button type="button" class="btn light sm" style="width:fit-content" onclick="document.querySelector('#mb_imageFile').click()">📷 Upload banner image</button>
+         <span class="uploadStatus" id="mb_uploadStatus"></span>
+         <span class="urlToggle" id="mb_urlToggle" onclick="toggleMidBannerUrlField()">or paste an image URL instead</span>
+         <input id="mb_image" placeholder="https://..." oninput="updateMidBannerPreview()" style="display:none">
+        </div>
+       </div>
+      </div>
+      <div class="field full">
+       <label>Link (where tapping this banner takes shoppers)</label>
+       <input id="mb_link" placeholder="https://... or #shop">
+      </div>
+      <div class="field full">
+       <label>Caption (optional — short text overlaid on the image)</label>
+       <input id="mb_text" placeholder="e.g. Up to 30% off winter styles" maxlength="60">
       </div>
      </div>
-    </div>
-    <div class="field full">
-     <label>Link (where tapping this banner takes shoppers)</label>
-     <input id="mb_link" placeholder="https://... or #shop">
-    </div>
-    <div class="field full">
-     <label>Caption (optional — short text overlaid on the image)</label>
-     <input id="mb_text" placeholder="e.g. Up to 30% off winter styles" maxlength="60">
-    </div>
-   </div>
-   <div class="formFoot">
-    <button class="btn danger" id="mb_deleteBtn" onclick="deleteMidBanner()">Delete banner</button>
-    <button class="btn" id="mb_saveBtn" onclick="saveMidBanner()">Save banner</button>
-   </div>
+     <div class="formFoot">
+      <button class="btn danger" id="mb_deleteBtn" onclick="deleteMidBanner()">Delete banner</button>
+      <button class="btn" id="mb_saveBtn" onclick="saveMidBanner()">Save banner</button>
+     </div>
 
-   <div class="panelHead" style="margin-top:36px"><h2>Deal of the week</h2></div>
-   <div class="note">A dedicated promo block shown near the top of your storefront, above "New arrivals" — a headline, short description, a photo, and a real product tied to it so shoppers can pick a size and add it to cart directly from this card, just like a normal product. Optional; leave the product unset to keep it off.</div>
-   <div class="dealPreviewWrap">
-    <img id="dl_preview" src="" alt="Deal photo preview">
-   </div>
-   <div class="formGrid">
-    <div class="field full">
-     <label>Linked product</label>
-     <select id="dl_productId"></select>
-     <span style="font-size:11px;color:var(--muted)">The product shoppers actually buy from this card — its sizes, stock, and add-to-cart behave exactly like the product grid.</span>
-    </div>
-    <div class="field full">
-     <label>Headline</label>
-     <input id="dl_title" placeholder="e.g. Exclusive Deal of the Week" maxlength="80">
-    </div>
-    <div class="field full">
-     <label>Description</label>
-     <input id="dl_subtitle" placeholder="e.g. Discover our handpicked selection at unbeatable prices." maxlength="160">
-    </div>
-    <div class="field full">
-     <label>Featured photo</label>
-     <div class="imgUploadRow">
-      <div class="imgUploadCol">
-       <input type="file" id="dl_imageFile" accept="image/*" style="display:none" onchange="handleDealUpload(this.files[0])">
-       <button type="button" class="btn light sm" style="width:fit-content" onclick="document.querySelector('#dl_imageFile').click()">📷 Upload photo</button>
-       <span class="uploadStatus" id="dl_uploadStatus"></span>
-       <span class="urlToggle" id="dl_urlToggle" onclick="toggleDealUrlField()">or paste an image URL instead</span>
-       <input id="dl_image" placeholder="https://..." oninput="updateDealPreview()" style="display:none">
+     <div class="panelHead" style="margin-top:36px"><h2>Deal of the week</h2></div>
+     <div class="note">A dedicated promo block shown near the top of your storefront, above "New arrivals" — a headline, short description, a photo, and a real product tied to it so shoppers can pick a size and add it to cart directly from this card, just like a normal product. Optional; leave the product unset to keep it off.</div>
+     <div class="dealPreviewWrap">
+      <img id="dl_preview" src="" alt="Deal photo preview">
+     </div>
+     <div class="formGrid">
+      <div class="field full">
+       <label>Linked product</label>
+       <select id="dl_productId"></select>
+       <span style="font-size:11px;color:var(--muted)">The product shoppers actually buy from this card — its sizes, stock, and add-to-cart behave exactly like the product grid.</span>
+      </div>
+      <div class="field full">
+       <label>Headline</label>
+       <input id="dl_title" placeholder="e.g. Exclusive Deal of the Week" maxlength="80">
+      </div>
+      <div class="field full">
+       <label>Description</label>
+       <input id="dl_subtitle" placeholder="e.g. Discover our handpicked selection at unbeatable prices." maxlength="160">
+      </div>
+      <div class="field full">
+       <label>Featured photo</label>
+       <div class="imgUploadRow">
+        <div class="imgUploadCol">
+         <input type="file" id="dl_imageFile" accept="image/*" style="display:none" onchange="handleDealUpload(this.files[0])">
+         <button type="button" class="btn light sm" style="width:fit-content" onclick="document.querySelector('#dl_imageFile').click()">📷 Upload photo</button>
+         <span class="uploadStatus" id="dl_uploadStatus"></span>
+         <span class="urlToggle" id="dl_urlToggle" onclick="toggleDealUrlField()">or paste an image URL instead</span>
+         <input id="dl_image" placeholder="https://..." oninput="updateDealPreview()" style="display:none">
+        </div>
+       </div>
+      </div>
+      <div class="field">
+       <label>Sale badge text (optional)</label>
+       <input id="dl_badgeText" placeholder="e.g. Sale" maxlength="20">
+      </div>
+      <div class="field">
+       <label>Price text</label>
+       <input id="dl_price" placeholder="e.g. NPR 1,699.00">
       </div>
      </div>
+     <div class="formFoot">
+      <button class="btn danger" id="dl_deleteBtn" onclick="deleteDeal()">Delete deal</button>
+      <button class="btn" id="dl_saveBtn" onclick="saveDeal()">Save deal</button>
+     </div>
     </div>
-    <div class="field">
-     <label>Sale badge text (optional)</label>
-     <input id="dl_badgeText" placeholder="e.g. Sale" maxlength="20">
-    </div>
-    <div class="field">
-     <label>Price text</label>
-     <input id="dl_price" placeholder="e.g. NPR 1,699.00">
-    </div>
-   </div>
-   <div class="formFoot">
-    <button class="btn danger" id="dl_deleteBtn" onclick="deleteDeal()">Delete deal</button>
-    <button class="btn" id="dl_saveBtn" onclick="saveDeal()">Save deal</button>
-   </div>
-  </div>
 
-  <div class="panel" id="panel-delivery" style="display:none">
-   <div class="panelHead"><h2>Delivery charges</h2></div>
-   <div class="note">Control the free-delivery threshold and the flat delivery charge shown to customers at checkout. Orders at or above the threshold ship free; orders below it are charged the flat fee. Leave the threshold blank (or set it to 0) to charge delivery on every order, and leave the charge blank to always deliver free.</div>
-   <div class="formGrid">
-    <div class="field">
-     <label>Free delivery on orders of (Rs.) or more</label>
-     <input id="dv_threshold" type="number" min="0" placeholder="e.g. 3000" oninput="updateDeliveryPreview()">
+    <div class="panel" id="panel-delivery" style="display:none">
+     <div class="panelHead"><h2>Delivery charges</h2></div>
+     <div class="note">Control the free-delivery threshold and the flat delivery charge shown to customers at checkout. Orders at or above the threshold ship free; orders below it are charged the flat fee. Leave the threshold blank (or set it to 0) to charge delivery on every order, and leave the charge blank to always deliver free.</div>
+     <div class="formGrid">
+      <div class="field">
+       <label>Free delivery on orders of (Rs.) or more</label>
+       <input id="dv_threshold" type="number" min="0" placeholder="e.g. 3000" oninput="updateDeliveryPreview()">
+      </div>
+      <div class="field">
+       <label>Delivery charge below that (Rs.)</label>
+       <input id="dv_charge" type="number" min="0" placeholder="e.g. 150" oninput="updateDeliveryPreview()">
+      </div>
+     </div>
+     <div class="note" id="dv_preview" style="margin-top:4px"></div>
+     <div class="formFoot">
+      <button class="btn" id="dv_saveBtn" onclick="saveDelivery()">Save delivery settings</button>
+     </div>
     </div>
-    <div class="field">
-     <label>Delivery charge below that (Rs.)</label>
-     <input id="dv_charge" type="number" min="0" placeholder="e.g. 150" oninput="updateDeliveryPreview()">
-    </div>
-   </div>
-   <div class="note" id="dv_preview" style="margin-top:4px"></div>
-   <div class="formFoot">
-    <button class="btn" id="dv_saveBtn" onclick="saveDelivery()">Save delivery settings</button>
+
    </div>
   </div>
  </div>
-</main>
 </div>
 
 <!-- Add / edit modal -->
@@ -493,24 +522,36 @@ let formVariants = [];
 let f_colorTouched = false;
 let currentStock = {}; // {colorLabel: {size: qty}} for the product currently open in the modal
 
+const TAB_META = {
+ products:{title:"Products", sub:"Add, edit, and manage your product catalog."},
+ orders:{title:"Orders", sub:"See what customers have ordered and their status."},
+ chat:{title:"Chat", sub:"Reply to customers messaging you from the storefront."},
+ banner:{title:"Banner", sub:"Manage the hero banner, in-grid banner, and deal of the week."},
+ delivery:{title:"Delivery", sub:"Set your free-delivery threshold and flat delivery charge."}
+};
+
 function tryLogin(){
  const val = document.querySelector("#gatePass").value;
  if(val === ADMIN_KEY){
   sessionStorage.setItem("ss-admin-ok","1");
-  document.querySelector("#gate").style.display="none";
-  document.querySelector("#app").style.display="block";
-  loadAll();
+  document.querySelector("#gateErr").style.display="none";
+  unlockApp();
  }else{
   document.querySelector("#gateErr").style.display="block";
  }
+}
+function unlockApp(){
+ document.querySelector("#gate").style.display="none";
+ document.querySelector("#appPanels").style.display="block";
+ document.querySelector("#topbarActions").style.display="flex";
+ loadAll();
 }
 function logout(){
  sessionStorage.removeItem("ss-admin-ok");
  location.reload();
 }
 if(sessionStorage.getItem("ss-admin-ok")==="1"){
- document.querySelector("#gate").style.display="none";
- document.querySelector("#app").style.display="block";
+ unlockApp();
 }
 
 function switchTab(t){
@@ -524,6 +565,11 @@ function switchTab(t){
  document.querySelector("#tab-chat").classList.toggle("active", t==="chat");
  document.querySelector("#tab-banner").classList.toggle("active", t==="banner");
  document.querySelector("#tab-delivery").classList.toggle("active", t==="delivery");
+ const meta = TAB_META[t];
+ if(meta){
+  document.querySelector("#pageTitle").textContent = meta.title;
+  document.querySelector("#pageSub").textContent = meta.sub;
+ }
 }
 
 async function loadAll(){
