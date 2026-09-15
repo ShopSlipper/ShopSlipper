@@ -309,6 +309,10 @@ footer .logo span{color:#c8f0d6}
  .pdInfo{padding:20px}
  .pdSuggest{padding:20px}
  .filterPanel{right:0;left:auto;width:190px}
+ .reviewSliderWrap{gap:6px}
+ .reviewSlide{padding:20px 16px;border-radius:16px}
+ .reviewSlideText{font-size:13.5px}
+ .reviewNavBtn{width:34px;height:34px;font-size:13px}
 }
 @media(max-width:390px){
  /* NOTE: grid intentionally stays 2-column even on narrow phones
@@ -356,13 +360,13 @@ footer .logo span{color:#c8f0d6}
 .reviewSliderWrap{display:flex;align-items:center;gap:14px}
 .reviewSliderViewport{flex:1;overflow:hidden}
 .reviewSliderTrack{display:flex;transition:transform .4s var(--ease)}
-.reviewSlide{flex:0 0 100%;padding:0 10px;text-align:center}
-.reviewSlideStars{color:#e0a825;letter-spacing:3px;font-size:18px;margin-bottom:12px}
-.reviewSlideText{font-size:15px;color:var(--text);line-height:1.65;max-width:600px;margin:0 auto 14px}
-.reviewSlideName{font-weight:700;font-size:13px;color:var(--gold);letter-spacing:.3px}
-.reviewNavBtn{width:42px;height:42px;border-radius:50%;background:#fff;border:1px solid var(--line);flex-shrink:0;font-size:16px;color:var(--text);transition:.2s border-color,.2s background,.2s color}
+.reviewSlide{flex:0 0 100%;box-sizing:border-box;padding:28px 24px;text-align:center;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);max-width:640px;margin:0 auto}
+.reviewSlideStars{color:#e0a825;letter-spacing:3px;font-size:16px;margin-bottom:10px}
+.reviewSlideText{font-size:14.5px;color:var(--text);line-height:1.6;margin:0 0 12px;overflow-wrap:break-word;word-break:break-word}
+.reviewSlideName{font-weight:700;font-size:12.5px;color:var(--gold);letter-spacing:.3px}
+.reviewNavBtn{width:40px;height:40px;border-radius:50%;background:#fff;border:1px solid var(--line);flex-shrink:0;font-size:15px;color:var(--text);transition:.2s border-color,.2s background,.2s color}
 .reviewNavBtn:hover{border-color:var(--text);background:var(--gold);color:#fff}
-.reviewDots{display:flex;justify-content:center;gap:8px;margin-top:18px}
+.reviewDots{display:flex;justify-content:center;gap:8px;margin-top:16px}
 .reviewDot{width:8px;height:8px;border-radius:50%;background:var(--line);transition:.2s background,.2s transform}
 .reviewDot.active{background:var(--gold);transform:scale(1.4)}
 .reviewsEmpty{color:var(--muted);font-size:13px}
