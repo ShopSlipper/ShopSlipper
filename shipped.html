@@ -48,7 +48,7 @@ header{background:var(--brand);color:#fff;flex:0 0 auto}
 .btn.danger{background:var(--danger);color:#fff}
 .btn.sm{padding:8px 13px;font-size:12px}
 
-/* ---------- body layout: sidebar + main, like chat.html ---------- */
+/* ---------- body layout: sidebar + main ---------- */
 .layout{flex:1 1 auto;display:flex;min-height:0}
 .sidebar{width:340px;flex:0 0 340px;border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
 .sidebarHead{padding:24px 20px 14px}
@@ -84,6 +84,7 @@ header{background:var(--brand);color:#fff;flex:0 0 auto}
 .miniStatus[data-s="Delivered"]{background:#e5f2ea;color:#1f7a44}
 .miniStatus[data-s="Shipped"]{background:#eaf1fb;color:#2a5ca8}
 .miniStatus[data-s="Processing"]{background:#fdf3e0;color:#a3730c}
+.miniStatus[data-s="Out for delivery"]{background:#f3e8fb;color:#7a3fa0}
 .emptyList{padding:40px 20px;text-align:center;color:var(--muted);font-size:13px}
 
 /* ---------- main / detail panel ---------- */
@@ -106,6 +107,7 @@ select.statusSelect[data-status="Cancelled"]{background-color:var(--danger-soft)
 select.statusSelect[data-status="Delivered"]{background-color:#e5f2ea;color:#1f7a44}
 select.statusSelect[data-status="Shipped"]{background-color:#eaf1fb;color:#2a5ca8}
 select.statusSelect[data-status="Processing"]{background-color:#fdf3e0;color:#a3730c}
+select.statusSelect[data-status="Out for delivery"]{background-color:#f3e8fb;color:#7a3fa0}
 .statusBadgeStatic{display:inline-flex;align-items:center;padding:7px 14px;border-radius:999px;font-size:12px;font-weight:700}
 
 .infoGrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px}
@@ -158,25 +160,43 @@ select.statusSelect[data-status="Processing"]{background-color:#fdf3e0;color:#a3
  Client-side gate only — not real security, just keeps casual
  visitors out.
 
- This page now talks to the ORDER MASTERSHEET's own Web App
- deployment (order-mastersheet-sync.gs), NOT ShopSlipper Data's
- Code.gs. That script's backend supports:
+ This page talks to the ORDER MASTERSHEET's own Web App
+ deployment (order-mastersheet-sync.gs). That script's backend
+ supports:
    GET  action=orders                             -> list all orders
-   POST action=updateStatus {key,orderId,status}   -> status must be
-                                                       "Shipped"
-                                                       only — the
+   POST action=updateStatus {key,orderId,status,reason?}
+                                                    -> status must be
+                                                       "Out for delivery" or
+                                                       "Cancelled" only —
+                                                       the backend
+                                                       rejects anything
+                                                       else. "reason" is
+                                                       required when
+                                                       status is
+                                                       "Cancelled" (the
                                                        backend rejects
-                                                       anything else
+                                                       the request
+                                                       without one).
    POST action=updateOrder  {key,orderId,name,phone,address}
    POST action=deleteOrder  {key,orderId}
    POST action=deleteOrders {key,orderIds:[...]}
 
  STATUS EDITING IS INTENTIONALLY LIMITED: an order can only be
- manually set to "Shipped" from this page, and only while it's
- currently "Processing". New orders are handled on orders.html,
- not here. Once an order is Shipped, Delivered, or Cancelled, its
- status shows as a plain read-only badge here instead of a
- dropdown — those transitions don't happen from this page.
+ manually set to "Out for delivery" or "Cancelled" from this page, and
+ only while it's currently "Shipped". Other stages are handled
+ on their own pages, not here. Choosing "Cancelled" opens a small
+ prompt asking for a reason — that reason is saved alongside the
+ order and required before the request is sent. Once an order has
+ moved past "Shipped", its status shows as a plain read-only
+ badge here instead of a dropdown.
+
+ PIPELINE: New -> Processing -> Shipped -> Out for delivery ->
+ Delivered, with Cancelled (+ reason) reachable from every stage
+ except Delivered itself.
+   orders.html      -> New              -> Processing | Cancelled
+   processing.html  -> Processing       -> Shipped     | Cancelled
+   shipped.html     -> Shipped          -> Out for delivery | Cancelled
+   delivery.html    -> Out for delivery -> Delivered   | Cancelled
 ============================================================= -->
 
 <div id="gate">
@@ -224,6 +244,7 @@ select.statusSelect[data-status="Processing"]{background-color:#fdf3e0;color:#a3
     <button class="chip" data-s="New">New</button>
     <button class="chip" data-s="Processing">Processing</button>
     <button class="chip" data-s="Shipped">Shipped</button>
+    <button class="chip" data-s="Out for delivery">Out for delivery</button>
     <button class="chip" data-s="Delivered">Delivered</button>
     <button class="chip" data-s="Cancelled">Cancelled</button>
    </div>
@@ -263,21 +284,34 @@ select.statusSelect[data-status="Processing"]{background-color:#fdf3e0;color:#a3
  </div>
 </div>
 
+<!-- cancellation reason modal -->
+<div class="modalWrap" id="reasonModal">
+ <div class="modal">
+  <h3>Cancellation reason</h3>
+  <p class="sub">Required — tell us why this order is being cancelled.</p>
+  <div class="field"><label>Reason</label><textarea id="cancelReason" placeholder="e.g. Customer requested cancellation, out of stock, unreachable…"></textarea></div>
+  <div class="modalActions">
+   <button class="btn outline sm" onclick="closeReasonModal()">Back</button>
+   <button class="btn solid sm" onclick="confirmCancel()">Confirm cancellation</button>
+  </div>
+ </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
 /* ================== CONFIG ================== */
-// Order Mastersheet's own Web App /exec URL (order-mastersheet-sync.gs),
-// NOT ShopSlipper Data's Code.gs URL.
+// Order Mastersheet's own Web App /exec URL (order-mastersheet-sync.gs).
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHNkrQJ5p3rHNjNtf7x4nbOTk3i90T8Iat_fXgScIUxidzdPcNda_UU3yWMxt9AYJ7/exec";
 const ADMIN_KEY  = "shopslipper2026";
 
-// This page only acts on orders that are currently Processing —
-// New orders are handled on orders.html, not here.
-const STATUSES_WITH_CONTROL = ["Processing"];
-// The only status this page is allowed to set manually. Must match
-// ALLOWED_MANUAL_STATUSES in order-mastersheet-sync.gs.
-const EDITABLE_STATUSES = ["Shipped"];
+// This page only acts on orders that are currently Shipped.
+// Other stages are handled on their own pages.
+const STATUSES_WITH_CONTROL = ["Shipped"];
+// The statuses this page is allowed to set manually. Must match
+// ALLOWED_MANUAL_STATUSES in order-mastersheet-sync.gs. Choosing
+// "Cancelled" requires a reason (see promptCancelReason below).
+const EDITABLE_STATUSES = ["Out for delivery", "Cancelled"];
 
 let orders = [];
 let filtered = [];
@@ -427,7 +461,7 @@ function renderDetail(){
   ? `<select class="statusSelect" data-status="${status}" onchange="changeStatus('${escapeHtml(o.orderId)}', this)">
       ${EDITABLE_STATUSES.map(s=>`<option value="${s}" ${s===status?'selected':''}>${s}</option>`).join("")}
      </select>`
-  : `<span class="miniStatus statusBadgeStatic" data-s="${status}" title="Set by the delivery/rider workflow — not editable here">${status}</span>`;
+  : `<span class="miniStatus statusBadgeStatic" data-s="${status}" title="Not editable from this page">${status}</span>`;
  main.innerHTML = `
   <div class="detail">
    <div class="detailHead">
@@ -447,6 +481,7 @@ function renderDetail(){
     <div class="infoCard"><label>Phone</label><div class="val">${escapeHtml(o.phone||"—")}</div></div>
     <div class="infoCard"><label>Total</label><div class="val">${money(o.total||0)}</div></div>
     <div class="infoCard full"><label>Address</label><div class="val">${escapeHtml(o.address||"—")}</div></div>
+    ${status==="Cancelled"?`<div class="infoCard full"><label>Cancellation reason</label><div class="val">${escapeHtml(o.reason||"—")}</div></div>`:""}
    </div>
 
    <div class="section">
@@ -458,23 +493,60 @@ function renderDetail(){
 }
 
 /* ---------- status change ---------- */
+// The forward status goes straight through. "Cancelled" first opens
+// the reason modal — the request isn't sent until a reason is entered.
 async function changeStatus(orderId, sel){
  const newStatus = sel.value;
+ if(newStatus === "Cancelled"){
+  promptCancelReason(orderId, sel);
+  return;
+ }
+ await submitStatusChange(orderId, newStatus, sel, "");
+}
+
+let pendingCancel = null; // { orderId, sel, prevStatus }
+function promptCancelReason(orderId, sel){
+ pendingCancel = { orderId, sel, prevStatus: sel.getAttribute("data-status") };
+ document.querySelector("#cancelReason").value = "";
+ document.querySelector("#reasonModal").classList.add("show");
+}
+function closeReasonModal(){
+ // Revert the dropdown's visual selection back to its actual current
+ // status, since the user picked "Cancelled" but didn't confirm it.
+ if(pendingCancel) pendingCancel.sel.value = pendingCancel.prevStatus;
+ document.querySelector("#reasonModal").classList.remove("show");
+ pendingCancel = null;
+}
+async function confirmCancel(){
+ if(!pendingCancel) return;
+ const reason = document.querySelector("#cancelReason").value.trim();
+ if(!reason){ toast("Please enter a reason.", true); return; }
+ const { orderId, sel } = pendingCancel;
+ document.querySelector("#reasonModal").classList.remove("show");
+ pendingCancel = null;
+ await submitStatusChange(orderId, "Cancelled", sel, reason);
+}
+
+async function submitStatusChange(orderId, newStatus, sel, reason){
+ const prevStatus = sel.getAttribute("data-status");
  sel.setAttribute("data-status", newStatus);
  try{
   const res = await fetch(SCRIPT_URL, {
    method:"POST",
    headers:{"Content-Type":"text/plain;charset=utf-8"},
-   body: JSON.stringify({ action:"updateStatus", key:ADMIN_KEY, orderId, status:newStatus })
+   body: JSON.stringify({ action:"updateStatus", key:ADMIN_KEY, orderId, status:newStatus, reason })
   });
   const data = await res.json();
   if(data.error) throw new Error(data.error);
   const o = orders.find(x=>x.orderId===orderId);
-  if(o) o.status = newStatus;
+  if(o){ o.status = newStatus; o.reason = reason; }
   toast(`Status updated to "${newStatus}"`);
   renderList();
+  renderDetail();
  }catch(err){
-  toast("Couldn't update status — try again.", true);
+  sel.setAttribute("data-status", prevStatus);
+  sel.value = prevStatus; // revert dropdown on failure
+  toast(err.message || "Couldn't update status — try again.", true);
  }
 }
 
