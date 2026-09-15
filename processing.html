@@ -240,13 +240,8 @@ select.statusSelect[data-status="Out for delivery"]{background-color:#f3e8fb;col
     </div>
    </div>
    <div class="filterRow" id="filterRow">
-    <button class="chip active" data-s="">All</button>
-    <button class="chip" data-s="New">New</button>
-    <button class="chip" data-s="Processing">Processing</button>
-    <button class="chip" data-s="Shipped">Shipped</button>
-    <button class="chip" data-s="Out for delivery">Out for delivery</button>
-    <button class="chip" data-s="Delivered">Delivered</button>
-    <button class="chip" data-s="Cancelled">Cancelled</button>
+    <button class="chip active" data-s="Processing">Processing</button>
+    <button class="chip" data-s="">All</button>
    </div>
    <div class="orderList" id="orderList"></div>
   </aside>
@@ -317,7 +312,7 @@ let orders = [];
 let filtered = [];
 let selected = new Set();
 let activeId = null;
-let statusFilterVal = "";
+let statusFilterVal = "Processing";
 
 function tryLogin(){
  const val = document.querySelector("#gatePass").value;
@@ -459,7 +454,8 @@ function renderDetail(){
  const showControl = STATUSES_WITH_CONTROL.includes(status);
  const statusControl = showControl
   ? `<select class="statusSelect" data-status="${status}" onchange="changeStatus('${escapeHtml(o.orderId)}', this)">
-      ${EDITABLE_STATUSES.map(s=>`<option value="${s}" ${s===status?'selected':''}>${s}</option>`).join("")}
+      <option value="${status}" selected disabled hidden>${status}</option>
+      ${EDITABLE_STATUSES.map(s=>`<option value="${s}">${s}</option>`).join("")}
      </select>`
   : `<span class="miniStatus statusBadgeStatic" data-s="${status}" title="Not editable from this page">${status}</span>`;
  main.innerHTML = `
