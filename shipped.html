@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ShopSlipper — Orders</title>
+<title>ShopSlipper — Shipped</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -172,12 +172,11 @@ select.statusSelect[data-status="Processing"]{background-color:#fdf3e0;color:#a3
    POST action=deleteOrders {key,orderIds:[...]}
 
  STATUS EDITING IS INTENTIONALLY LIMITED: an order can only be
- manually set to "Shipped" from this page (while it's still New
- or Processing). Once an order is Shipped, Delivered, or
- Cancelled (moved there by the background sync from ShopSlipper
- Data / the rider workflow), its status shows as a plain
- read-only badge here instead of a dropdown — those transitions
- don't happen from this page.
+ manually set to "Shipped" from this page, and only while it's
+ currently "Processing". New orders are handled on orders.html,
+ not here. Once an order is Shipped, Delivered, or Cancelled, its
+ status shows as a plain read-only badge here instead of a
+ dropdown — those transitions don't happen from this page.
 ============================================================= -->
 
 <div id="gate">
@@ -193,7 +192,7 @@ select.statusSelect[data-status="Processing"]{background-color:#fdf3e0;color:#a3
 <div id="app">
  <header>
   <div class="nav">
-   <div class="brand"><img class="mark" src="https://raw.githubusercontent.com/ShopSlipper/ShopSlipper/main/shop_slipper_transparent.png" alt="Shop Slipper logo"><div>Shop Slipper<small>Orders</small></div></div>
+   <div class="brand"><img class="mark" src="https://raw.githubusercontent.com/ShopSlipper/ShopSlipper/main/shop_slipper_transparent.png" alt="Shop Slipper logo"><div>Shop Slipper<small>Shipped</small></div></div>
    <div class="headActions">
     <button class="btn sm" id="refreshBtn" onclick="loadOrders()"><span id="refreshIcon">↻</span> Refresh</button>
     <button class="btn sm" onclick="logout()">Log out</button>
@@ -204,7 +203,7 @@ select.statusSelect[data-status="Processing"]{background-color:#fdf3e0;color:#a3
  <div class="layout">
   <aside class="sidebar">
    <div class="sidebarHead">
-    <h1>Orders <span id="orderCountLabel">(0)</span></h1>
+    <h1>Shipped <span id="orderCountLabel">(0)</span></h1>
     <div class="statusPill" id="sourceNote">Loading orders from the Order Mastersheet…</div>
     <div class="bulkPill" id="bulkBar">
      <span><b id="bulkCount">0</b> selected</span>
@@ -273,9 +272,9 @@ select.statusSelect[data-status="Processing"]{background-color:#fdf3e0;color:#a3
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHNkrQJ5p3rHNjNtf7x4nbOTk3i90T8Iat_fXgScIUxidzdPcNda_UU3yWMxt9AYJ7/exec";
 const ADMIN_KEY  = "shopslipper2026";
 
-// Orders in these statuses show the editable status control at all
-// (rather than a static badge).
-const STATUSES_WITH_CONTROL = ["New", "Processing"];
+// This page only acts on orders that are currently Processing —
+// New orders are handled on orders.html, not here.
+const STATUSES_WITH_CONTROL = ["Processing"];
 // The only status this page is allowed to set manually. Must match
 // ALLOWED_MANUAL_STATUSES in order-mastersheet-sync.gs.
 const EDITABLE_STATUSES = ["Shipped"];
