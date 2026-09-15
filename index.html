@@ -646,10 +646,21 @@ footer .logo span{color:#c8f0d6}
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzKHLu21Y5oJeM7KQ5dcI3mTXpNnZlDRoTn19nCuqZ7SNb73S6cj9QaTY2Sd-QHTFoE/exec"; // ends in /exec
 /* ========================================================================================= */
 
-let products = [], cart = JSON.parse(localStorage.getItem("shopslipper-cart")||"[]");
-let category="All", page=1, imageMatch=null, productsLoaded=false;
+let products = [], dealProducts = [], cart = JSON.parse(localStorage.getItem("shopslipper-cart")||"[]");
+let category="All", page=1, imageMatch=null, productsLoaded=false, dealProductsLoaded=false;
 const FIRST_PAGE_SIZE = 12;
 const OTHER_PAGE_SIZE = 22;
+
+// Looks an id up across BOTH the main catalog and the deal-only
+// products list. Their ids never collide (deal products are
+// numbered from 1,000,001 up on the server), so this is always
+// unambiguous. Used anywhere a cart/order needs to resolve a
+// product that could be either kind — the main grid, categories,
+// search, and "Suggested for you" deliberately keep using `products`
+// alone so deal-only items never leak into them.
+function findProductAnywhere(id){
+ return products.find(p=>p.id===id) || dealProducts.find(p=>p.id===id);
+}
 
 function pageBounds(n){
  if(n<=1) return {start:0, end:FIRST_PAGE_SIZE};
@@ -795,13 +806,35 @@ async function loadProducts(){
  }catch(err){
   document.querySelector("#products").removeAttribute("aria-busy");
   document.querySelector("#products").innerHTML = `<div class="loadingMsg">Couldn't load products. Check SCRIPT_URL is set correctly in index.html.</div>`;
-  return;
+  products = [];
  }
  productsLoaded = true;
+ categories();renderProducts();renderNewArrivals();
+}
+
+// Deal-only products: a completely separate list (own sheet on the
+// server) that never mixes into `products` — see the note on
+// findProductAnywhere() above and dealPageOfferProducts() below.
+async function loadDealProducts(){
+ try{
+  const res = await fetch(`${SCRIPT_URL}?action=dealProducts`);
+  const data = await res.json();
+  dealProducts = data.dealProducts || [];
+ }catch(err){
+  dealProducts = [];
+ }
+ dealProductsLoaded = true;
+}
+
+// Loads both product lists in parallel, then does the cart-cleanup
+// pass once (so a deal-item cart entry isn't wrongly stripped just
+// because dealProducts hadn't finished loading yet).
+async function initProductsAndCart(){
+ await Promise.all([loadProducts(), loadDealProducts()]);
  const beforeCount = cart.length;
- cart = cart.filter(i => products.some(p => p.id === i.id));
+ cart = cart.filter(i => !!findProductAnywhere(i.id));
  if(cart.length !== beforeCount) save();
- categories();renderProducts();updateCart();renderNewArrivals();
+ updateCart();
 }
 
 /* ================== FIX APPLIED HERE ==================
@@ -872,7 +905,7 @@ function cardHTML(p){
 
 let pdProduct=null, pdSize=null, pdQty=1, pdVariantIdx=0;
 function openProduct(id){
- const p = products.find(x=>x.id===id);
+ const p = findProductAnywhere(id);
  if(!p) return;
  pdProduct=p; pdQty=1; pdVariantIdx=0;
  const sizes = (p.sizes||"").split(",").map(s=>s.trim()).filter(Boolean);
@@ -944,6 +977,8 @@ function pdAddToCart(){
 function renderProductDetail(){
  const p = pdProduct;
  const sizes = (p.sizes||"").split(",").map(s=>s.trim()).filter(Boolean);
+ // "Suggested for you" only ever pulls from the main catalog (`products`)
+ // — deal-only products never appear here, on purpose.
  const suggestPool = products.filter(x=>x.id!==p.id && x.category===p.category);
  const suggestions = (suggestPool.length?suggestPool:products.filter(x=>x.id!==p.id)).slice().sort(()=>Math.random()-.5).slice(0,4);
  const swatches = pdSwatches(p);
@@ -963,18 +998,18 @@ function renderProductDetail(){
  }else if(curQty!==null && curQty<=5){
   stockMsgHtml = `<div class="stockMsg low">${TEXT.onlyLeft.replace("{n}",curQty)}</div>`;
  }
- const suggestBlock = `
+ const suggestBlock = suggestions.length ? `
    <div class="pdSuggest">
     <div class="eyebrow">You might also like</div>
     <h3>Suggested for you</h3>
     <div class="pdSuggestGrid">${suggestions.map(s=>`<article class="product" onclick="openProduct(${s.id})"><div class="productImg"><img src="${s.image}" alt="${escapeHtml(s.name)}" loading="lazy" onerror="this.style.display='none'"></div><div class="productInfo"><h3>${escapeHtml(s.name)}</h3><p>${escapeHtml(s.category)}</p><span class="price">${money(s.price)}</span></div></article>`).join("")}</div>
-   </div>`;
+   </div>` : "";
  document.querySelector("#productModalContent").innerHTML = `
   <div class="pdWrap">
    <div class="pdImg"><img src="${shownImage}" alt="${escapeHtml(p.name)}" onerror="this.style.display='none'" onclick="openZoom(this.src)"><button class="zoomBtn" onclick="event.stopPropagation();openZoom('${shownImage}')" aria-label="Zoom photo" title="Zoom in">🔍</button></div>
    <div class="pdInfo">
     <div class="eyebrow">
-     <span>${escapeHtml(p.category)}</span>
+     <span>${escapeHtml(p.category||"")}</span>
     </div>
     <h2>${escapeHtml(p.name)}</h2>
     ${p.sku?`<span class="cardSku" style="margin-bottom:10px">SKU: ${escapeHtml(p.sku)}</span>`:""}
@@ -1089,7 +1124,7 @@ function updateCart(){
  const el=document.querySelector("#cartItems");
  if(!cart.length){el.innerHTML='<div class="empty">Your cart is empty.<br><br><a class="btn" href="#shop" onclick="closeCart();closeDealPage()">Start shopping</a></div>';}
  else el.innerHTML=cart.map(i=>{
-  const p=products.find(x=>x.id===i.id);if(!p)return "";
+  const p=findProductAnywhere(i.id);if(!p)return "";
   const img=i.image||p.image;
   const meta=[i.color,i.size].filter(Boolean).join(" · ");
   /* FIX: escape the quote characters JSON.stringify adds, so they don't
@@ -1097,7 +1132,7 @@ function updateCart(){
   const sizeArg=i.size?JSON.stringify(i.size).replace(/"/g,"&quot;"):null, colorArg=i.color?JSON.stringify(i.color).replace(/"/g,"&quot;"):null;
   return `<div class="cartItem"><img src="${img}" alt="" onerror="this.style.display='none'"><div><h4>${escapeHtml(p.name)}${meta?` <small style="color:var(--muted)">(${escapeHtml(meta)})</small>`:""}</h4><small>${money(p.price)}</small><div class="qty"><button onclick="changeQty(${p.id},${sizeArg},${colorArg},-1)">−</button><b>${i.qty}</b><button onclick="changeQty(${p.id},${sizeArg},${colorArg},1)">+</button></div><button class="remove" onclick="removeItem(${p.id},${sizeArg},${colorArg})">Remove</button></div><b>${money(p.price*i.qty)}</b></div>`;
  }).join("");
- const sub=cart.reduce((s,i)=>{const p=products.find(x=>x.id===i.id);return p?s+p.price*i.qty:s},0);
+ const sub=cart.reduce((s,i)=>{const p=findProductAnywhere(i.id);return p?s+p.price*i.qty:s},0);
  const deliveryFee = computeDeliveryFee(sub);
  document.querySelector("#subtotal").textContent=money(sub);document.querySelector("#total").textContent=money(sub+deliveryFee);
  document.querySelector("#delivery").textContent = sub<=0 ? "Rs. 0" : (deliveryFee>0 ? money(deliveryFee) : "Free");
@@ -1135,7 +1170,7 @@ function openCheckout(){
     (stock can change between when an item was added and checkout). */
  const before = cart.length;
  cart = cart.filter(i=>{
-  const p = products.find(x=>x.id===i.id);
+  const p = findProductAnywhere(i.id);
   if(!p) return false;
   const variantIdx = (Array.isArray(p.variants) ? p.variants.findIndex(v=>(v.colorName||"")===(i.color||"")) : -1) + 1;
   return !isCombinationOut(p, variantIdx, i.size||null);
@@ -1165,7 +1200,7 @@ async function placeOrder(e){
  // Final stock guard right before submitting, in case something sold out
  // while the checkout form was open.
  const soldOut = cart.filter(i=>{
-  const p = products.find(x=>x.id===i.id);
+  const p = findProductAnywhere(i.id);
   if(!p) return true;
   const variantIdx = (Array.isArray(p.variants) ? p.variants.findIndex(v=>(v.colorName||"")===(i.color||"")) : -1) + 1;
   return isCombinationOut(p, variantIdx, i.size||null);
@@ -1177,14 +1212,14 @@ async function placeOrder(e){
   closeCheckout();
   return;
  }
- const sub=cart.reduce((s,i)=>{const p=products.find(x=>x.id===i.id);return p?s+p.price*i.qty:s},0);
+ const sub=cart.reduce((s,i)=>{const p=findProductAnywhere(i.id);return p?s+p.price*i.qty:s},0);
  const delivery = computeDeliveryFee(sub);
  const orderId = generateOrderId();
  const order = {
   orderId,
   name: form.get("name"), phone: form.get("phone"), email: form.get("email"), address: form.get("address"),
   city: form.get("city"), payment: form.get("payment"),
-  items: cart.map(i=>{const p=products.find(x=>x.id===i.id);return {id:i.id,name:p?p.name:"", size:i.size||"", color:i.color||"", qty:i.qty, price:p?p.price:0};}),
+  items: cart.map(i=>{const p=findProductAnywhere(i.id);return {id:i.id,name:p?p.name:"", size:i.size||"", color:i.color||"", qty:i.qty, price:p?p.price:0};}),
   subtotal: sub, delivery: delivery, total: sub+delivery
  };
  btn.disabled = true; btn.textContent = "Placing order…";
@@ -1483,8 +1518,11 @@ function escapeHtml(s){ const d=document.createElement("div"); d.textContent=s||
    products show — there's no way to browse the regular catalog while
    here, only "← Back to shop" (or the browser Back button, via the
    #deal hash) returns them to the normal store.
-   Offer list = exactly the product(s) picked in admin's "Deal of the
-   week" panel — nothing else is mixed in automatically.
+   Offer list = EVERY product in the separate `dealProducts` list
+   (admin's "Deal products" section) — these products are self-
+   contained: they live only here, never in `products`, so they never
+   appear in the main grid, categories, search, "New arrivals", or
+   "Suggested for you" anywhere else on the site.
    Each card is the normal cardHTML() with a scarcity line (from the
    same admin stock data used elsewhere) inserted above the title, and
    opening one still uses the regular openProduct() modal, so sizes,
@@ -1494,15 +1532,7 @@ let dealPageTimerHandle = null;
 let dealPageOpen = false;
 
 function dealPageOfferProducts(){
- // dealProductId holds a comma-separated list of product ids picked in
- // admin's "Deal of the week" panel. The Exclusive Deal page should show
- // ONLY those hand-picked products — no automatic mixing in of every other
- // on-sale product site-wide — in the order they were selected there.
- const linkedIds = String(siteSettings.dealProductId||"")
-  .split(",").map(s=>s.trim()).filter(Boolean).map(Number);
- return linkedIds
-  .map(id=>products.find(p=>p.id===id))
-  .filter(Boolean);
+ return dealProducts.slice();
 }
 function dealScarcityBadgeHTML(p){
  const total = productTotalStock(p);
@@ -1568,7 +1598,7 @@ function dealCardHTML(p){
   <div class="productInfo">
    ${expired?'':scarcity}
    <h3 ${clickAttr}>${escapeHtml(p.name)}</h3>
-   <p>${escapeHtml(p.category)}${sizes.length?` · ${sizes.length} sizes`:""}</p>
+   <p>${sizes.length?`${sizes.length} sizes`:""}</p>
    <div class="priceRow"><span class="price">${money(p.price)}</span>${p.old?`<span class="old">${money(p.old)}</span><span class="discPct">-${Math.round((1-p.price/p.old)*100)}%</span>`:""}</div>
    <div style="margin-top:10px">
     ${orderingBlock}
@@ -1578,12 +1608,12 @@ function dealCardHTML(p){
 }
 function refreshDealCard(id){
  const el = document.querySelector(`#dealCard_${id}`);
- const p = products.find(x=>x.id===id);
+ const p = dealProducts.find(x=>x.id===id);
  if(el && p) el.outerHTML = dealCardHTML(p);
 }
 function dealChangeQty(id,n){
  if(dealExpired()) return;
- const p = products.find(x=>x.id===id);
+ const p = dealProducts.find(x=>x.id===id);
  const state = dealCardState[id];
  if(!p || !state) return;
  const max = stockQtyFor(p, state.variantIdx, state.size);
@@ -1595,7 +1625,7 @@ function dealChangeQty(id,n){
 }
 function dealPickSize(id,size){
  if(dealExpired()) return;
- const p = products.find(x=>x.id===id);
+ const p = dealProducts.find(x=>x.id===id);
  const state = dealCardState[id];
  if(!p || !state) return;
  if(isCombinationOut(p, state.variantIdx, size)) return;
@@ -1605,7 +1635,7 @@ function dealPickSize(id,size){
 }
 function dealAddToCart(id){
  if(dealExpired()){ toast("This deal has ended"); return; }
- const p = products.find(x=>x.id===id);
+ const p = dealProducts.find(x=>x.id===id);
  const state = dealCardState[id];
  if(!p || !state) return;
  const sizes = (p.sizes||"").split(",").map(s=>s.trim()).filter(Boolean);
@@ -1652,7 +1682,7 @@ function renderDealPageGrid(){
  const offers = dealPageOfferProducts();
  document.querySelector("#dp_grid").innerHTML = offers.length
   ? offers.map(p=>dealCardHTML(p)).join("")
-  : `<div class="dealPageEmpty">No offer products are set up yet — add a "Deal product" or a sale price in admin.</div>`;
+  : `<div class="dealPageEmpty">No offer products are set up yet — add a deal product in admin.</div>`;
 }
 function tickDealPageTimer(){
  const h = document.querySelector("#dt_h"), m = document.querySelector("#dt_m"), s = document.querySelector("#dt_s");
@@ -1676,7 +1706,7 @@ function tickDealPageTimer(){
  s.textContent = String(ss).padStart(2,"0");
 }
 function openDealPage(){
- if(!productsLoaded){ toast("Still loading products — try again in a moment"); return; }
+ if(!productsLoaded || !dealProductsLoaded){ toast("Still loading products — try again in a moment"); return; }
  const title = siteSettings.dealTitle || "Exclusive Deal of the Week";
  const subtitle = siteSettings.dealSubtitle || "A hand-picked set of offers — limited stock, while it lasts.";
  document.querySelector("#dp_title").textContent = title;
@@ -1803,7 +1833,7 @@ function renderDeal(settings){
 }
 
 loadBanner();
-loadProducts();
+initProductsAndCart();
 
 // If someone arrives via a shared product link or a search result
 // (e.g. shopslipper.online/?product=123, which the SEO product pages
