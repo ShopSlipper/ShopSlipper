@@ -864,8 +864,7 @@ function cardHTML(p){
    ${starRow(p.rating)}
    <div class="priceRow"><span class="price">${money(p.price)}</span>${p.old?`<span class="old">${money(p.old)}</span><span class="discPct">-${Math.round((1-p.price/p.old)*100)}%</span>`:""}</div>
    ${metaRow}
-   <button class="add cardAddBtn" ${outOfStock?'disabled':''} onclick="event.stopPropagation();openProduct(${p.id})">${outOfStock?TEXT.outOfStock:(sizes.length?TEXT.selectSize:TEXT.addToCart)}</button>
-  </div>
+   <button class="add cardAddBtn" ${outOfStock?'disabled':''} onclick="event.preventDefault();event.stopPropagation();openProduct(${p.id})">${outOfStock?TEXT.outOfStock:(sizes.length?TEXT.selectSize:TEXT.addToCart)}</button>  </div>
  </a>`;
 }
 
