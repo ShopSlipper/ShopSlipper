@@ -688,8 +688,8 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzKHLu21Y5oJeM7KQ5dc
 
 let products = [], dealProducts = [], cart = JSON.parse(localStorage.getItem("shopslipper-cart")||"[]");
 let category="All", page=1, imageMatch=null, productsLoaded=false, dealProductsLoaded=false;
-const FIRST_PAGE_SIZE = 12;
-const OTHER_PAGE_SIZE = 22;
+const FIRST_PAGE_SIZE = 16;
+const OTHER_PAGE_SIZE = 28;
 
 // Looks an id up across BOTH the main catalog and the deal-only
 // products list. Their ids never collide (deal products are
