@@ -231,7 +231,15 @@ a.product{display:block;text-decoration:none;color:inherit}
 .pdSuggest .eyebrow{margin-bottom:10px}
 .pdSuggest h3{font-family:var(--serif);font-weight:600;font-size:19px;margin-bottom:16px}
 .pdSuggestGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
-@media(max-width:920px){.pdWrap{grid-template-columns:1fr}.pdSuggestGrid{grid-template-columns:repeat(2,1fr)}}
+.reviewsList{margin-top:12px;display:flex;flex-direction:column;gap:14px}
+.reviewItem{border-bottom:1px solid var(--line);padding-bottom:12px}
+.reviewHead{display:flex;align-items:center;gap:10px;margin-bottom:4px;font-size:13px}
+.reviewStars{color:#e0a825;letter-spacing:1px;font-size:13px}
+.reviewText{font-size:13px;color:var(--muted);line-height:1.5}
+.reviewsEmpty{color:var(--muted);font-size:13px;margin-top:10px}
+.reviewStarPicker{display:flex;gap:6px}
+.reviewStarBtn{width:34px;height:34px;border-radius:9px;background:var(--soft);color:#c9c9c9;font-size:18px;transition:.15s color}
+.reviewStarBtn.active{color:#e0a825}@media(max-width:920px){.pdWrap{grid-template-columns:1fr}.pdSuggestGrid{grid-template-columns:repeat(2,1fr)}}
 .formGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .field{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}.field.full{grid-column:1/-1}
 .field label{font-size:12px;font-weight:700}.field input,.field textarea,.field select{border:1px solid var(--line);border-radius:11px;padding:12px;outline:none;width:100%}
@@ -904,10 +912,13 @@ function cardHTML(p){
 }
 
 let pdProduct=null, pdSize=null, pdQty=1, pdVariantIdx=0;
+let productReviews={}, pdReviewFormOpen=false, pdReviewRating=0;
 function openProduct(id){
  const p = findProductAnywhere(id);
  if(!p) return;
  pdProduct=p; pdQty=1; pdVariantIdx=0;
+ pdReviewFormOpen=false; pdReviewRating=0;
+ if(!productReviews[id]) loadReviews(id);
  const sizes = (p.sizes||"").split(",").map(s=>s.trim()).filter(Boolean);
  // default to the first size that's actually in stock, if any are tracked
  pdSize = sizes.find(s=>!isCombinationOut(p,0,s)) || sizes[0] || null;
@@ -915,6 +926,77 @@ function openProduct(id){
  document.querySelector("#productModal").classList.add("open");
 }
 function closeProduct(){ document.querySelector("#productModal").classList.remove("open"); }
+
+async function loadReviews(productId){
+ try{
+  const res = await fetch(`${SCRIPT_URL}?action=reviews&productId=${productId}`);
+  const data = await res.json();
+  productReviews[productId] = data.reviews || [];
+ }catch(err){
+  productReviews[productId] = productReviews[productId] || [];
+ }
+ if(pdProduct && pdProduct.id===productId) renderProductDetail();
+}
+function reviewStars(r){
+ const full = Math.max(0,Math.min(5,Math.round(Number(r)||0)));
+ return "★".repeat(full)+"☆".repeat(5-full);
+}
+function toggleReviewForm(){
+ pdReviewFormOpen = !pdReviewFormOpen;
+ pdReviewRating = 0;
+ renderProductDetail();
+}
+function pdSetReviewRating(n){
+ pdReviewRating = n;
+ document.querySelectorAll("#reviewForm .reviewStarBtn").forEach((b,i)=>b.classList.toggle("active", i<n));
+}
+function reviewsBlockHTML(p){
+ const reviews = productReviews[p.id] || [];
+ const list = reviews.length
+  ? reviews.map(r=>`<div class="reviewItem"><div class="reviewHead"><span class="reviewStars">${reviewStars(r.rating)}</span><b>${escapeHtml(r.name)}</b></div><p class="reviewText">${escapeHtml(r.text)}</p></div>`).join("")
+  : `<p class="reviewsEmpty">No reviews yet — be the first to write one.</p>`;
+ const formHtml = pdReviewFormOpen ? `
+   <form id="reviewForm" onsubmit="submitReviewForm(event)" style="margin-top:14px">
+    <div class="pdBlock">
+     <label>Your rating</label>
+     <div class="reviewStarPicker">${[1,2,3,4,5].map(n=>`<button type="button" class="reviewStarBtn" onclick="pdSetReviewRating(${n})">★</button>`).join("")}</div>
+    </div>
+    <div class="formGrid">
+     <div class="field"><label>Your name</label><input required name="name" placeholder="Your name"></div>
+     <div class="field"><label>Email (optional)</label><input type="email" name="email" placeholder="you@example.com"></div>
+     <div class="field full"><label>Your review</label><textarea required name="text" rows="3" placeholder="What did you think?"></textarea></div>
+    </div>
+    <button class="btn" id="reviewSubmitBtn" style="width:100%;margin-top:5px">Submit review</button>
+   </form>` : "";
+ return `
+  <div class="pdSuggest" id="pdReviewsBlock">
+   <div class="eyebrow">Customer reviews</div>
+   <h3>Reviews${reviews.length?` (${reviews.length})`:""}</h3>
+   <div class="reviewsList">${list}</div>
+   <button class="btn light" style="margin-top:14px" onclick="toggleReviewForm()">${pdReviewFormOpen?"Cancel":"Write a review"}</button>
+   ${formHtml}
+  </div>`;
+}
+async function submitReviewForm(e){
+ e.preventDefault();
+ const btn = document.querySelector("#reviewSubmitBtn");
+ const form = new FormData(e.target);
+ if(!pdReviewRating){ toast("Please select a rating"); return; }
+ btn.disabled = true; btn.textContent = "Submitting…";
+ try{
+  const res = await fetch(SCRIPT_URL, { method:"POST", body: JSON.stringify({ action:"submitReview", review: {
+   productId: pdProduct.id, name: form.get("name"), email: form.get("email"), rating: pdReviewRating, text: form.get("text")
+  }})});
+  const data = await res.json();
+  if(!data.success) throw new Error(data.error || "Couldn't submit review");
+  pdReviewFormOpen = false; pdReviewRating = 0;
+  renderProductDetail();
+  toast("Thanks! Your review will show once approved.");
+ }catch(err){
+  toast(err.message || "Couldn't submit review — please try again.");
+  btn.disabled = false; btn.textContent = "Submit review";
+ }
+}
 function openZoom(src){
  document.querySelector("#zoomImg").src = src;
  document.querySelector("#zoomModal").classList.add("open");
@@ -1029,6 +1111,7 @@ function renderProductDetail(){
     <button class="add" ${combinationOut?'disabled':''} onclick="pdAddToCart()">${combinationOut?TEXT.outOfStock:'Add to cart'}</button>
    </div>
    ${suggestBlock}
+   ${reviewsBlockHTML(p)}
   </div>`;
 }
 function renderProducts(){
