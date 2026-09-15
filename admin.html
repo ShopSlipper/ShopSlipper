@@ -370,6 +370,11 @@ tr:last-child td{border-bottom:0}
        <label>Price text</label>
        <input id="dl_price" placeholder="e.g. NPR 1,699.00">
       </div>
+      <div class="field full">
+       <label>Deal ends at <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+       <input type="datetime-local" id="dl_endsAt">
+       <span style="font-size:11px;color:var(--muted)">Sets the countdown on the Exclusive Deal page. Once this time passes, the page shows "Deal ended" and shoppers can no longer add these products to cart from it — their normal availability elsewhere on the store is unaffected. Leave blank to run the deal with no cutoff.</span>
+      </div>
      </div>
      <div class="formFoot">
       <button class="btn danger" id="dl_deleteBtn" onclick="deleteDeal()">Delete deal</button>
@@ -1268,9 +1273,26 @@ function loadDealIntoForm(settings){
  document.querySelector("#dl_image").value = settings.dealImage || "";
  document.querySelector("#dl_badgeText").value = settings.dealBadgeText || "";
  document.querySelector("#dl_price").value = settings.dealPrice || "";
+ document.querySelector("#dl_endsAt").value = isoToDatetimeLocal_(settings.dealEndsAt || "");
  document.querySelector("#dl_uploadStatus").textContent = "";
  document.querySelector("#dl_uploadStatus").classList.remove("err");
  updateDealPreview();
+}
+// ---- Deal end-date <-> <input type=datetime-local> conversion helpers ----
+// datetime-local has no timezone of its own — it's always the browser's
+// local time — so we convert to/from a real ISO timestamp (which is what
+// gets stored and what index.html compares against Date.now()).
+function isoToDatetimeLocal_(iso){
+ if(!iso) return "";
+ const d = new Date(iso);
+ if(isNaN(d.getTime())) return "";
+ const pad = n => String(n).padStart(2,"0");
+ return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+function datetimeLocalToIso_(val){
+ if(!val) return "";
+ const d = new Date(val);
+ return isNaN(d.getTime()) ? "" : d.toISOString();
 }
 function updateDealPreview(){
  const url = document.querySelector("#dl_image").value.trim();
@@ -1309,7 +1331,8 @@ async function saveDeal(){
   dealProductId: selectedIds.join(","),
   dealImage,
   dealBadgeText: document.querySelector("#dl_badgeText").value.trim(),
-  dealPrice: document.querySelector("#dl_price").value.trim()
+  dealPrice: document.querySelector("#dl_price").value.trim(),
+  dealEndsAt: datetimeLocalToIso_(document.querySelector("#dl_endsAt").value)
  };
  const btn = document.querySelector("#dl_saveBtn");
  btn.disabled = true; btn.textContent = "Saving…";
@@ -1331,7 +1354,7 @@ async function deleteDeal(){
  btn.disabled = true; btn.textContent = "Deleting…";
  try{
   const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"updateSettings",key:ADMIN_KEY,settings:{
-   dealTitle:"",dealSubtitle:"",dealProductId:"",dealImage:"",dealBadgeText:"",dealPrice:""
+   dealTitle:"",dealSubtitle:"",dealProductId:"",dealImage:"",dealBadgeText:"",dealPrice:"",dealEndsAt:""
   }})});
   const data = await res.json();
   if(!data.success) throw new Error(data.error||"failed");
