@@ -337,6 +337,14 @@ footer .logo span{color:#c8f0d6}
 .dealTimerUnit span{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.4px;opacity:.85;margin-top:2px}
 .dealPageEmpty{text-align:center;color:var(--muted);padding:50px 10px;grid-column:1/-1}
 @media(max-width:650px){.dealPageHead{padding:18px 0 20px}}
+/* ---- Deal page product cards: qty stepper right on the card, no modal needed to order ---- */
+.dealProductCard{cursor:default}
+.dealProductCard:hover{transform:none;box-shadow:var(--shadow);border-color:var(--line)}
+.dealProductCard .productImg{cursor:pointer}
+.dealProductCard h3{cursor:pointer}
+.dealSizeSelect{width:100%;margin-bottom:10px;border:1px solid var(--line);border-radius:10px;padding:9px 10px;font-size:12.5px;background:#fff;color:var(--text)}
+.dealQtyRow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.dealQtyRow .pdQty{margin-bottom:0}
 </style>
 </head>
 <body>
@@ -1500,6 +1508,113 @@ function dealScarcityBadgeHTML(p){
  if(total<=10) return `<div class="stockMsg low" style="margin:0 0 6px">Only ${total} left in stock</div>`;
  return "";
 }
+
+/* ================== Deal page cards: qty stepper on the card ==================
+   Unlike the main grid (where "Add to cart" opens the full product modal),
+   deal cards let a shopper pick a size (if any) and bump quantity right on
+   the card, then add to cart directly — useful for grabbing several items
+   off this page without hopping in and out of a modal each time.
+   Per-card selection (qty/size/color variant) lives in dealCardState,
+   keyed by product id, and is reset whenever the deal page (re)opens.
+================================================================= */
+let dealCardState = {};
+function dealCardHTML(p){
+ const sizes=(p.sizes||"").split(",").map(s=>s.trim()).filter(Boolean);
+ const discount = p.old && p.old>p.price ? Math.round((1-p.price/p.old)*100) : 0;
+ if(!dealCardState[p.id]){
+  const defaultSize = sizes.find(s=>!isCombinationOut(p,0,s)) || sizes[0] || null;
+  dealCardState[p.id] = { qty:1, size:defaultSize, variantIdx:0 };
+ }
+ const state = dealCardState[p.id];
+ const outOfStock = !productHasAnyStock(p);
+ const combinationOut = sizes.length ? (state.size ? isCombinationOut(p,state.variantIdx,state.size) : true) : isCombinationOut(p,state.variantIdx,null);
+ const maxQty = stockQtyFor(p, state.variantIdx, state.size);
+ const scarcity = dealScarcityBadgeHTML(p);
+ const sizeSelectHtml = sizes.length ? `<select class="dealSizeSelect" ${outOfStock?'disabled':''} onchange="dealPickSize(${p.id}, this.value)">
+   ${sizes.map(s=>{
+     const sOut = isCombinationOut(p, state.variantIdx, s);
+     return `<option value="${escapeHtml(s)}" ${s===state.size?'selected':''} ${sOut?'disabled':''}>${escapeHtml(s)}${sOut?` — ${TEXT.outOfStock}`:''}</option>`;
+    }).join("")}
+  </select>` : "";
+ let stockLine = "";
+ if(!scarcity){
+  if(combinationOut) stockLine = `<div class="stockMsg out">${TEXT.outOfStock}</div>`;
+  else if(maxQty!==null && maxQty<=5) stockLine = `<div class="stockMsg low">${TEXT.onlyLeft.replace("{n}",maxQty)}</div>`;
+ }
+ return `<div class="product dealProductCard ${outOfStock?'outOfStock':''}" id="dealCard_${p.id}">
+  <div class="productImg" onclick="openProduct(${p.id})">
+   <img src="${p.image}" alt="${escapeHtml(p.name)}" loading="lazy" onerror="this.style.display='none'">
+   ${outOfStock?`<span class="outBadge">${TEXT.outOfStock}</span>`:(p.new?'<span class="bestBadge">BEST</span>':'')}
+   ${(!outOfStock && discount>0)?`<span class="sale" style="left:auto;right:12px">${discount}% OFF</span>`:''}
+  </div>
+  <div class="productInfo">
+   ${scarcity}
+   <h3 onclick="openProduct(${p.id})">${escapeHtml(p.name)}</h3>
+   <p>${escapeHtml(p.category)}${sizes.length?` · ${sizes.length} sizes`:""}</p>
+   <div class="priceRow"><span class="price">${money(p.price)}</span>${p.old?`<span class="old">${money(p.old)}</span><span class="discPct">-${Math.round((1-p.price/p.old)*100)}%</span>`:""}</div>
+   <div style="margin-top:10px">
+    ${sizeSelectHtml}
+    ${stockLine}
+    <div class="dealQtyRow">
+     <div class="pdQty">
+      <button type="button" onclick="dealChangeQty(${p.id},-1)" ${combinationOut?'disabled':''}>−</button>
+      <b>${state.qty}</b>
+      <button type="button" onclick="dealChangeQty(${p.id},1)" ${combinationOut || (maxQty!==null && state.qty>=maxQty) ?'disabled':''}>+</button>
+     </div>
+    </div>
+    <button class="add cardAddBtn" ${combinationOut?'disabled':''} onclick="dealAddToCart(${p.id})">${combinationOut?TEXT.outOfStock:TEXT.addToCart}</button>
+   </div>
+  </div>
+ </div>`;
+}
+function refreshDealCard(id){
+ const el = document.querySelector(`#dealCard_${id}`);
+ const p = products.find(x=>x.id===id);
+ if(el && p) el.outerHTML = dealCardHTML(p);
+}
+function dealChangeQty(id,n){
+ const p = products.find(x=>x.id===id);
+ const state = dealCardState[id];
+ if(!p || !state) return;
+ const max = stockQtyFor(p, state.variantIdx, state.size);
+ let next = state.qty+n;
+ next = Math.max(1, next);
+ if(max!==null) next = Math.min(next, Math.max(1,max));
+ state.qty = next;
+ refreshDealCard(id);
+}
+function dealPickSize(id,size){
+ const p = products.find(x=>x.id===id);
+ const state = dealCardState[id];
+ if(!p || !state) return;
+ if(isCombinationOut(p, state.variantIdx, size)) return;
+ state.size = size;
+ state.qty = 1;
+ refreshDealCard(id);
+}
+function dealAddToCart(id){
+ const p = products.find(x=>x.id===id);
+ const state = dealCardState[id];
+ if(!p || !state) return;
+ const sizes = (p.sizes||"").split(",").map(s=>s.trim()).filter(Boolean);
+ if(sizes.length && !state.size){ toast(TEXT.selectAvailableSize); return; }
+ if(isCombinationOut(p, state.variantIdx, state.size)){ toast(TEXT.outOfStock); return; }
+ const swatches = pdSwatches(p);
+ const chosen = swatches[state.variantIdx] || swatches[0];
+ const color = chosen.colorName || (state.variantIdx>0 ? chosen.color : "") || "";
+ const max = stockQtyFor(p, state.variantIdx, state.size);
+ const x = cart.find(i=>i.id===p.id && i.size===state.size && (i.color||"")===color);
+ const already = x ? x.qty : 0;
+ if(max!==null && already+state.qty>max){
+  toast(max-already>0 ? TEXT.onlyLeft.replace("{n}", max-already) : TEXT.outOfStock);
+  return;
+ }
+ if(x) x.qty += state.qty; else cart.push({id:p.id, qty:state.qty, size:state.size, color, image: chosen.image||p.image});
+ save();
+ toast("Added to cart");
+ state.qty = 1; // ready for the next add, keep the chosen size
+ refreshDealCard(id);
+}
 function dealPageDeadline(){
  // Resets nightly at midnight so the countdown always has something
  // meaningful to show without needing a dedicated end-date setting.
@@ -1526,11 +1641,9 @@ function openDealPage(){
  const subtitle = siteSettings.dealSubtitle || "A hand-picked set of offers — limited stock, while it lasts.";
  document.querySelector("#dp_title").textContent = title;
  document.querySelector("#dp_subtitle").textContent = subtitle;
+ dealCardState = {}; // fresh qty/size selections each time the page opens
  document.querySelector("#dp_grid").innerHTML = offers.length
-  ? offers.map(p=>{
-     const scarcity = dealScarcityBadgeHTML(p);
-     return scarcity ? cardHTML(p).replace('<div class="productInfo">', `<div class="productInfo">${scarcity}`) : cardHTML(p);
-    }).join("")
+  ? offers.map(p=>dealCardHTML(p)).join("")
   : `<div class="dealPageEmpty">No offer products are set up yet — add a "Deal product" or a sale price in admin.</div>`;
 
  // Hide the regular shop and show only the deal page.
