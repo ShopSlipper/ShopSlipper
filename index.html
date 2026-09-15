@@ -111,8 +111,8 @@ select{width:100%;height:48px;border:1px solid var(--line);background:#fff;borde
 a.product{display:block;text-decoration:none;color:inherit}
 .product:hover{transform:translateY(-5px);box-shadow:var(--shadow-lg);border-color:transparent}
 .productImg{aspect-ratio:1/1;background:#efece3;position:relative}
-.productImg img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s ease}
-.product:hover .productImg img{transform:scale(1.05)}
+.productImg img{width:100%;height:100%;object-fit:cover;display:block;transform:scale(1.12);transition:transform .5s ease}
+.product:hover .productImg img{transform:scale(1.18)}
 .sale{position:absolute;left:12px;top:12px;background:var(--gold);color:#fff;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:700;letter-spacing:.4px;z-index:2}
 .bestBadge{position:absolute;right:12px;top:12px;background:var(--amber);color:#fff;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:700;letter-spacing:.4px;z-index:2}
 .outBadge{position:absolute;left:12px;top:12px;background:var(--danger);color:#fff;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:700;letter-spacing:.4px;z-index:2}
@@ -1079,7 +1079,16 @@ function renderPagination(totalPages){
  html+=`<button class="pageBtn" ${page===totalPages?"disabled":""} onclick="goToPage(${page+1})">→</button>`;
  el.innerHTML=html;
 }
-function goToPage(n){page=n;renderProducts();document.querySelector("#shop").scrollIntoView({behavior:"smooth",block:"start"})}
+function goToPage(n, fromHistory){
+ page=n;
+ renderProducts();
+ document.querySelector("#shop").scrollIntoView({behavior:"smooth",block:"start"});
+ if(!fromHistory){
+  const url = new URL(location.href);
+  if(n>1) url.searchParams.set("page", n); else url.searchParams.delete("page");
+  history.pushState({page:n}, "", url.pathname + url.search + location.hash);
+ }
+}
 function colorDistance(hexA,hexB){
  const a=hexToRgb(hexA),b=hexToRgb(hexB);
  return Math.sqrt((a[0]-b[0])**2+(a[1]-b[1])**2+(a[2]-b[2])**2);
@@ -1748,6 +1757,8 @@ function closeDealPage(){
 // leaving the site, since it was opened via a pushState hash.
 window.addEventListener("popstate", ()=>{
  if(dealPageOpen && location.hash !== "#deal") closeDealPage();
+ const p = Number(new URLSearchParams(location.search).get("page")) || 1;
+ if(p !== page) goToPage(p, true);
 });
 
 let chatSessionId = localStorage.getItem("shopslipper-chat-id");
@@ -1833,9 +1844,12 @@ function renderDeal(settings){
  if(btn) btn.textContent = dealExpired() ? "View deal (ended)" : "Shop Now";
 }
 
+(function(){
+ const p = Number(new URLSearchParams(location.search).get("page"));
+ if(p>1) page = p;
+})();
 loadBanner();
 initProductsAndCart();
-
 // If someone arrives via a shared product link or a search result
 // (e.g. shopslipper.online/?product=123, which the SEO product pages
 // link to), open that product's modal automatically once products
