@@ -1037,6 +1037,7 @@ function renderProducts(){
  const list=getFilteredList();
  const totalPages=totalPagesFor(list.length);
  if(page>totalPages)page=totalPages;
+ document.querySelector(".introBand").style.display = page===1 ? "" : "none";
  const {start,end}=pageBounds(page);
  const pageItems=list.slice(start,end);
  document.querySelector("#resultText").textContent=`${list.length} product${list.length!==1?"s":""}`;
