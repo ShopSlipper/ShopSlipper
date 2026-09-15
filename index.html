@@ -340,6 +340,8 @@ footer .logo span{color:#c8f0d6}
 /* ---- Deal page product cards: qty stepper right on the card, no modal needed to order ---- */
 .dealProductCard{cursor:default}
 .dealProductCard:hover{transform:none;box-shadow:var(--shadow);border-color:var(--line)}
+.dealProductCard.dealEnded{opacity:.55;pointer-events:none}
+.dealEndedMsg{font-size:12.5px;font-weight:700;color:var(--danger);margin:0 0 6px}
 .dealProductCard .productImg{cursor:pointer}
 .dealProductCard h3{cursor:pointer}
 .dealSizeSelect{width:100%;margin-bottom:10px;border:1px solid var(--line);border-radius:10px;padding:9px 10px;font-size:12.5px;background:#fff;color:var(--text)}
@@ -1520,6 +1522,7 @@ function dealScarcityBadgeHTML(p){
 ================================================================= */
 let dealCardState = {};
 function dealCardHTML(p){
+ const expired = dealExpired();
  const sizes=(p.sizes||"").split(",").map(s=>s.trim()).filter(Boolean);
  const discount = p.old && p.old>p.price ? Math.round((1-p.price/p.old)*100) : 0;
  if(!dealCardState[p.id]){
@@ -1531,30 +1534,22 @@ function dealCardHTML(p){
  const combinationOut = sizes.length ? (state.size ? isCombinationOut(p,state.variantIdx,state.size) : true) : isCombinationOut(p,state.variantIdx,null);
  const maxQty = stockQtyFor(p, state.variantIdx, state.size);
  const scarcity = dealScarcityBadgeHTML(p);
- const sizeSelectHtml = sizes.length ? `<select class="dealSizeSelect" ${outOfStock?'disabled':''} onchange="dealPickSize(${p.id}, this.value)">
+ const sizeSelectHtml = (sizes.length && !expired) ? `<select class="dealSizeSelect" ${outOfStock?'disabled':''} onchange="dealPickSize(${p.id}, this.value)">
    ${sizes.map(s=>{
      const sOut = isCombinationOut(p, state.variantIdx, s);
      return `<option value="${escapeHtml(s)}" ${s===state.size?'selected':''} ${sOut?'disabled':''}>${escapeHtml(s)}${sOut?` — ${TEXT.outOfStock}`:''}</option>`;
     }).join("")}
   </select>` : "";
  let stockLine = "";
- if(!scarcity){
+ if(!scarcity && !expired){
   if(combinationOut) stockLine = `<div class="stockMsg out">${TEXT.outOfStock}</div>`;
   else if(maxQty!==null && maxQty<=5) stockLine = `<div class="stockMsg low">${TEXT.onlyLeft.replace("{n}",maxQty)}</div>`;
  }
- return `<div class="product dealProductCard ${outOfStock?'outOfStock':''}" id="dealCard_${p.id}">
-  <div class="productImg" onclick="openProduct(${p.id})">
-   <img src="${p.image}" alt="${escapeHtml(p.name)}" loading="lazy" onerror="this.style.display='none'">
-   ${outOfStock?`<span class="outBadge">${TEXT.outOfStock}</span>`:(p.new?'<span class="bestBadge">BEST</span>':'')}
-   ${(!outOfStock && discount>0)?`<span class="sale" style="left:auto;right:12px">${discount}% OFF</span>`:''}
-  </div>
-  <div class="productInfo">
-   ${scarcity}
-   <h3 onclick="openProduct(${p.id})">${escapeHtml(p.name)}</h3>
-   <p>${escapeHtml(p.category)}${sizes.length?` · ${sizes.length} sizes`:""}</p>
-   <div class="priceRow"><span class="price">${money(p.price)}</span>${p.old?`<span class="old">${money(p.old)}</span><span class="discPct">-${Math.round((1-p.price/p.old)*100)}%</span>`:""}</div>
-   <div style="margin-top:10px">
-    ${sizeSelectHtml}
+ const clickAttr = expired ? "" : `onclick="openProduct(${p.id})"`;
+ const orderingBlock = expired
+  ? `<div class="dealEndedMsg">This deal has ended</div>
+    <button class="add cardAddBtn" disabled>Deal ended</button>`
+  : `${sizeSelectHtml}
     ${stockLine}
     <div class="dealQtyRow">
      <div class="pdQty">
@@ -1563,7 +1558,20 @@ function dealCardHTML(p){
       <button type="button" onclick="dealChangeQty(${p.id},1)" ${combinationOut || (maxQty!==null && state.qty>=maxQty) ?'disabled':''}>+</button>
      </div>
     </div>
-    <button class="add cardAddBtn" ${combinationOut?'disabled':''} onclick="dealAddToCart(${p.id})">${combinationOut?TEXT.outOfStock:TEXT.addToCart}</button>
+    <button class="add cardAddBtn" ${combinationOut?'disabled':''} onclick="dealAddToCart(${p.id})">${combinationOut?TEXT.outOfStock:TEXT.addToCart}</button>`;
+ return `<div class="product dealProductCard ${outOfStock?'outOfStock':''} ${expired?'dealEnded':''}" id="dealCard_${p.id}">
+  <div class="productImg" ${clickAttr}>
+   <img src="${p.image}" alt="${escapeHtml(p.name)}" loading="lazy" onerror="this.style.display='none'">
+   ${expired?'<span class="outBadge">Deal ended</span>':(outOfStock?`<span class="outBadge">${TEXT.outOfStock}</span>`:(p.new?'<span class="bestBadge">BEST</span>':''))}
+   ${(!expired && !outOfStock && discount>0)?`<span class="sale" style="left:auto;right:12px">${discount}% OFF</span>`:''}
+  </div>
+  <div class="productInfo">
+   ${expired?'':scarcity}
+   <h3 ${clickAttr}>${escapeHtml(p.name)}</h3>
+   <p>${escapeHtml(p.category)}${sizes.length?` · ${sizes.length} sizes`:""}</p>
+   <div class="priceRow"><span class="price">${money(p.price)}</span>${p.old?`<span class="old">${money(p.old)}</span><span class="discPct">-${Math.round((1-p.price/p.old)*100)}%</span>`:""}</div>
+   <div style="margin-top:10px">
+    ${orderingBlock}
    </div>
   </div>
  </div>`;
@@ -1574,6 +1582,7 @@ function refreshDealCard(id){
  if(el && p) el.outerHTML = dealCardHTML(p);
 }
 function dealChangeQty(id,n){
+ if(dealExpired()) return;
  const p = products.find(x=>x.id===id);
  const state = dealCardState[id];
  if(!p || !state) return;
@@ -1585,6 +1594,7 @@ function dealChangeQty(id,n){
  refreshDealCard(id);
 }
 function dealPickSize(id,size){
+ if(dealExpired()) return;
  const p = products.find(x=>x.id===id);
  const state = dealCardState[id];
  if(!p || !state) return;
@@ -1594,6 +1604,7 @@ function dealPickSize(id,size){
  refreshDealCard(id);
 }
 function dealAddToCart(id){
+ if(dealExpired()){ toast("This deal has ended"); return; }
  const p = products.find(x=>x.id===id);
  const state = dealCardState[id];
  if(!p || !state) return;
@@ -1616,17 +1627,46 @@ function dealAddToCart(id){
  state.qty = 1; // ready for the next add, keep the chosen size
  refreshDealCard(id);
 }
+/* ---- Admin-set cutoff ----
+   settings.dealEndsAt (set from the "Deal ends at" field in admin) is a
+   real ISO timestamp. When it's set and has passed, the deal is expired:
+   dealCardHTML() renders every offer as un-orderable, and dealAddToCart/
+   dealChangeQty/dealPickSize refuse to act as a second line of defense.
+   When it's not set, the countdown falls back to a nightly reset purely
+   so the timer has something to show — that fallback never expires
+   anything, preserving the old cosmetic-only behavior. */
+function dealHasRealDeadline(){
+ if(!siteSettings.dealEndsAt) return false;
+ return !isNaN(new Date(siteSettings.dealEndsAt).getTime());
+}
 function dealPageDeadline(){
- // Resets nightly at midnight so the countdown always has something
- // meaningful to show without needing a dedicated end-date setting.
+ if(dealHasRealDeadline()) return new Date(siteSettings.dealEndsAt);
  const d = new Date();
  d.setHours(24,0,0,0);
  return d;
+}
+function dealExpired(){
+ return dealHasRealDeadline() && Date.now() >= dealPageDeadline().getTime();
+}
+function renderDealPageGrid(){
+ const offers = dealPageOfferProducts();
+ document.querySelector("#dp_grid").innerHTML = offers.length
+  ? offers.map(p=>dealCardHTML(p)).join("")
+  : `<div class="dealPageEmpty">No offer products are set up yet — add a "Deal product" or a sale price in admin.</div>`;
 }
 function tickDealPageTimer(){
  const h = document.querySelector("#dt_h"), m = document.querySelector("#dt_m"), s = document.querySelector("#dt_s");
  if(!h || !m || !s){ clearInterval(dealPageTimerHandle); dealPageTimerHandle=null; return; }
  let diff = dealPageDeadline().getTime() - Date.now();
+ if(diff<=0 && dealHasRealDeadline()){
+  h.textContent="00"; m.textContent="00"; s.textContent="00";
+  const label = document.querySelector(".dealTimerLabel");
+  if(label) label.textContent = "Deal ended";
+  clearInterval(dealPageTimerHandle);
+  dealPageTimerHandle = null;
+  renderDealPageGrid(); // re-render so every offer now shows as ended
+  return;
+ }
  if(diff<0) diff = 0;
  const hh = Math.floor(diff/3600000);
  const mm = Math.floor((diff%3600000)/60000);
@@ -1637,15 +1677,14 @@ function tickDealPageTimer(){
 }
 function openDealPage(){
  if(!productsLoaded){ toast("Still loading products — try again in a moment"); return; }
- const offers = dealPageOfferProducts();
  const title = siteSettings.dealTitle || "Exclusive Deal of the Week";
  const subtitle = siteSettings.dealSubtitle || "A hand-picked set of offers — limited stock, while it lasts.";
  document.querySelector("#dp_title").textContent = title;
  document.querySelector("#dp_subtitle").textContent = subtitle;
  dealCardState = {}; // fresh qty/size selections each time the page opens
- document.querySelector("#dp_grid").innerHTML = offers.length
-  ? offers.map(p=>dealCardHTML(p)).join("")
-  : `<div class="dealPageEmpty">No offer products are set up yet — add a "Deal product" or a sale price in admin.</div>`;
+ const label = document.querySelector(".dealTimerLabel");
+ if(label) label.textContent = dealExpired() ? "Deal ended" : "Deal ends in";
+ renderDealPageGrid();
 
  // Hide the regular shop and show only the deal page.
  document.querySelector("main").style.display = "none";
@@ -1659,7 +1698,7 @@ function openDealPage(){
 
  tickDealPageTimer();
  clearInterval(dealPageTimerHandle);
- dealPageTimerHandle = setInterval(tickDealPageTimer, 1000);
+ if(!dealExpired()) dealPageTimerHandle = setInterval(tickDealPageTimer, 1000);
 }
 function closeDealPage(){
  if(!dealPageOpen) return;
@@ -1759,6 +1798,8 @@ function renderDeal(settings){
  if(settings.dealBadgeText){ badge.style.display="inline-block"; badge.textContent = settings.dealBadgeText; }
  else badge.style.display="none";
  document.querySelector("#dl_priceOut").textContent = settings.dealPrice || "";
+ const btn = document.querySelector("#dl_selectSizeBtn");
+ if(btn) btn.textContent = dealExpired() ? "View deal (ended)" : "Shop Now";
 }
 
 loadBanner();
