@@ -106,6 +106,7 @@ select.statusSelect[data-status="Cancelled"]{background-color:var(--danger-soft)
 select.statusSelect[data-status="Delivered"]{background-color:#e5f2ea;color:#1f7a44}
 select.statusSelect[data-status="Shipped"]{background-color:#eaf1fb;color:#2a5ca8}
 select.statusSelect[data-status="Processing"]{background-color:#fdf3e0;color:#a3730c}
+.statusBadgeStatic{display:inline-flex;align-items:center;padding:7px 14px;border-radius:999px;font-size:12px;font-weight:700}
 
 .infoGrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px}
 .infoCard{border:1px solid var(--line);border-radius:14px;padding:14px 16px}
@@ -152,16 +153,31 @@ select.statusSelect[data-status="Processing"]{background-color:#fdf3e0;color:#a3
 <body>
 
 <!-- ============================================================
- PASSWORD: change ADMIN_KEY below to match ADMIN_KEY in Code.gs
- (same value used in admin.html / chat.html). Client-side gate
- only — not real security, just keeps casual visitors out.
+ PASSWORD: change ADMIN_KEY below to match ADMIN_KEY in the
+ Order Mastersheet's Apps Script (order-mastersheet-sync.gs).
+ Client-side gate only — not real security, just keeps casual
+ visitors out.
 
- BACKEND REQUIREMENTS (Code.gs) beyond the existing ?action=orders GET:
-   POST action=updateStatus  { key, orderId, status }
-   POST action=updateOrder   { key, orderId, name, phone, address }
-   POST action=deleteOrder   { key, orderId }
-   POST action=deleteOrders  { key, orderIds:[...] }
- Add an "Address" column to your Sheet if you want it editable.
+ This page now talks to the ORDER MASTERSHEET's own Web App
+ deployment (order-mastersheet-sync.gs), NOT ShopSlipper Data's
+ Code.gs. That script's backend supports:
+   GET  action=orders                             -> list all orders
+   POST action=updateStatus {key,orderId,status}   -> status must be
+                                                       "New" or
+                                                       "Processing"
+                                                       only — the
+                                                       backend rejects
+                                                       anything else
+   POST action=updateOrder  {key,orderId,name,phone,address}
+   POST action=deleteOrder  {key,orderId}
+   POST action=deleteOrders {key,orderIds:[...]}
+
+ STATUS EDITING IS INTENTIONALLY LIMITED: an order can only be
+ manually set to "New" or "Processing" from this page. Once an
+ order is Shipped / Delivered / Cancelled (moved there by the
+ background sync from ShopSlipper Data / the rider workflow), its
+ status shows as a plain read-only badge here instead of a
+ dropdown — those transitions don't happen from this page.
 ============================================================= -->
 
 <div id="gate">
@@ -189,7 +205,7 @@ select.statusSelect[data-status="Processing"]{background-color:#fdf3e0;color:#a3
   <aside class="sidebar">
    <div class="sidebarHead">
     <h1>Orders <span id="orderCountLabel">(0)</span></h1>
-    <div class="statusPill" id="sourceNote">Loading orders from your Google Sheet…</div>
+    <div class="statusPill" id="sourceNote">Loading orders from the Order Mastersheet…</div>
     <div class="bulkPill" id="bulkBar">
      <span><b id="bulkCount">0</b> selected</span>
      <span style="display:flex;gap:12px">
@@ -252,8 +268,14 @@ select.statusSelect[data-status="Processing"]{background-color:#fdf3e0;color:#a3
 
 <script>
 /* ================== CONFIG ================== */
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzKHLu21Y5oJeM7KQ5dcI3mTXpNnZlDRoTn19nCuqZ7SNb73S6cj9QaTY2Sd-QHTFoE/exec";
+// Order Mastersheet's own Web App /exec URL (order-mastersheet-sync.gs),
+// NOT ShopSlipper Data's Code.gs URL.
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHNkrQJ5p3rHNjNtf7x4nbOTk3i90T8Iat_fXgScIUxidzdPcNda_UU3yWMxt9AYJ7/exec";
 const ADMIN_KEY  = "shopslipper2026";
+
+// The only statuses this page is allowed to set manually. Must match
+// ALLOWED_MANUAL_STATUSES in order-mastersheet-sync.gs.
+const EDITABLE_STATUSES = ["New", "Processing"];
 
 let orders = [];
 let filtered = [];
@@ -295,7 +317,7 @@ async function loadOrders(){
   const res = await fetch(`${SCRIPT_URL}?action=orders&key=${encodeURIComponent(ADMIN_KEY)}`);
   const data = await res.json();
   if(data.error) throw new Error(data.error);
-  orders = (data.orders || []).reverse();
+  orders = (data.orders || []);
   document.querySelector("#sourceNote").innerHTML = `Connected — <b>${orders.length}</b> orders.`;
   applyFilters();
  }catch(err){
@@ -398,6 +420,12 @@ function renderDetail(){
  const items = parseItems(o);
  const when = o.timestamp ? new Date(o.timestamp).toLocaleString() : "";
  const status = o.status || "New";
+ const isEditable = EDITABLE_STATUSES.includes(status);
+ const statusControl = isEditable
+  ? `<select class="statusSelect" data-status="${status}" onchange="changeStatus('${escapeHtml(o.orderId)}', this)">
+      ${EDITABLE_STATUSES.map(s=>`<option value="${s}" ${s===status?'selected':''}>${s}</option>`).join("")}
+     </select>`
+  : `<span class="miniStatus statusBadgeStatic" data-s="${status}" title="Set by the delivery/rider workflow — not editable here">${status}</span>`;
  main.innerHTML = `
   <div class="detail">
    <div class="detailHead">
@@ -406,9 +434,7 @@ function renderDetail(){
      <div class="ts">${when}</div>
     </div>
     <div class="detailActions">
-     <select class="statusSelect" data-status="${status}" onchange="changeStatus('${escapeHtml(o.orderId)}', this)">
-      ${["New","Processing","Shipped","Delivered","Cancelled"].map(s=>`<option value="${s}" ${s===status?'selected':''}>${s}</option>`).join("")}
-     </select>
+     ${statusControl}
      <button class="iconBtn" title="Edit" onclick="openEditModal('${escapeHtml(o.orderId)}')">✎</button>
      <button class="iconBtn danger" title="Delete" onclick="confirmSingleDelete('${escapeHtml(o.orderId)}')">🗑</button>
      <button class="iconBtn close" title="Close" onclick="closeDetail()">✕</button>
