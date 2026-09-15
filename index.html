@@ -359,8 +359,7 @@ footer .logo span{color:#c8f0d6}
 .dealSizeSelect{width:100%;margin-bottom:10px;border:1px solid var(--line);border-radius:10px;padding:9px 10px;font-size:12.5px;background:#fff;color:var(--text)}
 .reviewSliderWrap{display:flex;align-items:center;gap:14px}
 .reviewSliderViewport{flex:1;overflow:hidden;min-width:0}
-.reviewSliderTrack{display:flex;transition:transform .4s var(--ease)}
-.reviewSlide{flex:0 0 100%;box-sizing:border-box;padding:28px 24px;text-align:center;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);max-width:640px;margin:0 auto}
+.reviewSlide{width:100%;max-width:640px;margin:0 auto;box-sizing:border-box;padding:28px 24px;text-align:center;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
 .reviewSlideStars{color:#e0a825;letter-spacing:3px;font-size:16px;margin-bottom:10px}
 .reviewSlideText{font-size:14.5px;color:var(--text);line-height:1.6;margin:0 0 12px;overflow-wrap:break-word;word-break:break-word}
 .reviewSlideName{font-weight:700;font-size:12.5px;color:var(--gold);letter-spacing:.3px}
@@ -1763,19 +1762,18 @@ function renderReviewSlider(){
  const dots = document.querySelector("#reviewDots");
  if(!track) return;
  if(!siteReviews.length){
-  track.style.transform = "translateX(0)";
-  track.innerHTML = `<div class="reviewsEmpty" style="padding:30px 0;text-align:center;flex:0 0 100%">No reviews yet — be the first to write one.</div>`;
+  track.innerHTML = `<div class="reviewsEmpty" style="padding:30px 0;text-align:center">No reviews yet — be the first to write one.</div>`;
   dots.innerHTML = "";
   return;
  }
  if(reviewIndex>=siteReviews.length) reviewIndex=0;
- track.style.transform = `translateX(-${reviewIndex*100}%)`;
- track.innerHTML = siteReviews.map(r=>`
+ const r = siteReviews[reviewIndex];
+ track.innerHTML = `
   <div class="reviewSlide">
    <div class="reviewSlideStars">${reviewStars(r.rating)}</div>
    <p class="reviewSlideText">"${escapeHtml(r.text)}"</p>
    <div class="reviewSlideName">${escapeHtml(r.name)}</div>
-  </div>`).join("");
+  </div>`;
  dots.innerHTML = siteReviews.map((_,i)=>`<button class="reviewDot ${i===reviewIndex?'active':''}" onclick="goToReview(${i})" aria-label="Review ${i+1}"></button>`).join("");
 }
 function goToReview(i){ reviewIndex=i; renderReviewSlider(); startReviewAutoSlide(); }
