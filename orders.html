@@ -1,3 +1,6 @@
+
+
+Orders · HTML
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,67 +13,136 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#eef6f2;--card:#fffefe;--text:#182220;--muted:#6f8582;
-  --line:#8fd3a6;--accent:var(--gold);--soft:#e6f2ee;--danger:#b5493e;
-  --gold:#077F38;--sage:#077F38;--radius:18px;--shadow:0 20px 50px rgba(20,40,38,.08);
+  --bg:#f5faf7;--card:#ffffff;--text:#182220;--muted:#6f8582;
+  --line:#d9ece1;--brand:#127a3e;--brand-dark:#0d5c2f;--soft:#e9f5ee;--danger:#c0392b;--danger-soft:#fbeae8;
+  --gold:#127a3e;--radius:16px;--shadow:0 16px 40px rgba(20,40,38,.08);
   --serif:'Fraunces',Georgia,serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Inter',system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:linear-gradient(160deg,#eef7f1 0%,#eaf2f2 45%,#e9f0f6 100%) fixed;color:var(--text);line-height:1.5;min-height:100vh}
+body{font-family:'Inter',system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh}
 button,input,select,textarea{font:inherit}
 button{cursor:pointer;border:0}
-.container{width:min(1100px,calc(100% - 32px));margin:auto}
+.container{width:min(1200px,calc(100% - 32px));margin:auto}
 a{color:inherit}
-#gate{min-height:100vh;display:grid;place-items:center;padding:20px}
+ 
+/* ---------- gate ---------- */
+#gate{min-height:100vh;display:grid;place-items:center;padding:20px;background:var(--bg)}
 .gateBox{background:var(--card);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);padding:40px;width:min(380px,100%);text-align:center}
 .gateBox h1{font-family:var(--serif);font-weight:600;font-size:24px;margin-bottom:6px}
 .gateBox p{color:var(--muted);font-size:13.5px;margin-bottom:22px}
 .gateBox input{width:100%;border:1px solid var(--line);border-radius:12px;padding:13px 14px;outline:none;margin-bottom:12px;font-size:14px}
-.gateBox input:focus{border-color:var(--text)}
+.gateBox input:focus{border-color:var(--brand)}
 .gateErr{color:var(--danger);font-size:12.5px;margin-bottom:10px;display:none}
 #app{display:none}
-header{background:rgba(248,246,241,.9);backdrop-filter:blur(18px);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10}
+ 
+/* ---------- header (matches chat.html) ---------- */
+header{background:var(--brand);color:#fff;position:sticky;top:0;z-index:20}
 .nav{height:74px;display:flex;align-items:center;justify-content:space-between;gap:16px}
 .brand{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-weight:600;font-size:18px}
-.brand .mark{width:36px;height:36px;border-radius:50%;object-fit:cover}
-.brand small{display:block;color:var(--muted);font-weight:400;font-size:11px;letter-spacing:.4px;text-transform:uppercase}
+.brand .mark{width:36px;height:36px;border-radius:50%;object-fit:cover;background:#fff}
+.brand small{display:block;color:rgba(255,255,255,.75);font-weight:600;font-size:11px;letter-spacing:.6px;text-transform:uppercase}
 .headActions{display:flex;gap:10px;flex-wrap:wrap}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px 18px;border-radius:999px;background:var(--gold);color:#fff;font-weight:600;font-size:13px;transition:.2s transform,.2s opacity}
-.btn:hover{transform:translateY(-1px);opacity:.9}
-.btn.light{background:#fff;color:var(--gold);border:1px solid var(--gold)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px 18px;border-radius:999px;background:var(--brand);color:#fff;font-weight:600;font-size:13px;transition:.15s transform,.15s opacity}
+.btn:hover{transform:translateY(-1px);opacity:.92}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn.light{background:rgba(255,255,255,.16);color:#fff}
+.btn.light:hover{background:rgba(255,255,255,.26)}
+.btn.outline{background:#fff;color:var(--brand);border:1px solid var(--brand)}
+.btn.danger{background:var(--danger)}
 .btn.sm{padding:8px 13px;font-size:12px}
-main{padding:34px 0 80px}
-.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px;margin-bottom:22px}
-.panelHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+.iconBtn{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:9px;background:var(--soft);color:var(--brand);font-size:14px;transition:.15s background}
+.iconBtn:hover{background:#d9f0e2}
+.iconBtn.danger{background:var(--danger-soft);color:var(--danger)}
+.iconBtn.danger:hover{background:#f6d5d0}
+ 
+main{padding:28px 0 80px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px;margin-bottom:22px;box-shadow:var(--shadow)}
+.panelHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px}
 .panelHead h2{font-family:var(--serif);font-weight:600;font-size:19px}
 .note{background:var(--soft);border:1px solid var(--line);border-radius:14px;padding:13px 16px;font-size:12.5px;color:var(--muted);margin-bottom:18px}
 .note b{color:var(--text)}
+ 
+/* ---------- toolbar: search + bulk actions ---------- */
+.toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.searchWrap{position:relative;flex:1;min-width:220px}
+.searchWrap input{width:100%;border:1px solid var(--line);border-radius:12px;padding:10px 14px 10px 36px;font-size:13.5px;outline:none;background:var(--soft)}
+.searchWrap input:focus{border-color:var(--brand);background:#fff}
+.searchWrap .sIcon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px}
+.statusFilter{border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:13px;background:var(--soft);color:var(--text)}
+.bulkBar{display:none;align-items:center;gap:10px;background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:8px 12px;font-size:13px;margin-bottom:14px}
+.bulkBar.show{display:flex}
+.bulkBar b{color:var(--brand)}
+ 
 table{width:100%;border-collapse:collapse;font-size:13.5px}
 th{text-align:left;padding:10px 8px;color:var(--muted);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--line)}
 td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
 tr:last-child td{border-bottom:0}
-.skuTag{font-family:monospace;font-size:11.5px;background:var(--soft);padding:3px 7px;border-radius:6px;color:var(--gold)}
+tr.selected{background:var(--soft)}
+.skuTag{font-family:monospace;font-size:11.5px;background:var(--soft);padding:3px 7px;border-radius:6px;color:var(--brand)}
 .emptyMsg{text-align:center;color:var(--muted);padding:40px 10px;font-size:13.5px}
-.statusTag{padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700;background:var(--soft)}
-.toast{position:fixed;left:50%;bottom:25px;transform:translate(-50%,20px);background:var(--gold);color:#fff;padding:12px 18px;border-radius:999px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:100}
+.rowActions{display:flex;gap:6px}
+ 
+.statusTag{padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;background:var(--soft);color:var(--brand);display:inline-block}
+select.statusSelect{border:1px solid var(--line);border-radius:999px;padding:6px 26px 6px 10px;font-size:11.5px;font-weight:700;background:var(--soft);color:var(--brand);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23127a3e'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+select.statusSelect[data-status="Cancelled"]{background-color:var(--danger-soft);color:var(--danger)}
+select.statusSelect[data-status="Delivered"]{background-color:#e5f2ea;color:#1f7a44}
+select.statusSelect[data-status="Shipped"]{background-color:#eaf1fb;color:#2a5ca8}
+select.statusSelect[data-status="Processing"]{background-color:#fdf3e0;color:#a3730c}
+ 
+.toast{position:fixed;left:50%;bottom:25px;transform:translate(-50%,20px);background:var(--brand);color:#fff;padding:12px 18px;border-radius:999px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:100}
 .toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.err{background:var(--danger)}
 .spinning{display:inline-block;animation:spin360 .7s linear}
 @keyframes spin360{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-@media(max-width:700px){table,thead,tbody,th,td,tr{display:block}thead{display:none}td{border:0;padding:4px 8px}tr{border-bottom:1px solid var(--line);padding:10px 0}}
+ 
+/* ---------- modal ---------- */
+.modalWrap{position:fixed;inset:0;background:rgba(15,30,25,.45);display:none;align-items:center;justify-content:center;padding:20px;z-index:200}
+.modalWrap.show{display:flex}
+.modal{background:#fff;border-radius:20px;padding:26px;width:min(420px,100%);box-shadow:var(--shadow)}
+.modal h3{font-family:var(--serif);font-size:19px;margin-bottom:4px}
+.modal p.sub{color:var(--muted);font-size:12.5px;margin-bottom:18px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px}
+.field input,.field textarea{width:100%;border:1px solid var(--line);border-radius:11px;padding:10px 12px;font-size:13.5px;outline:none}
+.field input:focus,.field textarea:focus{border-color:var(--brand)}
+.field textarea{resize:vertical;min-height:64px}
+.modalActions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+ 
+.confirmModal .modal{width:min(360px,100%);text-align:center}
+.confirmModal .modal p{color:var(--muted);font-size:13.5px;margin-bottom:20px}
+.confirmModal .modalActions{justify-content:center}
+ 
+@media(max-width:760px){
+ table,thead,tbody,th,td,tr{display:block}
+ thead{display:none}
+ td{border:0;padding:4px 8px}
+ tr{border-bottom:1px solid var(--line);padding:12px 0;position:relative}
+ td[data-label]:before{content:attr(data-label);display:block;font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px}
+ .rowActions{margin-top:6px}
+}
 </style>
 </head>
 <body>
-
+ 
 <!-- ============================================================
  PASSWORD: change ADMIN_KEY in the <script> below to match
- ADMIN_KEY in Code.gs (same value used in admin.html) — the
- backend only knows one key, so this page and the main admin
- page must use the same one. This is a simple client-side gate,
- not real security: anyone who reads this file's source can see
- it. Fine for keeping casual visitors out, not for anything
+ ADMIN_KEY in Code.gs (same value used in admin.html / chat.html)
+ — the backend only knows one key. This is a simple client-side
+ gate, not real security: anyone who reads this file's source can
+ see it. Fine for keeping casual visitors out, not for anything
  truly sensitive.
+ 
+ BACKEND REQUIREMENTS (Code.gs):
+ This page expects these actions on your Apps Script web app,
+ in addition to the existing ?action=orders GET:
+   POST action=updateStatus  { key, orderId, status }
+   POST action=updateOrder   { key, orderId, name, phone, address }
+   POST action=deleteOrder   { key, orderId }
+   POST action=deleteOrders  { key, orderIds:[...] }
+ Each order object may also include an "address" field — add an
+ Address column to your Sheet if you want to edit/display it.
 ============================================================= -->
-
+ 
 <div id="gate">
  <div class="gateBox">
   <h1>Orders access</h1>
@@ -80,7 +152,7 @@ tr:last-child td{border-bottom:0}
   <button class="btn" style="width:100%" onclick="tryLogin()">Enter →</button>
  </div>
 </div>
-
+ 
 <div id="app">
 <header>
  <div class="container nav">
@@ -91,35 +163,92 @@ tr:last-child td{border-bottom:0}
   </div>
  </div>
 </header>
-
+ 
 <main>
  <div class="container">
   <div class="note" id="sourceNote">Loading orders from your Google Sheet…</div>
+ 
   <div class="panel">
-   <div class="panelHead"><h2>Orders <span style="color:var(--muted);font-weight:400" id="orderCountLabel"></span></h2></div>
+   <div class="panelHead">
+    <h2>Orders <span style="color:var(--muted);font-weight:400" id="orderCountLabel"></span></h2>
+   </div>
+ 
+   <div class="toolbar">
+    <div class="searchWrap">
+     <span class="sIcon">⌕</span>
+     <input type="text" id="searchInput" placeholder="Search by order ID, name, phone or item…" oninput="applyFilters()">
+    </div>
+    <select class="statusFilter" id="statusFilter" onchange="applyFilters()">
+     <option value="">All statuses</option>
+     <option value="New">New</option>
+     <option value="Processing">Processing</option>
+     <option value="Shipped">Shipped</option>
+     <option value="Delivered">Delivered</option>
+     <option value="Cancelled">Cancelled</option>
+    </select>
+   </div>
+ 
+   <div class="bulkBar" id="bulkBar">
+    <span><b id="bulkCount">0</b> selected</span>
+    <button class="btn sm danger" onclick="confirmBulkDelete()">Delete selected</button>
+    <button class="btn sm outline" onclick="clearSelection()">Clear</button>
+   </div>
+ 
    <div style="overflow:auto">
    <table>
-    <thead><tr><th>When</th><th>Order</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th></tr></thead>
+    <thead><tr>
+     <th style="width:30px"><input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)"></th>
+     <th>When</th><th>Order</th><th>Customer</th><th>Address</th><th>Items</th><th>Total</th><th>Status</th><th></th>
+    </tr></thead>
     <tbody id="orderRows"></tbody>
    </table>
    </div>
-   <div class="emptyMsg" id="emptyOrders" style="display:none">No orders yet.</div>
+   <div class="emptyMsg" id="emptyOrders" style="display:none">No orders found.</div>
   </div>
  </div>
 </main>
 </div>
-
+ 
+<!-- edit modal -->
+<div class="modalWrap" id="editModal">
+ <div class="modal">
+  <h3>Edit order</h3>
+  <p class="sub">Update customer contact and delivery address.</p>
+  <div class="field"><label>Name</label><input id="editName" type="text"></div>
+  <div class="field"><label>Phone</label><input id="editPhone" type="tel"></div>
+  <div class="field"><label>Address</label><textarea id="editAddress"></textarea></div>
+  <div class="modalActions">
+   <button class="btn outline sm" onclick="closeEditModal()">Cancel</button>
+   <button class="btn sm" onclick="saveEdit()">Save changes</button>
+  </div>
+ </div>
+</div>
+ 
+<!-- confirm delete modal -->
+<div class="modalWrap confirmModal" id="confirmModal">
+ <div class="modal">
+  <h3 id="confirmTitle">Delete order?</h3>
+  <p id="confirmBody">This can't be undone.</p>
+  <div class="modalActions">
+   <button class="btn outline sm" onclick="closeConfirmModal()">Cancel</button>
+   <button class="btn sm danger" id="confirmActionBtn">Delete</button>
+  </div>
+ </div>
+</div>
+ 
 <div class="toast" id="toast"></div>
-
+ 
 <script>
 /* ================== CONFIG ==================
- Must match SCRIPT_URL and ADMIN_KEY in admin.html / Code.gs.
+ Must match SCRIPT_URL and ADMIN_KEY in admin.html / chat.html / Code.gs.
 =============================================== */
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzKHLu21Y5oJeM7KQ5dcI3mTXpNnZlDRoTn19nCuqZ7SNb73S6cj9QaTY2Sd-QHTFoE/exec";
 const ADMIN_KEY  = "shopslipper2026";
-
+ 
 let orders = [];
-
+let filtered = [];
+let selected = new Set();
+ 
 function tryLogin(){
  const val = document.querySelector("#gatePass").value;
  if(val === ADMIN_KEY){
@@ -139,10 +268,11 @@ if(sessionStorage.getItem("ss-orders-ok")==="1"){
  document.querySelector("#gate").style.display="none";
  document.querySelector("#app").style.display="block";
 }
-
-function money(n){return "Rs. "+Number(n).toLocaleString("en-IN")}
+ 
+function money(n){return "Rs. "+Number(n||0).toLocaleString("en-IN")}
 function escapeHtml(s){ const d=document.createElement("div"); d.textContent=s||""; return d.innerHTML; }
-
+ 
+/* ---------- load ---------- */
 async function loadOrders(){
  const refreshIcon = document.querySelector("#refreshIcon");
  const refreshBtn = document.querySelector("#refreshBtn");
@@ -158,7 +288,7 @@ async function loadOrders(){
   if(data.error) throw new Error(data.error);
   orders = (data.orders || []).reverse();
   document.querySelector("#sourceNote").innerHTML = `Connected to your Google Sheet — <b>${orders.length}</b> orders.`;
-  renderOrders();
+  applyFilters();
  }catch(err){
   document.querySelector("#sourceNote").innerHTML = `Couldn't reach the Sheet. Check your connection and try refreshing.`;
  }finally{
@@ -166,32 +296,195 @@ async function loadOrders(){
  }
 }
 setInterval(()=>{ if(sessionStorage.getItem("ss-orders-ok")==="1") loadOrders(); }, 15000);
-
+ 
+/* ---------- search + filter ---------- */
+function applyFilters(){
+ const q = document.querySelector("#searchInput").value.trim().toLowerCase();
+ const statusF = document.querySelector("#statusFilter").value;
+ filtered = orders.filter(o=>{
+  if(statusF && (o.status||"New") !== statusF) return false;
+  if(!q) return true;
+  let items=[]; try{items=JSON.parse(o.items||"[]")}catch(e){}
+  const itemNames = items.map(i=>i.name||"").join(" ").toLowerCase();
+  const hay = [o.orderId,o.name,o.phone,o.address,itemNames].join(" ").toLowerCase();
+  return hay.includes(q);
+ });
+ renderOrders();
+}
+ 
+/* ---------- selection ---------- */
+function toggleSelectAll(cb){
+ if(cb.checked){ filtered.forEach(o=>selected.add(o.orderId)); }
+ else{ filtered.forEach(o=>selected.delete(o.orderId)); }
+ renderOrders();
+}
+function toggleRow(id, cb){
+ if(cb.checked) selected.add(id); else selected.delete(id);
+ updateBulkBar();
+ const row = document.querySelector(`tr[data-id="${CSS.escape(id)}"]`);
+ if(row) row.classList.toggle("selected", cb.checked);
+}
+function clearSelection(){
+ selected.clear();
+ renderOrders();
+}
+function updateBulkBar(){
+ const bar = document.querySelector("#bulkBar");
+ document.querySelector("#bulkCount").textContent = selected.size;
+ bar.classList.toggle("show", selected.size>0);
+ const selectAll = document.querySelector("#selectAll");
+ if(selectAll) selectAll.checked = filtered.length>0 && filtered.every(o=>selected.has(o.orderId));
+}
+ 
+/* ---------- render ---------- */
 function renderOrders(){
  const rows = document.querySelector("#orderRows");
- document.querySelector("#orderCountLabel").textContent = `(${orders.length})`;
- document.querySelector("#emptyOrders").style.display = orders.length ? "none" : "block";
- rows.innerHTML = orders.map(o=>{
+ document.querySelector("#orderCountLabel").textContent = `(${filtered.length}${filtered.length!==orders.length ? ` of ${orders.length}` : ""})`;
+ document.querySelector("#emptyOrders").style.display = filtered.length ? "none" : "block";
+ rows.innerHTML = filtered.map(o=>{
   let items=[]; try{items=JSON.parse(o.items||"[]")}catch(e){}
   const when = o.timestamp ? new Date(o.timestamp).toLocaleString() : "";
-  return `<tr>
-   <td>${when}</td>
-   <td><span class="skuTag">${escapeHtml(o.orderId||"")}</span></td>
-   <td>${escapeHtml(o.name||"")}<br><small style="color:var(--muted)">${escapeHtml(o.phone||"")}</small></td>
-   <td>${items.map(i=>`${i.qty}× ${escapeHtml(i.name)}${i.color?` (${escapeHtml(i.color)})`:""}`).join("<br>")}</td>
-   <td>${money(o.total||0)}</td>
-   <td><span class="statusTag">${escapeHtml(o.status||"New")}</span></td>
+  const status = o.status || "New";
+  const checked = selected.has(o.orderId) ? "checked" : "";
+  return `<tr data-id="${escapeHtml(o.orderId)}" class="${selected.has(o.orderId)?'selected':''}">
+   <td><input type="checkbox" ${checked} onchange="toggleRow('${escapeHtml(o.orderId)}', this)"></td>
+   <td data-label="When">${when}</td>
+   <td data-label="Order"><span class="skuTag">${escapeHtml(o.orderId||"")}</span></td>
+   <td data-label="Customer">${escapeHtml(o.name||"")}<br><small style="color:var(--muted)">${escapeHtml(o.phone||"")}</small></td>
+   <td data-label="Address" style="max-width:180px">${escapeHtml(o.address||"—")}</td>
+   <td data-label="Items">${items.map(i=>`${i.qty}× ${escapeHtml(i.name)}${i.color?` (${escapeHtml(i.color)})`:""}`).join("<br>")}</td>
+   <td data-label="Total">${money(o.total||0)}</td>
+   <td data-label="Status">
+    <select class="statusSelect" data-status="${status}" onchange="changeStatus('${escapeHtml(o.orderId)}', this)">
+     ${["New","Processing","Shipped","Delivered","Cancelled"].map(s=>`<option value="${s}" ${s===status?'selected':''}>${s}</option>`).join("")}
+    </select>
+   </td>
+   <td>
+    <div class="rowActions">
+     <button class="iconBtn" title="Edit" onclick="openEditModal('${escapeHtml(o.orderId)}')">✎</button>
+     <button class="iconBtn danger" title="Delete" onclick="confirmSingleDelete('${escapeHtml(o.orderId)}')">🗑</button>
+    </div>
+   </td>
   </tr>`;
  }).join("");
+ updateBulkBar();
 }
-
+ 
+/* ---------- status change ---------- */
+async function changeStatus(orderId, sel){
+ const newStatus = sel.value;
+ sel.setAttribute("data-status", newStatus);
+ try{
+  const res = await fetch(SCRIPT_URL, {
+   method:"POST",
+   headers:{"Content-Type":"text/plain;charset=utf-8"},
+   body: JSON.stringify({ action:"updateStatus", key:ADMIN_KEY, orderId, status:newStatus })
+  });
+  const data = await res.json();
+  if(data.error) throw new Error(data.error);
+  const o = orders.find(x=>x.orderId===orderId);
+  if(o) o.status = newStatus;
+  toast(`Status updated to "${newStatus}"`);
+ }catch(err){
+  toast("Couldn't update status — try again.", true);
+ }
+}
+ 
+/* ---------- edit ---------- */
+let editingId = null;
+function openEditModal(orderId){
+ const o = orders.find(x=>x.orderId===orderId);
+ if(!o) return;
+ editingId = orderId;
+ document.querySelector("#editName").value = o.name || "";
+ document.querySelector("#editPhone").value = o.phone || "";
+ document.querySelector("#editAddress").value = o.address || "";
+ document.querySelector("#editModal").classList.add("show");
+}
+function closeEditModal(){
+ document.querySelector("#editModal").classList.remove("show");
+ editingId = null;
+}
+async function saveEdit(){
+ if(!editingId) return;
+ const name = document.querySelector("#editName").value.trim();
+ const phone = document.querySelector("#editPhone").value.trim();
+ const address = document.querySelector("#editAddress").value.trim();
+ try{
+  const res = await fetch(SCRIPT_URL, {
+   method:"POST",
+   headers:{"Content-Type":"text/plain;charset=utf-8"},
+   body: JSON.stringify({ action:"updateOrder", key:ADMIN_KEY, orderId:editingId, name, phone, address })
+  });
+  const data = await res.json();
+  if(data.error) throw new Error(data.error);
+  const o = orders.find(x=>x.orderId===editingId);
+  if(o){ o.name=name; o.phone=phone; o.address=address; }
+  toast("Order updated.");
+  closeEditModal();
+  applyFilters();
+ }catch(err){
+  toast("Couldn't save changes — try again.", true);
+ }
+}
+ 
+/* ---------- delete ---------- */
+let pendingDelete = null; // {type:'single'|'bulk', ids:[...]}
+function confirmSingleDelete(orderId){
+ pendingDelete = { type:"single", ids:[orderId] };
+ document.querySelector("#confirmTitle").textContent = "Delete this order?";
+ document.querySelector("#confirmBody").textContent = `Order ${orderId} will be permanently removed. This can't be undone.`;
+ document.querySelector("#confirmModal").classList.add("show");
+}
+function confirmBulkDelete(){
+ if(selected.size===0) return;
+ pendingDelete = { type:"bulk", ids:Array.from(selected) };
+ document.querySelector("#confirmTitle").textContent = "Delete selected orders?";
+ document.querySelector("#confirmBody").textContent = `${selected.size} order(s) will be permanently removed. This can't be undone.`;
+ document.querySelector("#confirmModal").classList.add("show");
+}
+function closeConfirmModal(){
+ document.querySelector("#confirmModal").classList.remove("show");
+ pendingDelete = null;
+}
+document.querySelector("#confirmActionBtn").addEventListener("click", async ()=>{
+ if(!pendingDelete) return;
+ const { type, ids } = pendingDelete;
+ try{
+  const body = type==="single"
+   ? { action:"deleteOrder", key:ADMIN_KEY, orderId:ids[0] }
+   : { action:"deleteOrders", key:ADMIN_KEY, orderIds:ids };
+  const res = await fetch(SCRIPT_URL, {
+   method:"POST",
+   headers:{"Content-Type":"text/plain;charset=utf-8"},
+   body: JSON.stringify(body)
+  });
+  const data = await res.json();
+  if(data.error) throw new Error(data.error);
+  orders = orders.filter(o=>!ids.includes(o.orderId));
+  ids.forEach(id=>selected.delete(id));
+  toast(ids.length>1 ? `${ids.length} orders deleted.` : "Order deleted.");
+  closeConfirmModal();
+  applyFilters();
+ }catch(err){
+  toast("Couldn't delete — try again.", true);
+  closeConfirmModal();
+ }
+});
+ 
+/* ---------- toast ---------- */
 let toastTimer;
-function toast(t){
+function toast(t, isErr){
  const e = document.querySelector("#toast");
- e.textContent = t; e.classList.add("show");
+ e.textContent = t;
+ e.classList.toggle("err", !!isErr);
+ e.classList.add("show");
  clearTimeout(toastTimer);
- toastTimer = setTimeout(()=>e.classList.remove("show"), 2200);
+ toastTimer = setTimeout(()=>e.classList.remove("show"), 2400);
 }
 </script>
 </body>
 </html>
+ 
+
+
