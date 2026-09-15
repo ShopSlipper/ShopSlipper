@@ -145,17 +145,14 @@ tr:last-child td{border-bottom:0}
 .dealPreviewWrap{border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--soft);margin-bottom:18px;max-width:260px}
 .dealPreviewWrap img{width:100%;height:auto;aspect-ratio:1/1;object-fit:contain;display:block;background:#fff}
 
-/* ---- Deal product multi-select picker ---- */
-.dealProductPicker{max-height:230px;overflow:auto;border:1px solid var(--line);border-radius:12px;padding:6px 10px;display:flex;flex-direction:column;gap:1px;background:#fff}
-.dealProductPicker label{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:400;padding:7px 4px;border-radius:8px;cursor:pointer;flex:1;min-width:0}
-.dealProductPicker input[type=checkbox]{width:15px;height:15px;flex-shrink:0}
-.dealProductPicker .pickerEmpty{font-size:12.5px;color:var(--muted);padding:8px 4px}
-.dealPickerAddRow{padding:2px 2px 8px;border-bottom:1px solid var(--line);margin-bottom:5px}
-.dealPickerRow{display:flex;align-items:center;justify-content:space-between;gap:6px;border-radius:8px}
-.dealPickerRow:hover{background:var(--soft)}
-.dealPickerActions{display:flex;gap:4px;flex-shrink:0;padding-right:2px}
-.dealPickerActions .iconBtn{width:26px;height:26px;font-size:11px}
-.dealSelectedCount{font-size:11px;color:var(--muted)}
+/* ---- Deal products (self-contained — never appear on the main store) ---- */
+.dealProductsList{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+.dealProductRow{display:flex;align-items:center;gap:10px;background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:8px 10px}
+.dealProductRow .thumb{width:40px;height:40px}
+.dealProductRow .info{flex:1;min-width:0}
+.dealProductRow .info b{font-size:13px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dealProductRow .info span{font-size:11.5px;color:var(--muted)}
+.dealProductsEmpty{font-size:12.5px;color:var(--muted);padding:8px 4px}
 
 /* ---- Stock tracker (admin-only — never sent to storefront) ---- */
 .stockNote{font-size:11px;color:var(--muted);margin-bottom:8px;display:block}
@@ -332,16 +329,11 @@ tr:last-child td{border-bottom:0}
      </div>
 
      <div class="panelHead" style="margin-top:36px"><h2>Deal of the week</h2></div>
-     <div class="note">A dedicated promo block shown near the top of your storefront, above "New arrivals" — a headline, short description, a photo, and one or more real products tied to it so shoppers can pick a size and add it to cart directly from this card, just like a normal product. Optional; leave no products selected to keep it off.</div>
+     <div class="note">A dedicated promo block shown near the top of your storefront, above "New arrivals" — a headline, short description, a photo, and its own products below. <b>Deal products are self-contained</b> — they exist only for this page and never show up in your main catalog, the product grid, "New arrivals", or "Suggested for you" anywhere else on the site.</div>
      <div class="dealPreviewWrap">
       <img id="dl_preview" src="" alt="Deal photo preview">
      </div>
      <div class="formGrid">
-      <div class="field full">
-       <label>Linked products <span class="dealSelectedCount" id="dl_selectedCount"></span></label>
-       <div class="dealProductPicker" id="dealProductPicker"></div>
-       <span style="font-size:11px;color:var(--muted)">The product(s) shoppers can buy from this card — sizes, stock, and add-to-cart behave exactly like the product grid. Check one for a single-item deal, or several to let shoppers choose among them.</span>
-      </div>
       <div class="field full">
        <label>Headline</label>
        <input id="dl_title" placeholder="e.g. Exclusive Deal of the Week" maxlength="80">
@@ -377,9 +369,14 @@ tr:last-child td{border-bottom:0}
       </div>
      </div>
      <div class="formFoot">
-      <button class="btn danger" id="dl_deleteBtn" onclick="deleteDeal()">Delete deal</button>
+      <button class="btn danger" id="dl_deleteBtn" onclick="deleteDeal()">Delete deal banner</button>
       <button class="btn" id="dl_saveBtn" onclick="saveDeal()">Save deal</button>
      </div>
+
+     <div class="panelHead" style="margin-top:28px"><h2>Deal products <span class="dealSelectedCount" id="dl_productCount"></span></h2></div>
+     <div class="note">Products you add here show <b>only</b> on the Exclusive Deal page — sizes, stock, and add-to-cart all work exactly like a normal product. They're never mixed into the main store, and never appear in "Suggested for you".</div>
+     <div class="dealProductsList" id="dealProductsList"></div>
+     <button type="button" class="btn light sm" style="width:fit-content" onclick="openDealProductForm(null)">+ Add deal product</button>
     </div>
 
     <div class="panel" id="panel-delivery" style="display:none">
@@ -406,7 +403,7 @@ tr:last-child td{border-bottom:0}
  </div>
 </div>
 
-<!-- Add / edit modal -->
+<!-- Add / edit modal (shared by catalog products AND deal-only products — see formMode) -->
 <div class="modalBg" id="formModal" onclick="if(event.target===this)closeForm()">
  <div class="modalBox">
   <h3 id="formTitle">Add product</h3>
@@ -415,7 +412,7 @@ tr:last-child td{border-bottom:0}
     <label>Product name</label>
     <input id="f_name" placeholder="e.g. Cloud Slide" oninput="onNameOrCatChange()">
    </div>
-   <div class="field">
+   <div class="field" id="f_categoryField">
     <label>Category</label>
     <input id="f_category" list="catList" placeholder="e.g. Slides" oninput="onNameOrCatChange()">
     <datalist id="catList"></datalist>
@@ -468,12 +465,12 @@ tr:last-child td{border-bottom:0}
     </div>
     <span style="font-size:11px;color:var(--muted)">Auto-suggested from the photo or the color name — check it matches before saving, especially if the photo has a background or banner behind the product. Used for the storefront's "search by image" feature, and as this product's first/default color swatch.</span>
    </div>
-   <div class="field">
+   <div class="field" id="f_ratingField">
     <label>Rating (optional, 0–5)</label>
     <input id="f_rating" type="number" min="0" max="5" step="0.1" placeholder="e.g. 4.5" oninput="clampRating()">
     <span style="font-size:11px;color:var(--muted)">Shown as stars on the storefront product card and detail page. Leave blank to hide the rating.</span>
    </div>
-   <div class="field">
+   <div class="field" id="f_newField">
     <div class="checkRow"><input type="checkbox" id="f_new"><label for="f_new">Mark as "New arrival"</label></div>
    </div>
    <div class="field full">
@@ -533,13 +530,13 @@ const DEFAULT_LOW_STOCK = 2; // used for the badge shown in the product list
 let products = [];
 let orders = [];
 let chatSessions = [];
+let dealProducts = []; // deal-only products — separate sheet/list, never mixed with `products`
 let editingId = null;
 let activeChatSessionId = null;
 let formVariants = [];
 let f_colorTouched = false;
 let currentStock = {}; // {colorLabel: {size: qty}} for the product currently open in the modal
-let dealSelectedIds = []; // ids (as strings) of products currently linked to the Deal of the week
-let dealPickerAddPending = false; // true while the product form was opened from the Deal picker's "+ Add product" button
+let formMode = "catalog"; // "catalog" (main Products sheet) | "deal" (DealProducts sheet — see openDealProductForm)
 
 const TAB_META = {
  products:{title:"Products", sub:"Add, edit, and manage your product catalog."},
@@ -602,24 +599,28 @@ async function loadAll(){
  if(refreshBtn) refreshBtn.disabled = true;
  document.querySelector("#sourceNote").textContent = "Loading products and orders from your Google Sheet…";
  try{
-  const [pRes, oRes, cRes, sRes] = await Promise.all([
+  const [pRes, oRes, cRes, sRes, dRes] = await Promise.all([
    fetch(`${SCRIPT_URL}?action=products`),
    fetch(`${SCRIPT_URL}?action=orders&key=${encodeURIComponent(ADMIN_KEY)}`),
    fetch(`${SCRIPT_URL}?action=chatSessions&key=${encodeURIComponent(ADMIN_KEY)}`),
-   fetch(`${SCRIPT_URL}?action=settings`)
+   fetch(`${SCRIPT_URL}?action=settings`),
+   fetch(`${SCRIPT_URL}?action=dealProducts`)
   ]);
   const pData = await pRes.json();
   const oData = await oRes.json();
   const cData = await cRes.json();
   const sData = await sRes.json();
+  const dData = await dRes.json();
   if(pData.error || oData.error || cData.error) throw new Error(pData.error || oData.error || cData.error);
   products = pData.products || [];
   orders = (oData.orders || []).reverse();
   chatSessions = cData.sessions || [];
+  dealProducts = dData.dealProducts || [];
   document.querySelector("#sourceNote").innerHTML = `Connected to your Google Sheet — <b>${products.length}</b> products, <b>${orders.length}</b> orders. Changes here save straight to the Sheet.`;
   render();
   renderOrders();
   renderChatSessions();
+  renderDealProductsList();
   loadBannerIntoForm(sData.settings || {});
   loadMidBannerIntoForm(sData.settings || {});
   loadDealIntoForm(sData.settings || {});
@@ -707,67 +708,36 @@ function render(){
 
  const cats = [...new Set(products.map(p=>p.category))];
  document.querySelector("#catList").innerHTML = cats.map(c=>`<option value="${escapeHtml(c)}">`).join("");
- populateDealProductSelect();
 }
 
-/* ================== Deal-of-the-week product picker ==================
-   Renders a checkbox list from the live products list so the Deal
-   card can be tied to one or MORE real catalog products (their sizes,
-   stock, and add-to-cart flow) instead of standing on its own or
-   being limited to a single item. Selections are tracked in
-   `dealSelectedIds` (an array of string ids) so they survive a
-   products refresh (loadAll -> render -> populateDealProductSelect).
+/* ================== Deal products (self-contained) ==================
+   Rendered from `dealProducts` — a separate list backed by its own
+   sheet (DealProducts) on the server, entirely independent of the
+   main `products` catalog. Nothing here is ever mixed into the
+   Products list or the storefront's main grid/suggestions.
 ======================================================================= */
-function populateDealProductSelect(){
- const wrap = document.querySelector("#dealProductPicker");
+function renderDealProductsList(){
+ const wrap = document.querySelector("#dealProductsList");
+ const countEl = document.querySelector("#dl_productCount");
+ if(countEl) countEl.textContent = dealProducts.length ? `— ${dealProducts.length}` : "";
  if(!wrap) return;
- // If checkboxes already exist, capture whatever is currently checked
- // first, so an in-progress selection isn't lost on a refresh.
- const existingChecked = wrap.querySelectorAll("input[type=checkbox]").length
-  ? Array.from(wrap.querySelectorAll("input[type=checkbox]:checked")).map(i=>i.value)
-  : null;
- if(existingChecked) dealSelectedIds = existingChecked;
-
- const addRow = `<div class="dealPickerAddRow"><button type="button" class="btn light sm" style="width:fit-content" onclick="openProductFormForDeal()">+ Add product</button></div>`;
-
- if(!products.length){
-  wrap.innerHTML = addRow + `<div class="pickerEmpty">No products yet — add one above.</div>`;
-  updateDealSelectedCount();
+ if(!dealProducts.length){
+  wrap.innerHTML = `<div class="dealProductsEmpty">No deal products yet — click "+ Add deal product" below.</div>`;
   return;
  }
- const selectedSet = new Set(dealSelectedIds.map(String));
- wrap.innerHTML = addRow + products.map(p=>`
-  <div class="dealPickerRow">
-   <label>
-    <input type="checkbox" value="${p.id}" ${selectedSet.has(String(p.id))?"checked":""} onchange="updateDealSelectedCount()">
-    ${escapeHtml(p.name)} <span style="color:var(--muted)">(${escapeHtml(p.sku||'')})</span>
-   </label>
-   <div class="dealPickerActions">
-    <button type="button" class="iconBtn" title="Edit" onclick="openForm(${p.id})">✎</button>
-    <button type="button" class="iconBtn" title="Delete" onclick="deleteProduct(${p.id})">🗑</button>
+ wrap.innerHTML = dealProducts.map(p=>`
+  <div class="dealProductRow">
+   <img class="thumb" src="${escapeHtml(p.image||'')}" alt="">
+   <div class="info">
+    <b>${escapeHtml(p.name)}</b>
+    <span>${escapeHtml(p.sku||'')} · ${money(p.price)}${p.old?` <span class="oldp">${money(p.old)}</span>`:""}</span>
+   </div>
+   <div class="rowActions">
+    <button class="iconBtn" title="Edit" onclick="openDealProductForm(${p.id})">✎</button>
+    <button class="iconBtn" title="Delete" onclick="deleteDealProduct(${p.id})">🗑</button>
    </div>
   </div>
  `).join("");
- updateDealSelectedCount();
-}
-// Opens the shared product form from the Deal picker. Marks
-// dealPickerAddPending so saveProduct() knows to auto-link the newly
-// created product to the deal once it's saved (openForm() itself always
-// resets this flag first, so it never leaks into a normal "Add product"
-// click from the Products tab or into an edit).
-function openProductFormForDeal(){
- openForm(null);
- dealPickerAddPending = true;
-}
-function getSelectedDealProductIds(){
- const wrap = document.querySelector("#dealProductPicker");
- if(!wrap) return [];
- return Array.from(wrap.querySelectorAll("input[type=checkbox]:checked")).map(i=>i.value);
-}
-function updateDealSelectedCount(){
- const n = getSelectedDealProductIds().length;
- const el = document.querySelector("#dl_selectedCount");
- if(el) el.textContent = n ? `— ${n} selected` : "";
 }
 
 function renderOrders(){
@@ -852,11 +822,12 @@ function nextId(){
 }
 
 /* ================== SKU generation ==================
-   "SS-" prefix + 6-digit zero-padded number (e.g. SS-000001,
-   SS-000002, ... SS-000354). Always one higher than the
-   highest existing SKU number, so it keeps counting up
-   correctly even after deletions, regardless of how many
-   products currently exist.
+   Catalog products: "SS-" prefix + 6-digit zero-padded number.
+   Deal-only products: "DL-" prefix, numbered from their own separate
+   list, so the two never collide or interfere with each other.
+   Always one higher than the highest existing SKU number of the
+   relevant kind, so it keeps counting up correctly even after
+   deletions, regardless of how many products currently exist.
 ======================================================= */
 function generateSku(category, excludeId){
  const used = products.filter(p=>p.id!==excludeId && p.sku);
@@ -868,7 +839,21 @@ function generateSku(category, excludeId){
  });
  return "SS-" + String(max+1).padStart(6,"0");
 }
+function generateDealSku(excludeId){
+ const used = dealProducts.filter(p=>p.id!==excludeId && p.sku);
+ let max = 0;
+ used.forEach(p=>{
+  const digits = String(p.sku).replace(/\D/g,"");
+  const n = parseInt(digits, 10);
+  if(!isNaN(n) && n>max) max = n;
+ });
+ return "DL-" + String(max+1).padStart(6,"0");
+}
 function onNameOrCatChange(){
+ if(formMode==="deal"){
+  document.querySelector("#f_sku").value = generateDealSku(editingId);
+  return;
+ }
  const cat = document.querySelector("#f_category").value.trim() || "GEN";
  document.querySelector("#f_sku").value = generateSku(cat, editingId);
 }
@@ -1254,20 +1239,17 @@ async function deleteMidBanner(){
  }
 }
 
-/* ================== Deal of the week ==================
+/* ================== Deal of the week (promo banner copy) ==================
    Same upload/preview pattern as the two banners above, stored under
-   its own setting keys (dealTitle/dealSubtitle/dealProductId/
-   dealImage/dealBadgeText/dealPrice) so it never collides with them.
-   index.html shows this as its own section, above "New arrivals",
-   and keeps it hidden until dealImage is set. dealProductId now holds
-   a comma-separated list of product ids (one or more) so the storefront
-   can offer several linked products instead of only one, while still
-   reusing the normal size-select / add-to-cart flow per product.
+   its own setting keys (dealTitle/dealSubtitle/dealImage/dealBadgeText/
+   dealPrice/dealEndsAt) so it never collides with them. index.html
+   shows this as its own promo band, above "New arrivals".
+   The ACTUAL deal products are a separate self-contained list — see
+   "Deal products" below (dealProducts / renderDealProductsList /
+   openDealProductForm) — this section is only the headline/photo/
+   countdown copy shown on that promo band and the Exclusive Deal page.
 =================================================== */
 function loadDealIntoForm(settings){
- const raw = settings.dealProductId !== undefined && settings.dealProductId !== null ? String(settings.dealProductId) : "";
- dealSelectedIds = raw.split(",").map(s=>s.trim()).filter(Boolean);
- populateDealProductSelect();
  document.querySelector("#dl_title").value = settings.dealTitle || "";
  document.querySelector("#dl_subtitle").value = settings.dealSubtitle || "";
  document.querySelector("#dl_image").value = settings.dealImage || "";
@@ -1324,11 +1306,9 @@ async function saveDeal(){
   toast("Upload or paste a featured photo first");
   return;
  }
- const selectedIds = getSelectedDealProductIds();
  const settings = {
   dealTitle: document.querySelector("#dl_title").value.trim(),
   dealSubtitle: document.querySelector("#dl_subtitle").value.trim(),
-  dealProductId: selectedIds.join(","),
   dealImage,
   dealBadgeText: document.querySelector("#dl_badgeText").value.trim(),
   dealPrice: document.querySelector("#dl_price").value.trim(),
@@ -1340,7 +1320,6 @@ async function saveDeal(){
   const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"updateSettings",key:ADMIN_KEY,settings})});
   const data = await res.json();
   if(!data.success) throw new Error(data.error||"failed");
-  dealSelectedIds = selectedIds;
   toast("Deal saved — it's live on your storefront");
  }catch(err){
   toast("Couldn't save — check your connection and try again.");
@@ -1349,21 +1328,97 @@ async function saveDeal(){
  }
 }
 async function deleteDeal(){
- if(!confirm("Remove the Deal of the week section from your storefront? This can't be undone.")) return;
+ if(!confirm("Remove the Deal of the week promo banner from your storefront? Your deal products are kept — this only removes the headline/photo/countdown. This can't be undone.")) return;
  const btn = document.querySelector("#dl_deleteBtn");
  btn.disabled = true; btn.textContent = "Deleting…";
  try{
   const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"updateSettings",key:ADMIN_KEY,settings:{
-   dealTitle:"",dealSubtitle:"",dealProductId:"",dealImage:"",dealBadgeText:"",dealPrice:"",dealEndsAt:""
+   dealTitle:"",dealSubtitle:"",dealImage:"",dealBadgeText:"",dealPrice:"",dealEndsAt:""
   }})});
   const data = await res.json();
   if(!data.success) throw new Error(data.error||"failed");
   loadDealIntoForm({});
-  toast("Deal removed from your storefront");
+  toast("Deal banner removed from your storefront");
  }catch(err){
   toast("Couldn't delete — check your connection and try again.");
  }finally{
-  btn.disabled = false; btn.textContent = "Delete deal";
+  btn.disabled = false; btn.textContent = "Delete deal banner";
+ }
+}
+
+/* ================== Deal products (self-contained CRUD) ==================
+   Uses the SAME shared form modal as catalog products (#formModal),
+   in "deal" mode (formMode="deal") — see openForm()/openDealProductForm()
+   below for how the two modes differ (category/rating/new fields are
+   hidden, SKU uses the DL- prefix, and Save routes to
+   addDealProduct/updateDealProduct/deleteDealProduct instead of the
+   catalog Product endpoints).
+=================================================== */
+function openDealProductForm(id){
+ formMode = "deal";
+ editingId = id;
+ document.querySelector("#formTitle").textContent = id ? "Edit deal product" : "Add deal product";
+ document.querySelector("#f_categoryField").style.display = "none";
+ document.querySelector("#f_ratingField").style.display = "none";
+ document.querySelector("#f_newField").style.display = "none";
+ document.querySelector("#uploadStatus").textContent = "";
+ document.querySelector("#uploadStatus").classList.remove("err");
+ document.querySelector("#f_image").style.display = "none";
+ document.querySelector("#urlToggle").textContent = "or paste an image URL instead";
+ f_colorTouched = false;
+ document.querySelector("#f_lowThreshold").value = DEFAULT_LOW_STOCK;
+ if(id){
+  const p = dealProducts.find(x=>x.id===id);
+  if(!p){ toast("Couldn't find that deal product"); return; }
+  document.querySelector("#f_name").value = p.name;
+  document.querySelector("#f_category").value = "";
+  document.querySelector("#f_sku").value = p.sku || generateDealSku(id);
+  document.querySelector("#f_price").value = p.price;
+  document.querySelector("#f_old").value = p.old || "";
+  document.querySelector("#f_description").value = p.description || "";
+  document.querySelector("#f_sizes").value = p.sizes || "";
+  document.querySelector("#f_image").value = p.image;
+  document.querySelector("#f_colorName").value = p.colorName || "";
+  document.querySelector("#f_color").value = p.color || "#cccccc";
+  document.querySelector("#f_colorHex").value = p.color || "#cccccc";
+  document.querySelector("#f_rating").value = "";
+  document.querySelector("#f_new").checked = false;
+  f_colorTouched = !!(p.color && p.color !== "#cccccc");
+  formVariants = Array.isArray(p.variants) ? p.variants.map(v=>({colorName:v.colorName||"",color:v.color||"#cccccc",image:v.image||"",colorTouched:!!(v.color && v.color!=="#cccccc")})) : [];
+  currentStock = p.stock ? JSON.parse(JSON.stringify(p.stock)) : {};
+ }else{
+  document.querySelector("#f_name").value = "";
+  document.querySelector("#f_category").value = "";
+  document.querySelector("#f_sku").value = generateDealSku(null);
+  document.querySelector("#f_price").value = "";
+  document.querySelector("#f_old").value = "";
+  document.querySelector("#f_description").value = "";
+  document.querySelector("#f_sizes").value = "";
+  document.querySelector("#f_image").value = "";
+  document.querySelector("#f_colorName").value = "";
+  document.querySelector("#f_color").value = "#cccccc";
+  document.querySelector("#f_colorHex").value = "#cccccc";
+  document.querySelector("#f_rating").value = "";
+  document.querySelector("#f_new").checked = false;
+  formVariants = [];
+  currentStock = {};
+ }
+ renderVariantRows();
+ updateImgPreview();
+ renderStockGrid();
+ document.querySelector("#formModal").classList.add("open");
+}
+async function deleteDealProduct(id){
+ if(!confirm("Delete this deal product? This can't be undone.")) return;
+ try{
+  const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"deleteDealProduct",key:ADMIN_KEY,id})});
+  const data = await res.json();
+  if(!data.success) throw new Error(data.error||"failed");
+  dealProducts = dealProducts.filter(p=>p.id!==id);
+  renderDealProductsList();
+  toast("Deal product deleted");
+ }catch(err){
+  toast("Couldn't delete — check your connection and try again.");
  }
 }
 
@@ -1413,9 +1468,12 @@ async function saveDelivery(){
 }
 
 function openForm(id){
- dealPickerAddPending = false;
+ formMode = "catalog";
  editingId = id;
  document.querySelector("#formTitle").textContent = id ? "Edit product" : "Add product";
+ document.querySelector("#f_categoryField").style.display = "";
+ document.querySelector("#f_ratingField").style.display = "";
+ document.querySelector("#f_newField").style.display = "";
  document.querySelector("#uploadStatus").textContent = "";
  document.querySelector("#uploadStatus").classList.remove("err");
  document.querySelector("#f_image").style.display = "none";
@@ -1481,6 +1539,38 @@ async function saveProduct(){
  const variants = formVariants.filter(v=>v.image).map(v=>({colorName:v.colorName, color:v.color, image:v.image}));
  const stock = collectStock();
 
+ if(formMode==="deal"){
+  if(!name || !price || !image){
+   toast("Please fill in name, price and a photo");
+   return;
+  }
+  const btn = document.querySelector("#saveBtn");
+  btn.disabled = true; btn.textContent = "Saving…";
+  try{
+   if(editingId){
+    const product = {id:editingId,name,price,old,image,colorName,color,sku,description,sizes,variants,stock};
+    const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"updateDealProduct",key:ADMIN_KEY,product})});
+    const data = await res.json();
+    if(!data.success) throw new Error(data.error||"failed");
+    Object.assign(dealProducts.find(p=>p.id===editingId), product);
+   }else{
+    const product = {name,price,old,image,colorName,color,sku,description,sizes,variants,stock};
+    const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"addDealProduct",key:ADMIN_KEY,product})});
+    const data = await res.json();
+    if(!data.success) throw new Error(data.error||"failed");
+    dealProducts.push({...product,id:data.id});
+   }
+   closeForm();
+   renderDealProductsList();
+   toast(editingId ? "Deal product updated" : "Deal product added");
+  }catch(err){
+   toast("Couldn't save — check your connection and try again.");
+  }finally{
+   btn.disabled = false; btn.textContent = "Save product";
+  }
+  return;
+ }
+
  if(!name || !category || !price || !image){
   toast("Please fill in name, category, price and a photo");
   return;
@@ -1500,11 +1590,7 @@ async function saveProduct(){
    const data = await res.json();
    if(!data.success) throw new Error(data.error||"failed");
    products.push({...product,id:data.id});
-   if(dealPickerAddPending){
-    dealSelectedIds = [...dealSelectedIds, String(data.id)];
-   }
   }
-  dealPickerAddPending = false;
   closeForm();
   render();
   toast(editingId ? "Product updated" : "Product added");
