@@ -3,1795 +3,1489 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ShopSlipper — Step into comfort</title>
-<meta name="description" content="Shop comfortable everyday slippers with fast delivery across Nepal.">
-<meta property="og:title" content="ShopSlipper — Step into comfort">
-<meta property="og:description" content="Shop comfortable everyday slippers with fast delivery across Nepal.">
-<meta property="og:type" content="website">
-<meta property="og:image" content="https://raw.githubusercontent.com/ShopSlipper/ShopSlipper/main/shop_slipper_transparent.png">
-<meta name="theme-color" content="#077F38">
-<link rel="icon" href="https://raw.githubusercontent.com/ShopSlipper/ShopSlipper/main/shop_slipper_transparent.png">
+<title>ShopSlipper — Admin</title>
+<meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#eef6f2;--card:#fffefe;--text:#182220;--muted:#6f8582;
+  --bg:#eef1f6;--card:#fffefe;--text:#182220;--muted:#6f8582;
   --line:#8fd3a6;--accent:var(--gold);--soft:#e6f2ee;--danger:#b5493e;
-  --gold:#077F38;--sage:#0a9c47;--sky:#8fb8d8;--amber:#c17a1f;
-  --radius:20px;--shadow:0 16px 40px rgba(7,60,35,.10);--shadow-lg:0 24px 60px rgba(7,60,35,.16);
-  --ease:cubic-bezier(.2,.8,.2,1);
-  --serif:'Inter',system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --gold:#077F38;--sage:#077F38;--radius:18px;--shadow:0 20px 50px rgba(20,40,38,.08);
+  --serif:'Fraunces',Georgia,serif;
+  --side-bg:#0b2e1f;--side-text:#c9dcd2;--side-muted:#7fa090;--side-active:#077F38;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth;overflow-x:clip}
-body{font-family:'Inter',system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:linear-gradient(160deg,#eef7f1 0%,#eaf2f2 45%,#e9f0f6 100%) fixed;color:var(--text);line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:clip}
-button,input,select{font:inherit}
+body{font-family:'Inter',system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh}
+button,input,select,textarea{font:inherit}
 button{cursor:pointer;border:0}
 a{color:inherit;text-decoration:none}
-.container{width:min(1180px,calc(100% - 32px));margin:auto}
-header{position:sticky;top:0;z-index:30;background:rgba(7,127,56,.96);backdrop-filter:blur(18px);border-bottom:1px solid #056b2f;box-shadow:0 1px 0 rgba(255,255,255,.06) inset;transition:box-shadow .25s}
-header.scrolled{box-shadow:0 10px 30px rgba(6,50,28,.22)}
-.nav{height:82px;display:flex;align-items:center;justify-content:space-between;gap:20px}
-.logo{display:flex;align-items:center;gap:11px;font-weight:700;font-size:20px;letter-spacing:-.4px;font-family:var(--serif);color:#fff}
-.logoMark{width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.55)}
-.logoText{white-space:nowrap}
-.logoAccent{font-weight:400;color:#c8f0d6}
-.navlinks{display:flex;gap:32px;font-size:13.5px;font-weight:500;letter-spacing:.2px;color:#fff}
-.navlinks a{position:relative;padding-bottom:3px}
-.navlinks a::after{content:"";position:absolute;left:0;bottom:0;width:0;height:1px;background:#fff;transition:.25s width}
-.navlinks a:hover::after{width:100%}
-.actions{display:flex;align-items:center;gap:10px}
-.iconbtn{width:42px;height:42px;border:1px solid var(--gold);background:#fff;color:var(--gold);border-radius:50%;display:grid;place-items:center;font-size:16px;position:relative;transition:.2s border-color,.2s background,.2s color}
-.iconbtn:hover{border-color:var(--text);background:var(--gold);color:#fff}
-.badge{position:absolute;right:-2px;top:-2px;background:var(--gold);color:#fff;width:17px;height:17px;border-radius:50%;font-size:10px;display:grid;place-items:center}
-.introBand{padding:24px 0 8px}
-.hero{text-align:center;max-width:640px;margin:6px auto 24px}
-.hero h1{font-family:var(--serif);font-weight:800;font-size:clamp(28px,4.2vw,46px);letter-spacing:-1.2px;margin-bottom:12px}
-.hero p{color:var(--muted);font-size:15px;max-width:480px;margin:0 auto}
-.bannerLink{display:block;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow);position:relative}
-.bannerLink img{width:100%;height:auto;aspect-ratio:16/5;object-fit:cover;display:block;background:var(--soft)}
-.midBanner{grid-column:1/-1;display:block;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow);position:relative}
-.midBanner img{width:100%;height:auto;aspect-ratio:21/6;object-fit:cover;display:block;background:var(--soft)}
-.midBannerText{position:absolute;left:18px;bottom:16px;background:rgba(20,26,22,.6);color:#fff;padding:8px 16px;border-radius:10px;font-size:14px;font-weight:700;letter-spacing:.2px}
-.eyebrow{display:inline-flex;align-items:center;gap:7px;letter-spacing:.2px;font-size:12.5px;font-weight:600;color:var(--gold);margin-bottom:14px}
-.eyebrow::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--gold)}
-.rail{display:flex;gap:16px;overflow:auto;padding-bottom:10px;scroll-snap-type:x proximity}
-.rail .product{flex:0 0 220px;scroll-snap-align:start}
-@media(max-width:650px){.rail .product{flex-basis:158px}}
-.skeleton{background:linear-gradient(100deg,var(--soft) 30%,#f6faf8 50%,var(--soft) 70%);background-size:200% 100%;animation:shimmer 1.4s infinite}
-@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
-.skelCard{border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
-.skelCard .productImg{background:none}
-.skelLine{height:11px;border-radius:6px;margin:10px 14px}
-.skelLine.w60{width:60%}.skelLine.w40{width:40%}.skelLine.w80{width:80%;height:16px}
-.deliveryProgress{background:var(--soft);border-radius:14px;padding:12px 14px;margin-bottom:16px;font-size:12px}
-.deliveryProgress b{color:var(--gold)}
-.progressTrack{height:6px;background:#fff;border-radius:99px;margin-top:8px;overflow:hidden}
-.progressFill{height:100%;background:var(--gold);border-radius:99px;transition:width .3s}
-.ratingRow{display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--muted);margin-bottom:6px}
-.ratingRow .stars{color:#e0a825;letter-spacing:1px;font-size:12px}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 24px;border-radius:999px;background:var(--gold);color:#fff;font-weight:600;font-size:13.5px;letter-spacing:.2px;transition:transform .2s var(--ease),box-shadow .2s var(--ease),background .2s}
-.btn:hover{transform:translateY(-2px);box-shadow:0 10px 22px rgba(7,127,56,.28)}
-.btn:active{transform:translateY(0) scale(.98)}
-.btn.light{background:#fff;color:var(--gold);border:1px solid var(--line)}
-.btn.light:hover{box-shadow:0 8px 18px rgba(7,60,35,.1)}
-.btn:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
-.btn:disabled:hover{transform:none;opacity:.45;box-shadow:none}
-.section{padding:35px 0 75px}
-.sectionHead{display:flex;justify-content:space-between;align-items:end;margin-bottom:26px}
-.sectionHead h2{font-family:var(--serif);font-weight:600;font-size:32px;letter-spacing:-1px}
-.sectionHead p{color:var(--muted);font-size:14px}
-.categories{display:flex;gap:10px;overflow:auto;padding-bottom:8px;margin-bottom:25px}
-.chip{white-space:nowrap;border:1px solid var(--line);background:#fff;border-radius:999px;padding:10px 18px;font-size:12.5px;font-weight:500;transition:.2s}
-.chip.active,.chip:hover{background:var(--gold);color:#fff;border-color:var(--gold)}
-.chip.active{box-shadow:0 4px 12px rgba(7,127,56,.25)}
-.toolbar{display:flex;flex-direction:column;gap:12px;margin-bottom:28px}
-.toolbarRow{display:flex;gap:12px;flex-wrap:wrap}
-.search{position:relative;flex:1;min-width:220px}
-.search input{width:100%;border:1px solid var(--line);background:#fff;border-radius:14px;padding:13px 52px 13px 15px;outline:none;font-size:14px}
-.search input:focus{border-color:var(--text)}
-.imgSearchIcon{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:38px;height:38px;border-radius:50%;background:transparent;font-size:17px;display:grid;place-items:center;transition:.2s background}
-.imgSearchIcon:hover{background:var(--soft)}
-.filterWrap{position:relative;flex-shrink:0}
-.filterBtn{white-space:nowrap;border:1px solid var(--line);background:#fff;border-radius:14px;padding:0 18px;height:48px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;color:var(--text)}
-.filterBtn:hover{border-color:var(--text)}
-.filterBtn .arrows{font-size:14px;opacity:.6}
-.filterPanel{position:absolute;top:56px;right:0;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:10px;width:210px;z-index:25;display:none}
-.filterPanel.open{display:block}
-.filterPanelLabel{font-size:10.5px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-weight:700;padding:8px 10px 4px}
-.filterOption{display:flex;align-items:center;gap:9px;padding:10px;border-radius:10px;font-size:13px;cursor:pointer}
-.filterOption:hover{background:var(--soft)}
-.filterOption.active{background:var(--soft);font-weight:700;color:var(--gold)}
-.filterOption .dot{width:7px;height:7px;border-radius:50%;background:var(--line);flex-shrink:0}
-.filterOption.active .dot{background:var(--gold)}
-select{width:100%;height:48px;border:1px solid var(--line);background:#fff;border-radius:14px;padding:0 14px;outline:none;font-size:13.5px}
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
-.product{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;position:relative;transition:transform .3s var(--ease),box-shadow .3s var(--ease),border-color .3s;cursor:pointer}
-a.product{display:block;text-decoration:none;color:inherit}
-.product:hover{transform:translateY(-5px);box-shadow:var(--shadow-lg);border-color:transparent}
-.productImg{aspect-ratio:1/1;background:#efece3;position:relative}
-.productImg img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s ease}
-.product:hover .productImg img{transform:scale(1.05)}
-.sale{position:absolute;left:12px;top:12px;background:var(--gold);color:#fff;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:700;letter-spacing:.4px;z-index:2}
-.bestBadge{position:absolute;right:12px;top:12px;background:var(--amber);color:#fff;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:700;letter-spacing:.4px;z-index:2}
-.outBadge{position:absolute;left:12px;top:12px;background:var(--danger);color:#fff;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:700;letter-spacing:.4px;z-index:2}
-.product.outOfStock .productImg img{filter:grayscale(.6);opacity:.55}
-.cardSku{display:inline-block;font-family:monospace;font-size:10px;color:var(--muted);background:var(--soft);padding:2px 6px;border-radius:6px;margin-bottom:6px}
-.priceRow{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
-.cardMeta{display:flex;align-items:center;gap:8px;margin-top:8px;min-width:0}
-.cardColorDot{width:14px;height:14px;border-radius:50%;border:1px solid var(--line);flex-shrink:0}
-.cardDesc{font-size:11.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;min-width:0}
-.cardAddBtn{margin-top:10px;padding:11px;font-size:12.5px}
-.productInfo{padding:17px}
-.productInfo h3{font-family:var(--serif);font-weight:600;font-size:16px;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
-.productInfo p{font-size:11.5px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.7px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.price{font-weight:700}
-.old{text-decoration:line-through;color:#a9a49a;font-weight:500;font-size:12px;margin-left:7px}
-.discPct{font-size:10.5px;font-weight:700;color:var(--danger);background:rgba(181,73,62,.1);padding:2px 6px;border-radius:6px;margin-left:2px}
-.add{width:100%;margin-top:14px;padding:12px;border-radius:12px;background:var(--gold);color:#fff;font-weight:600;font-size:13px;letter-spacing:.2px;transition:background .2s,transform .15s}
-.add:hover{background:var(--sage)}
-.add:active{transform:scale(.97)}
-.add:disabled{background:#c7c2b8;cursor:not-allowed}
-.add:disabled:hover{background:#c7c2b8}
-.add:disabled:active{transform:none}
-.features{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:34px}
-.returnPolicy{max-width:620px;margin:56px auto 0;text-align:center}
-.returnPolicy .eyebrow{justify-content:center;display:flex}
-.returnPolicy h2{font-family:var(--serif);font-weight:600;font-size:30px;letter-spacing:-.8px;margin-bottom:14px}
-.returnPolicy>p{color:var(--muted);font-size:14.5px;max-width:520px;margin:0 auto 30px}
-.returnSteps{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:30px;text-align:left}
-.returnSteps div{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px}
-.returnSteps b{display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:var(--gold);color:#fff;font-size:12px;margin-bottom:10px}
-.returnSteps span{display:block;font-size:12.5px;color:var(--muted);line-height:1.5}
-.dealSection{padding:20px 0 70px}
-.dealWrap{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center}
-.dealTitle{font-family:var(--serif);font-weight:800;font-size:clamp(26px,3.8vw,42px);line-height:1.15;margin-bottom:14px;color:var(--gold)}
-.dealSubtitle{color:var(--muted);font-size:15.5px;margin-bottom:22px;max-width:440px}
-.dealBtn{display:inline-flex;align-items:center;justify-content:center;padding:15px 30px;border-radius:12px;background:var(--text);color:#fff;font-weight:700;font-size:14px;transition:.2s opacity}
-.dealBtn:hover{opacity:.85}
-.dealCard{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow-lg);padding:32px;position:relative;max-width:480px;width:100%}
-.dealBadge{position:absolute;left:24px;top:24px;background:var(--danger);color:#fff;padding:7px 18px;border-radius:999px;font-size:13px;font-weight:700;z-index:2}
-.dealImgWrap{aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;background:var(--soft);border-radius:16px;overflow:hidden;margin-bottom:18px}
-.dealImgWrap img{width:100%;height:100%;object-fit:contain}
-.dealOnlyAt{font-size:12.5px;color:var(--muted);margin-bottom:6px}
-.dealPriceOut{font-weight:800;font-size:24px}
-.dealSelectBtn{margin-top:18px;width:100%;padding:16px 24px;font-size:15px}
-@media(max-width:900px){.dealWrap{grid-template-columns:1fr;text-align:center}.dealCard{max-width:100%;margin:0 auto}.dealSubtitle{margin-left:auto;margin-right:auto}}
-@media(max-width:700px){.returnSteps{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:390px){.returnSteps{grid-template-columns:1fr}}
-.feature{background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px}
-.feature b{display:block;margin-bottom:5px;font-size:14px;font-family:var(--serif);font-weight:600}.feature span{font-size:12.5px;color:var(--muted)}
-.pagination{display:flex;justify-content:center;align-items:center;gap:8px;margin-top:36px;flex-wrap:wrap}
-.pageBtn{min-width:38px;height:38px;padding:0 12px;border-radius:10px;border:1px solid var(--line);background:#fff;font-size:13px;font-weight:600;color:var(--text);transition:.2s}
-.pageBtn:hover:not(:disabled){border-color:var(--text)}
-.pageBtn.active{background:var(--gold);color:#fff;border-color:var(--gold)}
-.pageBtn:disabled{opacity:.35;cursor:default}
-.drawer{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:50;display:none}
-.drawer.open{display:block}
-.cart{position:absolute;right:0;top:0;height:100%;width:min(430px,100%);background:#fff;padding:24px;display:flex;flex-direction:column}
-.cartHead{display:flex;justify-content:space-between;align-items:center;padding-bottom:18px;border-bottom:1px solid var(--line)}
-.close{background:var(--soft);width:36px;height:36px;border-radius:50%}
-.cartItems{flex:1;overflow:auto;padding:15px 0}
-.cartItem{display:grid;grid-template-columns:72px 1fr auto;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
-.cartItem img{width:72px;height:72px;object-fit:cover;border-radius:12px;background:#eee}
-.cartItem h4{font-size:13px;margin-bottom:4px}.cartItem small{color:var(--muted)}
-.qty{display:flex;align-items:center;gap:8px;margin-top:8px}.qty button{width:25px;height:25px;border-radius:7px;background:var(--soft)}
-.remove{color:#999;background:none;font-size:12px;margin-top:5px}
-.cartFoot{border-top:1px solid var(--line);padding-top:16px}
-.row{display:flex;justify-content:space-between;margin:8px 0;font-size:14px}.total{font-size:19px;font-weight:850;margin:13px 0}
-.empty{text-align:center;color:var(--muted);padding:60px 10px}
-.loadingMsg{text-align:center;color:var(--muted);padding:60px 10px;grid-column:1/-1}
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:60;display:none;place-items:center;padding:18px}
-.modal.open{display:grid}
-.modalBox{background:#fff;border-radius:24px;width:min(620px,100%);max-height:90vh;overflow:auto;padding:28px}
-.modalBox h2,.cartHead h2{font-family:var(--serif);font-weight:600}
-.modalHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
-.productModalBox{width:min(920px,94vw);max-width:920px;padding:0;overflow-y:auto;overflow-x:hidden}
-.productModalClose{position:absolute;right:18px;top:18px;z-index:2;background:#fff;width:38px;height:38px;border-radius:50%;box-shadow:0 4px 12px rgba(20,18,10,.15)}
-.pdWrap{display:grid;grid-template-columns:1fr 1fr}
-.pdImg{aspect-ratio:1/1;background:#efece3;position:relative}
-.pdImg img{width:100%;height:100%;object-fit:cover;display:block;cursor:zoom-in}
-.zoomBtn{position:absolute;right:14px;bottom:14px;width:42px;height:42px;border-radius:50%;background:#fff;display:grid;place-items:center;font-size:18px;box-shadow:0 4px 12px rgba(20,18,10,.15);z-index:2;cursor:zoom-in}
-.zoomBtn:hover{background:var(--soft)}
-.zoomModal{position:fixed;inset:0;background:rgba(10,18,16,.94);z-index:70;display:none;place-items:center;padding:20px}
-.zoomModal.open{display:grid}
-.zoomModal img{max-width:100%;max-height:88vh;object-fit:contain;border-radius:14px;cursor:zoom-out}
-.zoomClose{position:absolute;top:20px;right:20px;width:44px;height:44px;border-radius:50%;background:#fff;display:grid;place-items:center;font-size:19px;box-shadow:0 4px 12px rgba(20,18,10,.2)}
-.zoomHint{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);color:#fff;font-size:12.5px;opacity:.65;letter-spacing:.3px}
-@media(max-width:650px){.zoomBtn{width:38px;height:38px;font-size:16px;right:10px;bottom:10px}}
-.pdInfo{padding:32px;overflow:auto}
-.pdInfo .eyebrow{margin-bottom:8px}
-.pdInfo h2{font-family:var(--serif);font-weight:600;font-size:28px;letter-spacing:-.5px;margin-bottom:8px}
-.pdPrice{font-size:20px;font-weight:700;margin-bottom:16px}
-.pdDesc{color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:20px;white-space:pre-wrap;word-break:break-word}
-.pdBlock{margin-bottom:20px}
-.pdBlock label{display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:9px}
-.pdColor{display:flex;align-items:center;gap:10px}
-.pdColorDot{width:26px;height:26px;border-radius:50%;border:1px solid var(--line)}
-.pdColorRow{display:flex;flex-wrap:wrap;gap:10px}
-.pdSwatch{width:34px;height:34px;border-radius:50%;border:2px solid transparent;box-shadow:0 0 0 1px var(--line) inset;cursor:pointer;padding:0;position:relative;transition:.15s transform,.15s box-shadow}
-.pdSwatch:hover{transform:translateY(-1px)}
-.pdSwatch.active{border-color:var(--gold);box-shadow:0 0 0 2px #fff inset,0 0 0 3px var(--gold)}
-.pdSwatch.swatchOut{opacity:.35;cursor:not-allowed}
-.pdSwatch.swatchOut::after{content:"";position:absolute;left:-1px;top:50%;width:calc(100% + 2px);height:1px;background:var(--danger);transform:rotate(-45deg)}
-.pdColorLabel{font-size:12.5px;color:var(--muted);margin-top:9px}
-.sizeRow{display:flex;flex-wrap:wrap;gap:8px}
-.sizeBtn{min-width:44px;padding:9px 12px;border-radius:10px;border:1px solid var(--line);background:#fff;font-size:13px;font-weight:600}
-.sizeBtn.active,.sizeBtn:hover{background:var(--gold);color:#fff;border-color:var(--gold)}
-.sizeBtn.sizeOut{opacity:.4;text-decoration:line-through;cursor:not-allowed;background:#fff;color:var(--text);border-color:var(--line)}
-.sizeBtn.sizeOut:hover{background:#fff;color:var(--text);border-color:var(--line)}
-.stockMsg{font-size:12px;margin-top:-8px;margin-bottom:16px}
-.stockMsg.out{color:var(--danger);font-weight:600}
-.stockMsg.low{color:#8a5d00;font-weight:600}
-.pdQty{display:flex;align-items:center;gap:12px;margin-bottom:18px}
-.pdQty button{width:34px;height:34px;border-radius:9px;background:var(--soft);font-size:16px}
-.pdQty button:disabled{opacity:.4;cursor:not-allowed}
-.pdSuggest{padding:26px 32px 32px;border-top:1px solid var(--line);grid-column:1/-1}
-.pdSuggest .eyebrow{margin-bottom:10px}
-.pdSuggest h3{font-family:var(--serif);font-weight:600;font-size:19px;margin-bottom:16px}
-.pdSuggestGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
-@media(max-width:920px){.pdWrap{grid-template-columns:1fr}.pdSuggestGrid{grid-template-columns:repeat(2,1fr)}}
-.formGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.field{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}.field.full{grid-column:1/-1}
-.field label{font-size:12px;font-weight:700}.field input,.field textarea,.field select{border:1px solid var(--line);border-radius:11px;padding:12px;outline:none;width:100%}
-footer{background:var(--gold);color:#fff;padding:60px 0 25px;margin-top:30px}
-.footerGrid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:30px}
-footer p,footer a{color:#d6f0e1;font-size:13px}footer h4{margin-bottom:14px;font-size:12px;text-transform:uppercase;letter-spacing:1.2px;color:#fff}
-footer .logo{color:#fff}
-footer .logo span{color:#c8f0d6}
-.copy{border-top:1px solid rgba(255,255,255,.18);margin-top:40px;padding-top:20px;font-size:12px;color:#cfe8db}
-.toast{position:fixed;left:50%;bottom:25px;transform:translate(-50%,20px);background:var(--text);color:#fff;padding:12px 20px;border-radius:999px;font-size:13px;font-weight:500;opacity:0;pointer-events:none;transition:.3s var(--ease);z-index:100;box-shadow:0 14px 34px rgba(0,0,0,.22)}
+
+/* ---- Shell: sidebar + main area ---- */
+.appShell{display:flex;min-height:100vh}
+.sidebar{width:232px;flex-shrink:0;background:var(--side-bg);color:var(--side-text);display:flex;flex-direction:column;padding:22px 14px;position:sticky;top:0;height:100vh;z-index:20}
+.sidebar .brand{display:flex;align-items:center;gap:10px;padding:4px 10px 26px;font-family:var(--serif);font-weight:600;font-size:16px;color:#fff}
+.sidebar .brand .mark{width:34px;height:34px;border-radius:50%;object-fit:cover;flex-shrink:0}
+.sidebar .brand small{display:block;color:var(--side-muted);font-weight:400;font-size:10.5px;letter-spacing:.5px;text-transform:uppercase;margin-top:1px}
+.sideNav{display:flex;flex-direction:column;gap:3px;flex:1}
+.sideLink{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:11px 12px;border-radius:11px;background:transparent;color:var(--side-text);font-size:13.5px;font-weight:600;position:relative}
+.sideLink .dot{width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.45;flex-shrink:0}
+.sideLink:hover{background:rgba(255,255,255,.06)}
+.sideLink.active{background:var(--side-active);color:#fff}
+.sideLink.active .dot{opacity:1}
+.sideLink .tabDot{margin-left:auto;background:var(--danger);color:#fff;min-width:17px;height:17px;padding:0 4px;border-radius:999px;font-size:10px;font-weight:700;display:none;place-items:center}
+.sidebar .backLink{margin-top:auto;padding:12px 12px 4px;color:var(--side-muted);font-size:12.5px;font-weight:600}
+.sidebar .backLink:hover{color:#fff}
+
+.mainArea{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{padding:26px 36px 0}
+.topbar h1{font-family:var(--serif);font-weight:600;font-size:21px}
+.topbar .sub{color:var(--muted);font-size:13px;margin-top:5px}
+.topbarActions{display:flex;gap:10px;margin-top:16px}
+.mainContent{padding:22px 36px 80px;flex:1}
+
+/* ---- Password gate (centered card within main content) ---- */
+#gate{min-height:60vh;display:grid;place-items:center;padding:20px}
+.gateBox{background:var(--card);border:1px solid #e4e8ee;border-radius:20px;box-shadow:var(--shadow);padding:34px;width:min(380px,100%)}
+.gateBox label{display:block;font-weight:700;font-size:13px;margin-bottom:8px}
+.gateErr{color:var(--danger);font-size:12.5px;margin-bottom:10px;display:none}
+.gateBox input{width:100%;border:1px solid #d7dce6;border-radius:12px;padding:13px 14px;outline:none;margin-bottom:14px;font-size:14px}
+.gateBox input:focus{border-color:var(--text)}
+.gateBox .btn{width:100%}
+#appPanels{display:none}
+
+button,input,select,textarea{font:inherit}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px 18px;border-radius:999px;background:var(--gold);color:#fff;font-weight:600;font-size:13px;transition:.2s transform,.2s opacity}
+.btn:hover{transform:translateY(-1px);opacity:.9}
+.btn.light{background:#fff;color:var(--gold);border:1px solid var(--gold)}
+.btn.danger{background:var(--danger)}
+.btn.sm{padding:8px 13px;font-size:12px}
+.container{width:min(1100px,calc(100% - 32px));margin:auto}
+
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px;margin-bottom:22px}
+.panelHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+.panelHead h2{font-family:var(--serif);font-weight:600;font-size:19px}
+.note{background:var(--soft);border:1px solid var(--line);border-radius:14px;padding:13px 16px;font-size:12.5px;color:var(--muted);margin-bottom:18px}
+.note b{color:var(--text)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{text-align:left;padding:10px 8px;color:var(--muted);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--line)}
+td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+.thumb{width:44px;height:44px;border-radius:9px;object-fit:cover;background:#eee}
+.skuTag{font-family:monospace;font-size:11.5px;background:var(--soft);padding:3px 7px;border-radius:6px;color:var(--gold)}
+.rowActions{display:flex;gap:6px}
+.iconBtn{width:32px;height:32px;border-radius:9px;background:var(--soft);display:grid;place-items:center;font-size:13px}
+.iconBtn:hover{background:var(--line)}
+.oldp{text-decoration:line-through;color:#a9a49a;font-size:11.5px}
+.emptyMsg{text-align:center;color:var(--muted);padding:40px 10px;font-size:13.5px}
+.statusTag{padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700;background:var(--soft)}
+.unreadTag{padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700;background:var(--danger);color:#fff}
+.newTag{padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700;background:var(--sage);color:#fff}
+.formGrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field.full{grid-column:1/-1}
+.field label{font-size:12px;font-weight:700}
+.field input,.field select{border:1px solid var(--line);border-radius:11px;padding:12px;outline:none;width:100%}
+.field input:focus,.field select:focus{border-color:var(--text)}
+.checkRow{display:flex;align-items:center;gap:8px;padding-top:6px}
+.skuRow{display:flex;gap:8px;align-items:center}
+.skuRow input{flex:1;font-family:monospace;background:var(--soft)}
+.imgUploadRow{display:flex;gap:14px;align-items:flex-start}
+.imgPreview{width:76px;height:76px;border-radius:12px;object-fit:cover;background:var(--soft);border:1px solid var(--line);flex-shrink:0}
+.imgUploadCol{flex:1;display:flex;flex-direction:column;gap:8px}
+.uploadStatus{font-size:12px;color:var(--muted)}
+.uploadStatus.err{color:var(--danger)}
+.urlToggle{font-size:12px;color:var(--gold);text-decoration:underline;cursor:pointer;width:fit-content}
+.colorRow{display:flex;gap:8px;align-items:center}
+.colorRow input[type=color]{width:44px;height:44px;padding:2px;border-radius:11px}
+.formFoot{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
+.toast{position:fixed;left:50%;bottom:25px;transform:translate(-50%,20px);background:var(--gold);color:#fff;padding:12px 18px;border-radius:999px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:100}
 .toast.show{opacity:1;transform:translate(-50%,0)}
-.chatFab{position:fixed;right:22px;bottom:22px;width:58px;height:58px;border-radius:50%;background:var(--gold);color:#fff;font-size:23px;display:grid;place-items:center;box-shadow:0 10px 30px rgba(6,50,28,.3);z-index:80;transition:.2s transform}
-.chatFab:hover{transform:translateY(-3px)}
-.chatFabBadge{position:absolute;top:-3px;right:-3px;background:var(--danger);color:#fff;min-width:20px;height:20px;padding:0 5px;border-radius:50%;font-size:11px;font-weight:700;display:none;place-items:center;border:2px solid #fff}
-.chatWidget{position:fixed;right:22px;bottom:92px;width:min(370px,calc(100vw - 32px));max-height:min(540px,calc(100vh - 130px));background:#fff;border-radius:22px;box-shadow:0 24px 60px rgba(20,30,28,.28);display:none;flex-direction:column;overflow:hidden;z-index:80;border:1px solid var(--line)}
-.chatWidget.open{display:flex}
-.chatHead{display:flex;justify-content:space-between;align-items:center;padding:16px 18px;background:var(--gold);color:#fff;flex-shrink:0}
-.chatHead div b{font-family:var(--serif);font-size:15px;display:block;font-weight:600}
-.chatHead div small{color:#cfe3dc;opacity:.75;font-size:11px}
-.chatHead .close{background:rgba(255,255,255,.15);color:#fff}
-.chatStartForm{padding:18px}
-.chatStartForm p{font-size:12.5px;color:var(--muted);margin-bottom:14px}
-.chatThreadWrap{display:flex;flex-direction:column;flex:1;min-height:0}
-.chatMessages{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:10px;background:var(--bg)}
-.chatEmpty{color:var(--muted);font-size:12.5px;text-align:center;padding:30px 10px}
+.modalBg{position:fixed;inset:0;background:rgba(15,25,22,.4);display:none;place-items:center;z-index:60;padding:18px}
+.modalBg.open{display:grid}
+.modalBox{background:#fff;border-radius:22px;width:min(560px,100%);max-height:90vh;overflow:auto;padding:26px}
+.modalBox h3{font-family:var(--serif);font-weight:600;font-size:19px;margin-bottom:16px}
+@media(max-width:900px){.sidebar{position:fixed;left:0;bottom:0;top:auto;height:auto;width:100%;flex-direction:row;align-items:center;padding:10px 12px;overflow-x:auto}.sidebar .brand,.sidebar .backLink{display:none}.sideNav{flex-direction:row;flex:none}.sideLink{white-space:nowrap}.mainArea{padding-bottom:70px}}
+@media(max-width:700px){.formGrid{grid-template-columns:1fr}.field.full{grid-column:auto}table,thead,tbody,th,td,tr{display:block}thead{display:none}td{border:0;padding:4px 8px}tr{border-bottom:1px solid var(--line);padding:10px 0}}
+
+/* ---- Chat tab ---- */
+.chatSessionRow{cursor:pointer}
+.chatSessionRow:hover td{background:var(--soft)}
+.chatModalBox{width:min(480px,100%);padding:0;display:flex;flex-direction:column;max-height:85vh}
+.chatModalHead{padding:20px 22px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:flex-start}
+.chatModalHead h3{margin-bottom:2px}
+.chatModalHead small{color:var(--muted);font-size:12px}
+.chatThread{flex:1;overflow:auto;padding:16px 20px;display:flex;flex-direction:column;gap:10px;background:var(--bg);min-height:200px}
 .chatBubble{max-width:80%;padding:10px 13px;border-radius:16px;font-size:13.5px;line-height:1.4}
-.chatBubble.me{align-self:flex-end;background:var(--gold);color:#fff;border-bottom-right-radius:4px}
-.chatBubble.staff{align-self:flex-start;background:#fff;border:1px solid var(--line);border-bottom-left-radius:4px}
+.chatBubble.customer{align-self:flex-start;background:#fff;border:1px solid var(--line);border-bottom-left-radius:4px}
+.chatBubble.staff{align-self:flex-end;background:var(--gold);color:#fff;border-bottom-right-radius:4px}
 .chatBubble small{display:block;margin-top:4px;font-size:10px;opacity:.6}
-.chatInputRow{display:flex;gap:8px;padding:12px;border-top:1px solid var(--line);background:#fff;flex-shrink:0}
-.chatInputRow input{flex:1;border:1px solid var(--line);border-radius:999px;padding:11px 15px;outline:none;font-size:13.5px}
-.chatInputRow input:focus{border-color:var(--text)}
+.chatReplyRow{display:flex;gap:8px;padding:14px 20px;border-top:1px solid var(--line)}
+.chatReplyRow input{flex:1;border:1px solid var(--line);border-radius:999px;padding:11px 15px;outline:none;font-size:13.5px}
+.chatReplyRow input:focus{border-color:var(--text)}
 .chatSendBtn{width:42px;height:42px;border-radius:50%;background:var(--gold);color:#fff;font-size:16px;flex-shrink:0}
-@media(max-width:650px){.chatFab{right:14px;bottom:14px;width:52px;height:52px;font-size:20px}.chatWidget{right:8px;bottom:78px}}
-@media(max-width:900px){.grid{grid-template-columns:repeat(3,1fr)}.features{grid-template-columns:repeat(2,1fr)}.footerGrid{grid-template-columns:2fr 1fr 1fr}}
-.menuBtn{display:none}
-@media(max-width:650px){
- .navlinks{display:none}
- .menuBtn{display:grid}
- .nav{height:64px;gap:8px}
- .logo{font-size:19px;gap:9px}
- .logoMark{width:40px;height:40px}
- .actions{gap:6px}
- .iconbtn{width:34px;height:34px;font-size:14px}
- #searchIconBtn{display:none}
- .introBand{padding:14px 0 4px}
- .bannerLink img{aspect-ratio:16/7}
- .midBanner img{aspect-ratio:16/8}
- .section{padding:22px 0 50px}
- .sectionHead{flex-wrap:wrap;gap:6px;margin-bottom:18px}
- .sectionHead h2{font-size:24px}
- .categories{margin-bottom:16px}
- .chip{padding:9px 14px;font-size:12px}
- .grid{grid-template-columns:repeat(2,1fr);gap:12px}
- .productInfo{padding:12px}
- .productInfo h3{font-size:13.5px}
- .productInfo p{font-size:10.5px;margin-bottom:5px}
- .price{font-size:13.5px}
- .bestBadge{left:auto;right:8px;top:8px;font-size:9px;padding:4px 7px}
- .sale{left:8px;top:8px;font-size:9px;padding:4px 7px}
- .features{grid-template-columns:1fr 1fr;margin-top:24px}
- .feature{padding:16px}
- .footerGrid{grid-template-columns:1fr 1fr}
- footer p,footer a{overflow-wrap:anywhere;word-break:break-word}
- .formGrid{grid-template-columns:1fr}
- .field.full{grid-column:auto}
- .pdInfo{padding:20px}
- .pdSuggest{padding:20px}
- .filterPanel{right:0;left:auto;width:190px}
-}
-@media(max-width:390px){
- /* NOTE: grid intentionally stays 2-column even on narrow phones
-    (e.g. Samsung S24 base model, 360px CSS width) — a 1-column
-    override here previously caused the grid to collapse to a
-    single product per row on narrower flagship phones while wider
-    phones (e.g. many Vivo models) still showed 2 columns, which is
-    what caused the "only one product shows" report. */
- .logoText{font-size:14px}
- .iconbtn{width:32px;height:32px;font-size:13px}
-}
-@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
-:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
-.skipLink{position:absolute;left:12px;top:-60px;background:var(--gold);color:#fff;padding:10px 16px;border-radius:10px;z-index:200;transition:.2s top}
-.skipLink:focus{top:12px}
-.mobileNav{position:fixed;inset:0;z-index:40;display:none}
-.mobileNav.open{display:block}
-.mobileNavScrim{position:absolute;inset:0;background:rgba(8,20,16,.4)}
-.mobileNavPanel{position:absolute;top:64px;left:0;right:0;background:#fff;border-bottom:1px solid var(--line);box-shadow:var(--shadow-lg);padding:10px 0;transform:translateY(-8px);opacity:0;transition:transform .2s var(--ease),opacity .2s}
-.mobileNav.open .mobileNavPanel{transform:translateY(0);opacity:1}
-.mobileNavPanel a{display:block;padding:15px 22px;font-size:15px;font-weight:600;border-bottom:1px solid var(--soft)}
-.mobileNavPanel a:last-child{border-bottom:0}
-.mobileNavPanel a:active{background:var(--soft)}
-.dealPageHead{padding:26px 0 28px;background:linear-gradient(135deg,var(--gold),var(--sage));color:#fff}
-.dealPageHead .eyebrow{color:#e6ffee}
-.dealPageHead .eyebrow::before{background:#e6ffee}
-.dealPageHead h2{font-family:var(--serif);font-weight:800;font-size:clamp(24px,3.2vw,34px);margin-bottom:6px}
-.dealPageHead p{font-size:13.5px;color:#e6ffee;max-width:520px}
-.dealTimerRow{display:flex;align-items:center;gap:10px;margin-top:16px;flex-wrap:wrap}
-.dealTimerLabel{font-size:12px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:#e6ffee}
-.dealTimerUnits{display:flex;gap:6px}
-.dealTimerUnit{background:rgba(255,255,255,.18);border-radius:10px;padding:8px 10px;min-width:52px;text-align:center}
-.dealTimerUnit b{display:block;font-family:var(--serif);font-size:18px;line-height:1}
-.dealTimerUnit span{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.4px;opacity:.85;margin-top:2px}
-.dealPageEmpty{text-align:center;color:var(--muted);padding:50px 10px;grid-column:1/-1}
-@media(max-width:650px){.dealPageHead{padding:18px 0 20px}}
-/* ---- Deal page product cards: qty stepper right on the card, no modal needed to order ---- */
-.dealProductCard{cursor:default}
-.dealProductCard:hover{transform:none;box-shadow:var(--shadow);border-color:var(--line)}
-.dealProductCard .productImg{cursor:pointer}
-.dealProductCard h3{cursor:pointer}
-.dealSizeSelect{width:100%;margin-bottom:10px;border:1px solid var(--line);border-radius:10px;padding:9px 10px;font-size:12.5px;background:#fff;color:var(--text)}
-.dealQtyRow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
-.dealQtyRow .pdQty{margin-bottom:0}
+
+/* ---- Color variants editor ---- */
+.variantList{display:flex;flex-direction:column;gap:10px;margin-bottom:10px}
+.variantRow{display:flex;gap:10px;align-items:flex-start;background:var(--soft);border:1px solid var(--line);border-radius:14px;padding:10px}
+.variantThumb{width:52px;height:52px;border-radius:10px;object-fit:cover;background:#fff;border:1px solid var(--line);flex-shrink:0}
+.variantCol{flex:1;display:flex;flex-direction:column;gap:6px;min-width:0}
+.variantNameRow{display:flex;gap:8px;align-items:center}
+.variantNameRow input[type=text]{flex:1;border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:12.5px}
+.variantNameRow input[type=color]{width:34px;height:34px;padding:2px;border-radius:9px;flex-shrink:0}
+.variantActionsRow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.variantUploadStatus{font-size:11px;color:var(--muted)}
+.variantUploadStatus.err{color:var(--danger)}
+.variantRemove{width:30px;height:30px;border-radius:9px;background:#fff;border:1px solid var(--line);flex-shrink:0;color:var(--danger);font-size:14px}
+
+/* ---- Banner tab ---- */
+.bannerPreviewWrap{border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--soft);margin-bottom:18px}
+.bannerPreviewWrap img{width:100%;height:auto;aspect-ratio:16/5;object-fit:cover;display:block}
+.dealPreviewWrap{border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--soft);margin-bottom:18px;max-width:260px}
+.dealPreviewWrap img{width:100%;height:auto;aspect-ratio:1/1;object-fit:contain;display:block;background:#fff}
+
+/* ---- Deal product multi-select picker ---- */
+.dealProductPicker{max-height:190px;overflow:auto;border:1px solid var(--line);border-radius:12px;padding:6px 10px;display:flex;flex-direction:column;gap:1px;background:#fff}
+.dealProductPicker label{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:400;padding:7px 4px;border-radius:8px;cursor:pointer}
+.dealProductPicker label:hover{background:var(--soft)}
+.dealProductPicker input[type=checkbox]{width:15px;height:15px;flex-shrink:0}
+.dealProductPicker .pickerEmpty{font-size:12.5px;color:var(--muted);padding:8px 4px}
+.dealSelectedCount{font-size:11px;color:var(--muted)}
+
+/* ---- Stock tracker (admin-only — never sent to storefront) ---- */
+.stockNote{font-size:11px;color:var(--muted);margin-bottom:8px;display:block}
+.stockThreshRow{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.stockThreshRow label{font-size:11px;font-weight:700}
+.stockThreshRow input{width:60px;border:1px solid var(--line);border-radius:9px;padding:7px;text-align:center}
+.stockThreshRow span{font-size:11px;color:var(--muted)}
+.stockGrid{overflow:auto;border:1px solid var(--line);border-radius:12px}
+.stockGrid table{width:100%;border-collapse:collapse;font-size:12.5px}
+.stockGrid th,.stockGrid td{padding:7px 8px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);text-align:center;white-space:nowrap}
+.stockGrid th:first-child,.stockGrid td:first-child{text-align:left;position:sticky;left:0;background:var(--card)}
+.stockGrid tr:last-child td{border-bottom:0}
+.stockGrid td:last-child,.stockGrid th:last-child{border-right:0}
+.stockGrid input{width:56px;border:1px solid var(--line);border-radius:7px;padding:5px;text-align:center;font-size:12.5px}
+.stockGrid input.zero{background:#fbe9e7;border-color:var(--danger);color:var(--danger);font-weight:700}
+.stockGrid input.low{background:#fff6e0;border-color:#c98a1c;color:#8a5d00;font-weight:700}
+.stockBadge{padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700;white-space:nowrap}
+.stockBadge.ok{background:var(--soft);color:var(--gold)}
+.stockBadge.low{background:#fff6e0;color:#8a5d00}
+.stockBadge.out{background:var(--danger);color:#fff}
+.stockBadge.none{background:transparent;color:var(--muted);font-weight:400}
+
+/* ---- Refresh icon spin ---- */
+.spinning{display:inline-block;animation:spin360 .7s linear}
+@keyframes spin360{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
-<a class="skipLink" href="#shop">Skip to products</a>
 
-<header>
-  <div class="container nav">
-    <a class="logo" href="#" onclick="closeDealPage()"><img class="logoMark" src="https://raw.githubusercontent.com/ShopSlipper/ShopSlipper/main/shop_slipper_transparent.png" alt="ShopSlipper logo"><span class="logoText">SHOP<span class="logoAccent">SLIPPER</span></span></a>
-    <nav class="navlinks">
-      <a href="#shop" onclick="closeDealPage()">Shop</a>
-      <a href="#new" onclick="closeDealPage()">New arrivals</a>
-      <a href="#about" onclick="closeDealPage()">Why us</a>
-      <a href="#" onclick="closeDealPage();openReturns();return false;">Returns</a>
-    </nav>
-    <div class="actions">
-      <button class="iconbtn" id="searchIconBtn" aria-label="Search" onclick="closeDealPage();document.querySelector('#search').focus();document.querySelector('#shop').scrollIntoView({behavior:'smooth'})">⌕</button>
-      <button class="iconbtn" aria-label="Account" onclick="window.location.href='account.html'">👤<span class="badge" id="acctBadge" style="display:none">•</span></button>
-      <button class="iconbtn" aria-label="Cart" onclick="openCart()">🛒<span class="badge" id="cartCount">0</span></button>
-      <button class="iconbtn menuBtn" id="menuBtn" aria-label="Open menu" aria-expanded="false" onclick="toggleMobileNav()">☰</button>
-    </div>
+<!-- ============================================================
+ PASSWORD: change ADMIN_KEY in the <script> below to your own
+ secret — it must match ADMIN_KEY in Code.gs. This is a simple
+ client-side gate, not real security: anyone who reads this
+ file's source can see it. Fine for keeping casual visitors out,
+ not for anything truly sensitive.
+============================================================= -->
+
+<div class="appShell">
+ <aside class="sidebar">
+  <div class="brand">
+   <img class="mark" src="https://raw.githubusercontent.com/ShopSlipper/ShopSlipper/main/shop_slipper_transparent.png" alt="Shop Slipper logo">
+   <div>Shop Slipper<small>Admin</small></div>
   </div>
-</header>
-
-<div class="mobileNav" id="mobileNav" onclick="if(event.target===this)closeMobileNav()">
-  <div class="mobileNavScrim"></div>
-  <nav class="mobileNavPanel">
-    <a href="#shop" onclick="closeMobileNav();closeDealPage()">Shop</a>
-    <a href="#new" onclick="closeMobileNav();closeDealPage()">New arrivals</a>
-    <a href="#about" onclick="closeMobileNav();closeDealPage()">Why us</a>
-    <a href="#" onclick="closeMobileNav();closeDealPage();openReturns();return false;">Returns</a>
+  <nav class="sideNav">
+   <button class="sideLink active" id="tab-products" onclick="switchTab('products')"><span class="dot"></span>Products</button>
+   <button class="sideLink" id="tab-orders" onclick="switchTab('orders')"><span class="dot"></span>Orders</button>
+   <button class="sideLink" id="tab-chat" onclick="switchTab('chat')"><span class="dot"></span>Chat<span class="tabDot" id="chatTabDot">0</span></button>
+   <button class="sideLink" id="tab-banner" onclick="switchTab('banner')"><span class="dot"></span>Banner</button>
+   <button class="sideLink" id="tab-delivery" onclick="switchTab('delivery')"><span class="dot"></span>Delivery</button>
   </nav>
+  <a class="backLink" href="index.html">← Back to store</a>
+ </aside>
+
+ <div class="mainArea">
+  <div class="topbar">
+   <h1 id="pageTitle">Products</h1>
+   <div class="sub" id="pageSub">Add, edit, and manage your product catalog.</div>
+   <div class="topbarActions" id="topbarActions" style="display:none">
+    <button class="btn light sm" id="refreshBtn" onclick="loadAll()"><span id="refreshIcon">↻</span> Refresh</button>
+    <button class="btn light sm" onclick="logout()">Log out</button>
+   </div>
+  </div>
+
+  <div class="mainContent">
+
+   <div id="gate">
+    <div class="gateBox">
+     <label>Admin password</label>
+     <div class="gateErr" id="gateErr">Incorrect password. Try again.</div>
+     <input type="password" id="gatePass" placeholder="Enter password" onkeydown="if(event.key==='Enter')tryLogin()">
+     <button class="btn" onclick="tryLogin()">Unlock</button>
+    </div>
+   </div>
+
+   <div id="appPanels">
+    <div class="note" id="sourceNote">Loading products and orders from your Google Sheet…</div>
+
+    <div class="panel" id="panel-products">
+     <div class="panelHead">
+      <h2>Products <span style="color:var(--muted);font-weight:400" id="countLabel"></span></h2>
+      <button class="btn" onclick="openForm(null)">+ Add product</button>
+     </div>
+     <div style="overflow:auto">
+     <table>
+      <thead><tr><th></th><th>Name</th><th>SKU</th><th>Category</th><th>Price</th><th>Flags</th><th>Stock</th><th></th></tr></thead>
+      <tbody id="rows"></tbody>
+     </table>
+     </div>
+     <div class="emptyMsg" id="emptyMsg" style="display:none">No products yet — click "Add product" to create your first one.</div>
+    </div>
+
+    <div class="panel" id="panel-orders" style="display:none">
+     <div class="panelHead"><h2>Orders <span style="color:var(--muted);font-weight:400" id="orderCountLabel"></span></h2></div>
+     <div style="overflow:auto">
+     <table>
+      <thead><tr><th>When</th><th>Order</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th></tr></thead>
+      <tbody id="orderRows"></tbody>
+     </table>
+     </div>
+     <div class="emptyMsg" id="emptyOrders" style="display:none">No orders yet.</div>
+    </div>
+
+    <div class="panel" id="panel-chat" style="display:none">
+     <div class="panelHead"><h2>Chat <span style="color:var(--muted);font-weight:400" id="chatCountLabel"></span></h2></div>
+     <div class="note">Customers message you from the chat bubble on your site. Click a conversation below to reply — replies appear for the customer within a few seconds.</div>
+     <div style="overflow:auto">
+     <table>
+      <thead><tr><th>Customer</th><th>Last message</th><th>When</th><th>Status</th></tr></thead>
+      <tbody id="chatRows"></tbody>
+     </table>
+     </div>
+     <div class="emptyMsg" id="emptyChat" style="display:none">No conversations yet.</div>
+    </div>
+
+    <div class="panel" id="panel-banner" style="display:none">
+     <div class="panelHead"><h2>Hero banner</h2></div>
+     <div class="note">This is the banner/ad image shown at the top of your storefront, above the product grid. Upload a wide image (roughly 1600×500px, a 16:5 ratio works best) and, optionally, where it should link to when tapped.</div>
+     <div class="bannerPreviewWrap">
+      <img id="bn_preview" src="" alt="Banner preview">
+     </div>
+     <div class="formGrid">
+      <div class="field full">
+       <label>Banner image</label>
+       <div class="imgUploadRow">
+        <div class="imgUploadCol">
+         <input type="file" id="bn_imageFile" accept="image/*" style="display:none" onchange="handleBannerUpload(this.files[0])">
+         <button type="button" class="btn light sm" style="width:fit-content" onclick="document.querySelector('#bn_imageFile').click()">📷 Upload banner image</button>
+         <span class="uploadStatus" id="bn_uploadStatus"></span>
+         <span class="urlToggle" id="bn_urlToggle" onclick="toggleBannerUrlField()">or paste an image URL instead</span>
+         <input id="bn_image" placeholder="https://..." oninput="updateBannerPreview()" style="display:none">
+        </div>
+       </div>
+      </div>
+      <div class="field full">
+       <label>Link (optional — where tapping the banner takes shoppers)</label>
+       <input id="bn_link" placeholder="#shop, or a full product/category URL">
+      </div>
+     </div>
+     <div class="formFoot">
+      <button class="btn danger" id="bn_deleteBtn" onclick="deleteBanner()">Delete banner</button>
+      <button class="btn" id="bn_saveBtn" onclick="saveBanner()">Save banner</button>
+     </div>
+
+     <div class="panelHead" style="margin-top:36px"><h2>In-grid banner</h2></div>
+     <div class="note">An extra promo tile that appears inside the product grid on your storefront, after the 8th product — good for a mid-scroll sale ad or a link out to a specific collection. Optional; leave the image blank to keep it off. Tapping it takes shoppers to the link below.</div>
+     <div class="bannerPreviewWrap">
+      <img id="mb_preview" src="" alt="In-grid banner preview">
+     </div>
+     <div class="formGrid">
+      <div class="field full">
+       <label>Banner image</label>
+       <div class="imgUploadRow">
+        <div class="imgUploadCol">
+         <input type="file" id="mb_imageFile" accept="image/*" style="display:none" onchange="handleMidBannerUpload(this.files[0])">
+         <button type="button" class="btn light sm" style="width:fit-content" onclick="document.querySelector('#mb_imageFile').click()">📷 Upload banner image</button>
+         <span class="uploadStatus" id="mb_uploadStatus"></span>
+         <span class="urlToggle" id="mb_urlToggle" onclick="toggleMidBannerUrlField()">or paste an image URL instead</span>
+         <input id="mb_image" placeholder="https://..." oninput="updateMidBannerPreview()" style="display:none">
+        </div>
+       </div>
+      </div>
+      <div class="field full">
+       <label>Link (where tapping this banner takes shoppers)</label>
+       <input id="mb_link" placeholder="https://... or #shop">
+      </div>
+      <div class="field full">
+       <label>Caption (optional — short text overlaid on the image)</label>
+       <input id="mb_text" placeholder="e.g. Up to 30% off winter styles" maxlength="60">
+      </div>
+     </div>
+     <div class="formFoot">
+      <button class="btn danger" id="mb_deleteBtn" onclick="deleteMidBanner()">Delete banner</button>
+      <button class="btn" id="mb_saveBtn" onclick="saveMidBanner()">Save banner</button>
+     </div>
+
+     <div class="panelHead" style="margin-top:36px"><h2>Deal of the week</h2></div>
+     <div class="note">A dedicated promo block shown near the top of your storefront, above "New arrivals" — a headline, short description, a photo, and one or more real products tied to it so shoppers can pick a size and add it to cart directly from this card, just like a normal product. Optional; leave no products selected to keep it off.</div>
+     <div class="dealPreviewWrap">
+      <img id="dl_preview" src="" alt="Deal photo preview">
+     </div>
+     <div class="formGrid">
+      <div class="field full">
+       <label>Linked products <span class="dealSelectedCount" id="dl_selectedCount"></span></label>
+       <div class="dealProductPicker" id="dealProductPicker"></div>
+       <span style="font-size:11px;color:var(--muted)">The product(s) shoppers can buy from this card — sizes, stock, and add-to-cart behave exactly like the product grid. Check one for a single-item deal, or several to let shoppers choose among them.</span>
+      </div>
+      <div class="field full">
+       <label>Headline</label>
+       <input id="dl_title" placeholder="e.g. Exclusive Deal of the Week" maxlength="80">
+      </div>
+      <div class="field full">
+       <label>Description</label>
+       <input id="dl_subtitle" placeholder="e.g. Discover our handpicked selection at unbeatable prices." maxlength="160">
+      </div>
+      <div class="field full">
+       <label>Featured photo</label>
+       <div class="imgUploadRow">
+        <div class="imgUploadCol">
+         <input type="file" id="dl_imageFile" accept="image/*" style="display:none" onchange="handleDealUpload(this.files[0])">
+         <button type="button" class="btn light sm" style="width:fit-content" onclick="document.querySelector('#dl_imageFile').click()">📷 Upload photo</button>
+         <span class="uploadStatus" id="dl_uploadStatus"></span>
+         <span class="urlToggle" id="dl_urlToggle" onclick="toggleDealUrlField()">or paste an image URL instead</span>
+         <input id="dl_image" placeholder="https://..." oninput="updateDealPreview()" style="display:none">
+        </div>
+       </div>
+      </div>
+      <div class="field">
+       <label>Sale badge text (optional)</label>
+       <input id="dl_badgeText" placeholder="e.g. Sale" maxlength="20">
+      </div>
+      <div class="field">
+       <label>Price text</label>
+       <input id="dl_price" placeholder="e.g. NPR 1,699.00">
+      </div>
+     </div>
+     <div class="formFoot">
+      <button class="btn danger" id="dl_deleteBtn" onclick="deleteDeal()">Delete deal</button>
+      <button class="btn" id="dl_saveBtn" onclick="saveDeal()">Save deal</button>
+     </div>
+    </div>
+
+    <div class="panel" id="panel-delivery" style="display:none">
+     <div class="panelHead"><h2>Delivery charges</h2></div>
+     <div class="note">Control the free-delivery threshold and the flat delivery charge shown to customers at checkout. Orders at or above the threshold ship free; orders below it are charged the flat fee. Leave the threshold blank (or set it to 0) to charge delivery on every order, and leave the charge blank to always deliver free.</div>
+     <div class="formGrid">
+      <div class="field">
+       <label>Free delivery on orders of (Rs.) or more</label>
+       <input id="dv_threshold" type="number" min="0" placeholder="e.g. 3000" oninput="updateDeliveryPreview()">
+      </div>
+      <div class="field">
+       <label>Delivery charge below that (Rs.)</label>
+       <input id="dv_charge" type="number" min="0" placeholder="e.g. 150" oninput="updateDeliveryPreview()">
+      </div>
+     </div>
+     <div class="note" id="dv_preview" style="margin-top:4px"></div>
+     <div class="formFoot">
+      <button class="btn" id="dv_saveBtn" onclick="saveDelivery()">Save delivery settings</button>
+     </div>
+    </div>
+
+   </div>
+  </div>
+ </div>
 </div>
 
-<main>
-<section class="introBand">
- <div class="container">
-  <div class="hero">
-   <div class="eyebrow" style="justify-content:center;display:flex">Everyday comfort</div>
-   <h1>Step into your comfort.</h1>
-   <p>Minimal, considered slippers made for everyday life — easy on your feet, easy on your style.</p>
-  </div>
-  <a class="bannerLink" id="heroBanner" href="#shop">
-   <img id="heroBannerImg" src="" alt="Promotion">
-  </a>
- </div>
-</section>
-
-<section class="section" id="new" style="padding-bottom:0" aria-label="New arrivals">
- <div class="container" id="newArrivalsWrap" style="display:none">
-  <div class="sectionHead"><div><div class="eyebrow">Just landed</div><h2>New arrivals</h2></div></div>
-  <div class="rail" id="newArrivalsRail"></div>
- </div>
-</section>
-
-<section class="section" id="shop">
- <div class="container">
-  <div class="sectionHead"><div><div class="eyebrow">Collection</div><h2>Find your pair</h2></div><p id="resultText"></p></div>
-  <div class="categories" id="categories"></div>
-  <div class="toolbar">
-   <div class="toolbarRow">
-    <div class="search">
-     <input id="search" placeholder="Search slippers..." oninput="renderProducts()">
-     <button class="imgSearchIcon" id="imgSearchBtn" aria-label="Search by image" title="Search by image" onclick="document.querySelector('#imageSearchInput').click()">📷</button>
+<!-- Add / edit modal -->
+<div class="modalBg" id="formModal" onclick="if(event.target===this)closeForm()">
+ <div class="modalBox">
+  <h3 id="formTitle">Add product</h3>
+  <div class="formGrid">
+   <div class="field full">
+    <label>Product name</label>
+    <input id="f_name" placeholder="e.g. Cloud Slide" oninput="onNameOrCatChange()">
+   </div>
+   <div class="field">
+    <label>Category</label>
+    <input id="f_category" list="catList" placeholder="e.g. Slides" oninput="onNameOrCatChange()">
+    <datalist id="catList"></datalist>
+   </div>
+   <div class="field">
+    <label>SKU (auto-generated)</label>
+    <div class="skuRow">
+     <input id="f_sku" readonly>
+     <button class="iconBtn" title="Regenerate SKU" onclick="regenerateSku()">↻</button>
     </div>
-    <div class="filterWrap">
-     <button class="filterBtn" onclick="toggleFilterPanel(event)"><span class="arrows">⇅</span> <span id="filterLabel">Featured</span></button>
-     <div class="filterPanel" id="filterPanel">
-      <div class="filterPanelLabel">Sort &amp; filter</div>
-      <div class="filterOption active" data-sort="featured" onclick="setSort('featured')"><span class="dot"></span><span>Featured</span></div>
-      <div class="filterOption" data-sort="low" onclick="setSort('low')"><span class="dot"></span><span>Price: Low to High</span></div>
-      <div class="filterOption" data-sort="high" onclick="setSort('high')"><span class="dot"></span><span>Price: High to Low</span></div>
-      <div class="filterOption" data-sort="new" onclick="setSort('new')"><span class="dot"></span><span>Newest</span></div>
+   </div>
+   <div class="field">
+    <label>Price (Rs.)</label>
+    <input id="f_price" type="number" min="0" placeholder="999">
+   </div>
+   <div class="field">
+    <label>Original price (optional, for sale)</label>
+    <input id="f_old" type="number" min="0" placeholder="Leave 0 if no discount">
+   </div>
+   <div class="field full">
+    <label>Description</label>
+    <input id="f_description" placeholder="Short product description shown on the product page">
+   </div>
+   <div class="field full">
+    <label>Sizes (comma-separated, leave blank if not applicable)</label>
+    <input id="f_sizes" placeholder="e.g. 38,39,40,41,42 or S,M,L" oninput="renderStockGrid()">
+   </div>
+   <div class="field full">
+    <label>Main product photo</label>
+    <div class="imgUploadRow">
+     <img id="f_preview" class="imgPreview" src="" alt="">
+     <div class="imgUploadCol">
+      <input type="file" id="f_imageFile" accept="image/*" style="display:none" onchange="handleImageUpload(this.files[0])">
+      <button type="button" class="btn light sm" style="width:fit-content" onclick="document.querySelector('#f_imageFile').click()">📷 Upload photo</button>
+      <span class="uploadStatus" id="uploadStatus"></span>
+      <span class="urlToggle" id="urlToggle" onclick="toggleUrlField()">or paste an image URL instead</span>
+      <input id="f_image" placeholder="https://..." oninput="updateImgPreview()" style="display:none">
      </div>
     </div>
    </div>
-   <input type="file" id="imageSearchInput" accept="image/*" style="display:none" onchange="searchByImage(this.files[0])">
-  </div>
-  <div id="imgSearchBanner" style="display:none;align-items:center;justify-content:space-between;gap:12px;background:var(--soft);border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin-bottom:20px;font-size:13px">
-   <span id="imgSearchText">Showing products similar to your photo</span>
-   <button class="chip" onclick="clearImageSearch()">Clear ✕</button>
-  </div>
-  <div id="products" class="grid" aria-busy="true" aria-live="polite">
-   <div class="product skelCard"><div class="productImg skeleton"></div><div class="skelLine w80 skeleton"></div><div class="skelLine w40 skeleton"></div><div class="skelLine w60 skeleton"></div></div>
-   <div class="product skelCard"><div class="productImg skeleton"></div><div class="skelLine w80 skeleton"></div><div class="skelLine w40 skeleton"></div><div class="skelLine w60 skeleton"></div></div>
-   <div class="product skelCard"><div class="productImg skeleton"></div><div class="skelLine w80 skeleton"></div><div class="skelLine w40 skeleton"></div><div class="skelLine w60 skeleton"></div></div>
-   <div class="product skelCard"><div class="productImg skeleton"></div><div class="skelLine w80 skeleton"></div><div class="skelLine w40 skeleton"></div><div class="skelLine w60 skeleton"></div></div>
-  </div>
-  <div class="pagination" id="pagination"></div>
-  <div class="features" id="about">
-   <div class="feature"><b>🚚 Fast delivery</b><span>Reliable delivery across Nepal.</span></div>
-   <div class="feature"><b>↩ Easy returns</b><span>Simple return process on eligible items.</span></div>
-   <div class="feature"><b>✓ Quality first</b><span>Comfort-focused products selected for you.</span></div>
-   <div class="feature"><b>💬 Friendly support</b><span>We are here when you need us.</span></div>
-  </div>
-  <div class="returnPolicy">
-   <div class="eyebrow">Our policy</div>
-   <h2>Easy 3-day returns</h2>
-   <p>Not the right fit? Return any unused item in its original packaging within 3 days of delivery for a full refund or exchange — no questions asked.</p>
-   <div class="returnSteps">
-    <div><b>1</b><span>Find the order ID from your order confirmation</span></div>
-    <div><b>2</b><span>Fill in the return form with your order ID</span></div>
-    <div><b>3</b><span>Pack the item unused, with tags/packaging</span></div>
-    <div><b>4</b><span>We arrange pickup and process your refund</span></div>
+   <div class="field">
+    <label>Color name (for this main photo)</label>
+    <input id="f_colorName" placeholder="e.g. Black" oninput="onMainColorNameChange()">
    </div>
-   <button class="btn light" onclick="openReturns()">Start a return</button>
-  </div>
- </div>
-</section>
-</main>
-
-<!-- ================== Exclusive Deal of the Week — dedicated page ==================
-     Not a modal: clicking "Shop Now" hides the regular shop (main),
-     the deal promo band, and the footer, and shows this section instead
-     — so the customer is "on" a page that only has the offer products,
-     with no way to browse the regular catalog until they tap Back.
-====================================================================== -->
-<section id="dealPage" style="display:none;padding:0">
- <div class="dealPageHead">
-  <div class="container">
-   <button class="btn light" type="button" onclick="closeDealPage()" style="margin-bottom:16px;padding:9px 18px;font-size:12.5px">← Back to shop</button>
-   <div class="eyebrow">Limited-time offer</div>
-   <h2 id="dp_title"></h2>
-   <p id="dp_subtitle"></p>
-   <div class="dealTimerRow">
-    <span class="dealTimerLabel">Deal ends in</span>
-    <div class="dealTimerUnits">
-     <div class="dealTimerUnit"><b id="dt_h">00</b><span>Hrs</span></div>
-     <div class="dealTimerUnit"><b id="dt_m">00</b><span>Min</span></div>
-     <div class="dealTimerUnit"><b id="dt_s">00</b><span>Sec</span></div>
+   <div class="field">
+    <label>Dominant color</label>
+    <div class="colorRow">
+     <input id="f_color" type="color" value="#cccccc" oninput="f_colorHex.value=f_color.value;f_colorTouched=true">
+     <input id="f_colorHex" placeholder="#cccccc" oninput="syncColorHex();f_colorTouched=true">
     </div>
+    <span style="font-size:11px;color:var(--muted)">Auto-suggested from the photo or the color name — check it matches before saving, especially if the photo has a background or banner behind the product. Used for the storefront's "search by image" feature, and as this product's first/default color swatch.</span>
+   </div>
+   <div class="field">
+    <label>Rating (optional, 0–5)</label>
+    <input id="f_rating" type="number" min="0" max="5" step="0.1" placeholder="e.g. 4.5" oninput="clampRating()">
+    <span style="font-size:11px;color:var(--muted)">Shown as stars on the storefront product card and detail page. Leave blank to hide the rating.</span>
+   </div>
+   <div class="field">
+    <div class="checkRow"><input type="checkbox" id="f_new"><label for="f_new">Mark as "New arrival"</label></div>
+   </div>
+   <div class="field full">
+    <label>Additional color variants (optional)</label>
+    <span style="font-size:11px;color:var(--muted);margin-bottom:4px;display:block">Each variant gets its own photo and swatch — customers can click between them on the product page to see the item in that color, like Amazon or Under Armour's color swatches. Typing a common color name (e.g. "Navy", "Green") will suggest a matching swatch automatically — double-check it against the actual product color before saving, especially with busy or banner-style photos, or multi-word names like "Black/White" that can't be auto-matched. Leave empty if this product only comes in one color.</span>
+    <div class="variantList" id="variantList"></div>
+    <button type="button" class="btn light sm" style="width:fit-content" onclick="addVariantRow()">+ Add color variant</button>
+   </div>
+   <div class="field full">
+    <label>Stock levels (admin only — customers never see this)</label>
+    <span class="stockNote">How many pieces you have of each size/color. Leave a box blank if you don't want to track that combination — it just won't show a badge. This is never sent to your storefront, so it doesn't block a customer from ordering an item marked 0 here — treat it as a picking/fulfillment reference, not live inventory enforcement.</span>
+    <div class="stockThreshRow">
+     <label for="f_lowThreshold">Low-stock alert at</label>
+     <input id="f_lowThreshold" type="number" min="0" value="2" oninput="renderStockGrid()">
+     <span>pieces or fewer (0 always shows as out of stock)</span>
+    </div>
+    <div class="stockGrid" id="stockGridWrap"></div>
    </div>
   </div>
- </div>
- <div class="container" style="padding:22px 0 70px">
-  <div class="grid" id="dp_grid"></div>
- </div>
-</section>
-
-<section class="section dealSection" id="dealSection" style="display:none">
- <div class="container">
-  <div class="dealWrap">
-   <div>
-    <h2 class="dealTitle" id="dl_titleOut"></h2>
-    <p class="dealSubtitle" id="dl_subtitleOut"></p>
-   </div>
-   <div class="dealCard">
-    <span class="dealBadge" id="dl_badgeOut" style="display:none">Sale</span>
-    <div class="dealImgWrap" id="dl_imgWrap"><img id="dl_imgOut" src="" alt="" onerror="this.parentElement.style.display='none'" onload="this.parentElement.style.display='flex'"></div>
-    <div class="dealOnlyAt">Only at</div>
-    <div class="dealPriceOut" id="dl_priceOut"></div>
-    <button class="add dealSelectBtn" id="dl_selectSizeBtn" type="button" onclick="event.preventDefault();event.stopPropagation();openDealPage()">Shop Now</button>
-   </div>
+  <div class="formFoot">
+   <button class="btn light" onclick="closeForm()">Cancel</button>
+   <button class="btn" id="saveBtn" onclick="saveProduct()">Save product</button>
   </div>
  </div>
-</section>
-
-<footer>
- <div class="container">
-  <div class="footerGrid">
-   <div>
-    <div class="logo" style="display:flex;align-items:center;gap:10px"><img class="logoMark" src="https://raw.githubusercontent.com/ShopSlipper/ShopSlipper/main/shop_slipper_transparent.png" alt="Shop Slipper logo"><div>SHOP<span>SLIPPER</span></div></div>
-    <p style="margin-top:14px;max-width:300px">Comfortable everyday footwear for Nepal. Considered products, honest prices.</p>
-   </div>
-   <div>
-    <h4>Shop</h4>
-    <p><a href="#shop">All slippers</a></p>
-    <p><a href="#new">New arrivals</a></p>
-   </div>
-   <div>
-    <h4>Help</h4>
-    <p>Delivery</p>
-    <p><a href="#" onclick="openReturns();return false;">Returns</a> · <a href="return-policy.html">Policy</a></p>
-   </div>
-   <div>
-    <h4>Contact</h4>
-    <p><a href="mailto:www.shopslipper@gmail.com">www.shopslipper<wbr>@gmail.com</a></p>
-    <p><a href="tel:+9779747961784">977-9747961784</a></p>
-   </div>
-  </div>
-  <div class="copy">© 2026 ShopSlipper. All rights reserved.</div>
- </div>
-</footer>
-
-<div class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="Cart" onclick="if(event.target===this)closeCart()">
- <aside class="cart">
-  <div class="cartHead"><h2>Your cart</h2><button class="close" onclick="closeCart()">×</button></div>
-  <div class="cartItems" id="cartItems"></div>
-  <div class="cartFoot">
-   <div id="deliveryProgressWrap"></div>
-   <div class="row"><span>Subtotal</span><b id="subtotal">Rs. 0</b></div>
-   <div class="row"><span>Delivery</span><span id="delivery">Calculated at checkout</span></div>
-   <div class="row total"><span>Total</span><span id="total">Rs. 0</span></div>
-   <button class="btn" style="width:100%" onclick="openCheckout()">Checkout →</button>
-  </div>
- </aside>
 </div>
 
-<div class="modal" id="checkout" role="dialog" aria-modal="true" aria-label="Checkout" onclick="if(event.target===this)closeCheckout()">
- <div class="modalBox">
-  <div class="modalHead"><h2>Checkout</h2><button class="close" onclick="closeCheckout()">×</button></div>
-  <div id="checkoutSummary"></div>
-  <form id="checkoutForm" onsubmit="placeOrder(event)">
-   <div class="formGrid">
-    <div class="field"><label>Full name</label><input required name="name" placeholder="Your name"></div>
-    <div class="field"><label>Phone</label><input required name="phone" placeholder="98XXXXXXXX"></div>
-    <div class="field full"><label>Email</label><input required type="email" name="email" placeholder="you@example.com"></div>
-    <div class="field full"><label>Delivery address</label><textarea required name="address" rows="3" placeholder="Street, area, city"></textarea></div>
-    <div class="field"><label>City</label><input required name="city" value="Kathmandu"></div>
-    <div class="field"><label>Payment</label>
-     <input readonly value="Cash on Delivery" style="border:1px solid var(--line);border-radius:11px;padding:12px;background:var(--soft);color:var(--text);width:100%">
-     <input type="hidden" name="payment" value="Cash on Delivery">
-    </div>
-   </div>
-   <button class="btn" id="placeOrderBtn" style="width:100%;margin-top:5px">Place order</button>
+<!-- Chat reply modal -->
+<div class="modalBg" id="chatModal" onclick="if(event.target===this)closeChatThread()">
+ <div class="modalBox chatModalBox">
+  <div class="chatModalHead">
+   <div><h3 id="chatModalName">Customer</h3><small id="chatModalPhone"></small></div>
+   <button class="iconBtn" onclick="closeChatThread()">×</button>
+  </div>
+  <div class="chatThread" id="chatThread"></div>
+  <form class="chatReplyRow" onsubmit="sendStaffReply(event)">
+   <input id="chatReplyInput" placeholder="Type a reply…" autocomplete="off">
+   <button class="chatSendBtn" aria-label="Send">➤</button>
   </form>
- </div>
-</div>
-<div class="modal" id="accountModal" role="dialog" aria-modal="true" aria-label="Account" onclick="if(event.target===this)closeAccount()">
- <div class="modalBox" id="accountModalBox"></div>
-</div>
-<div class="modal" id="productModal" role="dialog" aria-modal="true" aria-label="Product details" onclick="if(event.target===this)closeProduct()">
- <div class="modalBox productModalBox" style="position:relative">
-  <button class="productModalClose" onclick="closeProduct()">×</button>
-  <div id="productModalContent"></div>
- </div>
-</div>
-
-<div class="zoomModal" id="zoomModal" role="dialog" aria-modal="true" aria-label="Zoomed photo" onclick="closeZoom()">
- <button class="zoomClose" onclick="event.stopPropagation();closeZoom()" aria-label="Close zoom">×</button>
- <img id="zoomImg" src="" alt="" onclick="event.stopPropagation();closeZoom()">
- <div class="zoomHint">Tap anywhere to close</div>
-</div>
-
-<div class="modal" id="returnsModal" role="dialog" aria-modal="true" aria-label="Start a return" onclick="if(event.target===this)closeReturns()">
- <div class="modalBox">
-  <div class="modalHead"><h2>Start a return</h2><button class="close" onclick="closeReturns()">×</button></div>
-  <p style="color:var(--muted);font-size:13px;margin-bottom:10px">Enter the order ID from your confirmation and a few details — we'll be in touch to arrange pickup.</p>
-  <a href="return-policy.html" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:var(--soft);color:var(--gold);font-weight:700;font-size:12.5px;padding:9px 14px;border-radius:999px;margin-bottom:18px">Read our full return policy →</a>
-  <form id="returnForm" onsubmit="submitReturn(event)">
-   <div class="formGrid">
-    <div class="field full"><label>Order ID</label><input required name="orderId" id="returnOrderId" placeholder="SS123456NP" pattern="^[Ss]{2}[0-9]{6}[Nn][Pp]$" title="Format: SS123456NP" style="text-transform:uppercase"></div>
-    <div class="field"><label>Full name</label><input required name="name" placeholder="Your name"></div>
-    <div class="field"><label>Phone</label><input required name="phone" placeholder="98XXXXXXXX"></div>
-    <div class="field full"><label>Email</label><input required type="email" name="email" placeholder="you@example.com"></div>
-    <div class="field full"><label>Pickup address</label><textarea required name="address" rows="2" placeholder="Street, area, city — where should we collect the item?"></textarea></div>
-    <div class="field full"><label>Reason for return</label>
-     <select name="reason">
-      <option>Wrong size</option><option>Changed my mind</option><option>Defective / damaged</option><option>Wrong item received</option><option>Other</option>
-     </select>
-    </div>
-    <div class="field full"><label>Additional details</label><textarea name="details" rows="3" placeholder="Anything else we should know"></textarea></div>
-   </div>
-   <button class="btn" id="submitReturnBtn" style="width:100%;margin-top:5px">Submit return request</button>
-  </form>
- </div>
-</div>
-
-<div class="modal" id="orderSuccessModal" role="dialog" aria-modal="true" aria-label="Order placed" onclick="if(event.target===this)closeOrderSuccess()">
- <div class="modalBox" style="text-align:center">
-  <div class="modalHead" style="justify-content:flex-end;margin-bottom:6px"><button class="close" onclick="closeOrderSuccess()">×</button></div>
-  <div style="font-size:38px;margin-bottom:6px">✓</div>
-  <h2 style="margin-bottom:8px">Order placed!</h2>
-  <p style="color:var(--muted);font-size:14px;margin-bottom:18px">We'll contact you shortly to confirm delivery.</p>
-  <div style="background:var(--soft);border-radius:14px;padding:16px;margin-bottom:16px">
-   <div style="font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:6px">Your order ID</div>
-   <div id="orderIdDisplay" style="font-family:var(--serif);font-weight:700;font-size:24px;letter-spacing:.5px"></div>
-  </div>
-  <p style="color:var(--muted);font-size:12.5px;margin-bottom:20px">Save this ID — you'll need it if you ever want to return or exchange an item.</p>
-  <button class="btn" style="width:100%;margin-bottom:10px" onclick="closeOrderSuccess()">Continue shopping</button>
-  <button class="btn light" style="width:100%" onclick="const id=document.querySelector('#orderIdDisplay').textContent;closeOrderSuccess();openReturns(id)">Need to return this order?</button>
- </div>
-</div>
-
-<div class="modal" id="returnSuccessModal" role="dialog" aria-modal="true" aria-label="Return submitted" onclick="if(event.target===this)closeReturnSuccess()">
- <div class="modalBox" style="text-align:center">
-  <div class="modalHead" style="justify-content:flex-end;margin-bottom:6px"><button class="close" onclick="closeReturnSuccess()">×</button></div>
-  <div style="font-size:38px;margin-bottom:6px">✓</div>
-  <h2 style="margin-bottom:8px">Return request submitted!</h2>
-  <p style="color:var(--muted);font-size:14px;margin-bottom:18px">We've emailed you the details — our team will be in touch to arrange pickup.</p>
-  <div style="background:var(--soft);border-radius:14px;padding:16px;margin-bottom:16px">
-   <div style="font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:6px">Your return ID</div>
-   <div id="returnIdDisplay" style="font-family:var(--serif);font-weight:700;font-size:24px;letter-spacing:.5px"></div>
-  </div>
-  <p style="color:var(--muted);font-size:12.5px;margin-bottom:20px">Save this ID for reference — it's different from your original order ID.</p>
-  <button class="btn" style="width:100%" onclick="closeReturnSuccess()">Close</button>
  </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
-<a class="chatFab" id="chatFab" href="live-chat.html" aria-label="Chat with us">
- 💬<span class="chatFabBadge" id="chatFabBadge">0</span>
-</a>
-
 <script>
-/* ================== CONFIG — set this to your Apps Script Web App URL ================== */
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzKHLu21Y5oJeM7KQ5dcI3mTXpNnZlDRoTn19nCuqZ7SNb73S6cj9QaTY2Sd-QHTFoE/exec"; // ends in /exec
-/* ========================================================================================= */
+/* ================== CONFIG ================== */
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzKHLu21Y5oJeM7KQ5dcI3mTXpNnZlDRoTn19nCuqZ7SNb73S6cj9QaTY2Sd-QHTFoE/exec"; // must match index.html, ends in /exec
+const ADMIN_KEY  = "shopslipper2026";              // must match ADMIN_KEY in Code.gs
+/* =============================================
+ Honest note: ADMIN_KEY is a shared client-side
+ password, not real authentication — anyone who
+ reads this page's source can see it. It keeps
+ casual visitors out but isn't real security.
+================================================*/
+const MAX_UPLOAD_DIM = 1200; // photos are resized to fit within this before upload
+const DEFAULT_LOW_STOCK = 2; // used for the badge shown in the product list
 
-let products = [], cart = JSON.parse(localStorage.getItem("shopslipper-cart")||"[]");
-let category="All", page=1, imageMatch=null, productsLoaded=false;
-const FIRST_PAGE_SIZE = 12;
-const OTHER_PAGE_SIZE = 22;
+let products = [];
+let orders = [];
+let chatSessions = [];
+let editingId = null;
+let activeChatSessionId = null;
+let formVariants = [];
+let f_colorTouched = false;
+let currentStock = {}; // {colorLabel: {size: qty}} for the product currently open in the modal
+let dealSelectedIds = []; // ids (as strings) of products currently linked to the Deal of the week
 
-function pageBounds(n){
- if(n<=1) return {start:0, end:FIRST_PAGE_SIZE};
- const start = FIRST_PAGE_SIZE + (n-2)*OTHER_PAGE_SIZE;
- return {start, end:start+OTHER_PAGE_SIZE};
-}
-function totalPagesFor(count){
- if(count<=FIRST_PAGE_SIZE) return 1;
- return 1 + Math.ceil((count-FIRST_PAGE_SIZE)/OTHER_PAGE_SIZE);
-}
-
-/* ================== Delivery settings (read live from admin) ==================
-   Defaults here are only a fallback used before settings load (or if the
-   Sheet has no values saved yet). The admin "Delivery" tab is the source
-   of truth — loadDelivery() below overwrites these from ?action=settings.
-================================================================= */
-let deliveryThreshold = 2000; // Rs. order subtotal at/above which delivery is free
-let deliveryCharge = 120;     // Rs. flat charge below that threshold
-
-/* ================== Static text ================== */
-const TEXT = {
- outOfStock:"Out of stock", onlyLeft:"Only {n} left", selectAvailableSize:"Select an available size",
- selectSize:"Select size", addToCart:"Add to cart",
- freeDeliveryHint:"away from free delivery", freeDeliveryUnlocked:"You've unlocked free delivery!"
+const TAB_META = {
+ products:{title:"Products", sub:"Add, edit, and manage your product catalog."},
+ orders:{title:"Orders", sub:"See what customers have ordered and their status."},
+ chat:{title:"Chat", sub:"Reply to customers messaging you from the storefront."},
+ banner:{title:"Banner", sub:"Manage the hero banner, in-grid banner, and deal of the week."},
+ delivery:{title:"Delivery", sub:"Set your free-delivery threshold and flat delivery charge."}
 };
 
-function toggleMobileNav(){
- const el = document.querySelector("#mobileNav");
- const btn = document.querySelector("#menuBtn");
- const open = el.classList.toggle("open");
- btn.setAttribute("aria-expanded", open ? "true" : "false");
- btn.textContent = open ? "✕" : "☰";
+function tryLogin(){
+ const val = document.querySelector("#gatePass").value;
+ if(val === ADMIN_KEY){
+  sessionStorage.setItem("ss-admin-ok","1");
+  document.querySelector("#gateErr").style.display="none";
+  unlockApp();
+ }else{
+  document.querySelector("#gateErr").style.display="block";
+ }
 }
-function closeMobileNav(){
- document.querySelector("#mobileNav").classList.remove("open");
- const btn = document.querySelector("#menuBtn");
- btn.setAttribute("aria-expanded","false");
- btn.textContent = "☰";
+function unlockApp(){
+ document.querySelector("#gate").style.display="none";
+ document.querySelector("#appPanels").style.display="block";
+ document.querySelector("#topbarActions").style.display="flex";
+ loadAll();
 }
-window.addEventListener("scroll", ()=>{
- document.querySelector("header").classList.toggle("scrolled", window.scrollY > 4);
-}, {passive:true});
+function logout(){
+ sessionStorage.removeItem("ss-admin-ok");
+ location.reload();
+}
+if(sessionStorage.getItem("ss-admin-ok")==="1"){
+ unlockApp();
+}
 
-/* ================== Filter panel ================== */
-let sortMode = "featured";
-function toggleFilterPanel(e){
- if(e) e.stopPropagation();
- document.querySelector("#filterPanel").classList.toggle("open");
+function switchTab(t){
+ document.querySelector("#panel-products").style.display = t==="products" ? "block":"none";
+ document.querySelector("#panel-orders").style.display = t==="orders" ? "block":"none";
+ document.querySelector("#panel-chat").style.display = t==="chat" ? "block":"none";
+ document.querySelector("#panel-banner").style.display = t==="banner" ? "block":"none";
+ document.querySelector("#panel-delivery").style.display = t==="delivery" ? "block":"none";
+ document.querySelector("#tab-products").classList.toggle("active", t==="products");
+ document.querySelector("#tab-orders").classList.toggle("active", t==="orders");
+ document.querySelector("#tab-chat").classList.toggle("active", t==="chat");
+ document.querySelector("#tab-banner").classList.toggle("active", t==="banner");
+ document.querySelector("#tab-delivery").classList.toggle("active", t==="delivery");
+ const meta = TAB_META[t];
+ if(meta){
+  document.querySelector("#pageTitle").textContent = meta.title;
+  document.querySelector("#pageSub").textContent = meta.sub;
+ }
 }
-function setSort(mode){
- sortMode = mode;
- document.querySelectorAll(".filterOption").forEach(el=>el.classList.toggle("active", el.dataset.sort===mode));
- const labels = {featured:"Featured", low:"Price: Low to High", high:"Price: High to Low", new:"Newest"};
- document.querySelector("#filterLabel").textContent = labels[mode] || labels.featured;
- document.querySelector("#filterPanel").classList.remove("open");
- page=1;
- renderProducts();
+
+async function loadAll(){
+ const refreshIcon = document.querySelector("#refreshIcon");
+ const refreshBtn = document.querySelector("#refreshBtn");
+ if(refreshIcon){
+  refreshIcon.classList.remove("spinning");
+  void refreshIcon.offsetWidth; // restart animation if clicked again mid-spin
+  refreshIcon.classList.add("spinning");
+ }
+ if(refreshBtn) refreshBtn.disabled = true;
+ document.querySelector("#sourceNote").textContent = "Loading products and orders from your Google Sheet…";
+ try{
+  const [pRes, oRes, cRes, sRes] = await Promise.all([
+   fetch(`${SCRIPT_URL}?action=products`),
+   fetch(`${SCRIPT_URL}?action=orders&key=${encodeURIComponent(ADMIN_KEY)}`),
+   fetch(`${SCRIPT_URL}?action=chatSessions&key=${encodeURIComponent(ADMIN_KEY)}`),
+   fetch(`${SCRIPT_URL}?action=settings`)
+  ]);
+  const pData = await pRes.json();
+  const oData = await oRes.json();
+  const cData = await cRes.json();
+  const sData = await sRes.json();
+  if(pData.error || oData.error || cData.error) throw new Error(pData.error || oData.error || cData.error);
+  products = pData.products || [];
+  orders = (oData.orders || []).reverse();
+  chatSessions = cData.sessions || [];
+  document.querySelector("#sourceNote").innerHTML = `Connected to your Google Sheet — <b>${products.length}</b> products, <b>${orders.length}</b> orders. Changes here save straight to the Sheet.`;
+  render();
+  renderOrders();
+  renderChatSessions();
+  loadBannerIntoForm(sData.settings || {});
+  loadMidBannerIntoForm(sData.settings || {});
+  loadDealIntoForm(sData.settings || {});
+  loadDeliveryIntoForm(sData.settings || {});
+ }catch(err){
+  document.querySelector("#sourceNote").innerHTML = `Couldn't reach the Sheet. Check <code>SCRIPT_URL</code> is set correctly in admin.html and that the Apps Script is deployed with "Anyone" access.`;
+ }finally{
+  if(refreshBtn) refreshBtn.disabled = false;
+ }
 }
-document.addEventListener("click", e=>{
- const panel = document.querySelector("#filterPanel");
- if(panel && panel.classList.contains("open") && !e.target.closest(".filterWrap")) panel.classList.remove("open");
-});
+setInterval(()=>{ if(sessionStorage.getItem("ss-admin-ok")==="1") refreshChatSessions(); }, 15000);
+async function refreshChatSessions(){
+ try{
+  const res = await fetch(`${SCRIPT_URL}?action=chatSessions&key=${encodeURIComponent(ADMIN_KEY)}`);
+  const data = await res.json();
+  if(data.sessions){ chatSessions = data.sessions; renderChatSessions(); }
+ }catch(err){}
+}
 
 function money(n){return "Rs. "+Number(n).toLocaleString("en-IN")}
-function save(){localStorage.setItem("shopslipper-cart",JSON.stringify(cart));updateCart()}
+function escapeHtml(s){ const d=document.createElement("div"); d.textContent=s||""; return d.innerHTML; }
 
-/* ================== Stock helpers ==================
-   Mirrors the label logic used in admin.html's stock grid, so the
-   same product.stock object (built there) can be read here:
-   - stock is shaped {colorLabel: {sizeOrQty: qty}}
-   - colorLabel for the main photo = product.colorName trimmed, or "Main"
-   - colorLabel for variant i (0-based in product.variants)
-     = variant.colorName trimmed, or "Color " + (i+2)
-   - sizeOrQty is the size string, or "Qty" when the product has no sizes
-   A quantity that isn't present at all (undefined) means that
-   combination was never tracked in admin — treated as unlimited so
-   untracked products/sizes are never blocked from ordering.
-================================================================= */
-function stockColorLabel(product, variantIdx){
- if(variantIdx<=0) return (product.colorName && product.colorName.trim()) || "Main";
- const v = (product.variants||[])[variantIdx-1];
- return (v && v.colorName && v.colorName.trim()) || ("Color "+(variantIdx+1));
+/* ================== Color name → swatch matching ==================
+   Lets the browser resolve a typed color name (e.g. "Navy",
+   "Forest Green", "Maroon") to an actual hex value using the
+   same color-name table CSS itself understands. Multi-word names
+   that aren't valid CSS colors (e.g. "Black/White") simply return
+   null and the swatch is left as-is, since that's a real limit —
+   there's no single hex for a two-tone name.
+======================================================================= */
+function colorNameToHex(name){
+ if(!name) return null;
+ const probe = document.createElement("span");
+ probe.style.color = "";
+ probe.style.color = name;
+ if(!probe.style.color) return null; // browser didn't recognize it as a color
+ document.body.appendChild(probe);
+ const rgb = getComputedStyle(probe).color;
+ document.body.removeChild(probe);
+ const m = rgb.match(/\d+(\.\d+)?/g);
+ if(!m || m.length < 3) return null;
+ const hex = "#" + m.slice(0,3).map(n => Math.round(Number(n)).toString(16).padStart(2,"0")).join("");
+ return hex;
 }
-function stockQtyFor(product, variantIdx, size){
- if(!product.stock) return null;
- const label = stockColorLabel(product, variantIdx);
- const bucket = product.stock[label];
- if(!bucket) return null;
- const key = size || "Qty";
- const val = bucket[key];
- return (val===undefined || val===null || val==="") ? null : Number(val);
-}
-// true only when a quantity was tracked AND it's <=0
-function isCombinationOut(product, variantIdx, size){
- const q = stockQtyFor(product, variantIdx, size);
- return q!==null && q<=0;
-}
-// Does this product have at least one orderable (untracked or >0) combination?
-function productHasAnyStock(product){
- if(!product.stock || !Object.keys(product.stock).length) return true; // not tracked -> unlimited
- const sizes = (product.sizes||"").split(",").map(s=>s.trim()).filter(Boolean);
- const sizeKeys = sizes.length ? sizes : ["Qty"];
- const swatchCount = 1 + (Array.isArray(product.variants) ? product.variants.length : 0);
- for(let vi=0; vi<swatchCount; vi++){
-  for(const sz of sizeKeys){
-   const q = stockQtyFor(product, vi, sz==="Qty"?null:sz);
-   if(q===null || q>0) return true;
-  }
- }
- return false;
-}
-// Sum of all tracked quantities across every color/size combination.
-// Returns null when nothing is tracked at all (treated as "unlimited"
-// upstream), so callers can tell "no stock data" apart from "0 left".
-function productTotalStock(product){
- if(!product.stock || !Object.keys(product.stock).length) return null;
- let total = 0, tracked = false;
- Object.values(product.stock).forEach(sizes=>{
+
+/* ================== Stock summary badge (product list) ================== */
+function stockSummary(stock){
+ if(!stock || !Object.keys(stock).length) return '<span class="stockBadge none">—</span>';
+ let out=0, low=0, tracked=0;
+ Object.values(stock).forEach(sizes=>{
   Object.values(sizes||{}).forEach(n=>{
    const q = Number(n);
    if(isNaN(q)) return;
-   tracked = true;
-   total += Math.max(0,q);
+   tracked++;
+   if(q<=0) out++;
+   else if(q<=DEFAULT_LOW_STOCK) low++;
   });
  });
- return tracked ? total : null;
+ if(!tracked) return '<span class="stockBadge none">—</span>';
+ if(out>0) return `<span class="stockBadge out">${out} out</span>`;
+ if(low>0) return `<span class="stockBadge low">${low} low</span>`;
+ return '<span class="stockBadge ok">OK</span>';
 }
 
-/* ================== New arrivals rail ================== */
-function renderNewArrivals(){
- const wrap=document.querySelector("#newArrivalsWrap");
- const items = products.filter(p=>p.new);
- if(!items.length){ wrap.style.display="none"; return; }
- wrap.style.display="block";
- document.querySelector("#newArrivalsRail").innerHTML = items.slice(0,10).map(cardHTML).join("");
+function render(){
+ const rows = document.querySelector("#rows");
+ document.querySelector("#countLabel").textContent = `(${products.length})`;
+ document.querySelector("#emptyMsg").style.display = products.length ? "none" : "block";
+ rows.innerHTML = products.map(p=>`
+  <tr>
+   <td><img class="thumb" src="${escapeHtml(p.image||'')}" alt=""></td>
+   <td><b>${escapeHtml(p.name)}</b>${(p.variants&&p.variants.length)?` <span class="statusTag">${p.variants.length+1} colors</span>`:""}</td>
+   <td><span class="skuTag">${escapeHtml(p.sku||"—")}</span></td>
+   <td>${escapeHtml(p.category)}</td>
+   <td>${money(p.price)} ${p.old?`<span class="oldp">${money(p.old)}</span>`:""}</td>
+   <td>${p.new?'<span class="newTag">New</span>':""}</td>
+   <td>${stockSummary(p.stock)}</td>
+   <td>
+    <div class="rowActions">
+     <button class="iconBtn" title="Edit" onclick="openForm(${p.id})">✎</button>
+     <button class="iconBtn" title="Delete" onclick="deleteProduct(${p.id})">🗑</button>
+    </div>
+   </td>
+  </tr>`).join("");
+
+ const cats = [...new Set(products.map(p=>p.category))];
+ document.querySelector("#catList").innerHTML = cats.map(c=>`<option value="${escapeHtml(c)}">`).join("");
+ populateDealProductSelect();
 }
 
-async function loadProducts(){
- try{
-  const res = await fetch(`${SCRIPT_URL}?action=products`);
-  const data = await res.json();
-  products = data.products || [];
- }catch(err){
-  document.querySelector("#products").removeAttribute("aria-busy");
-  document.querySelector("#products").innerHTML = `<div class="loadingMsg">Couldn't load products. Check SCRIPT_URL is set correctly in index.html.</div>`;
+/* ================== Deal-of-the-week product picker ==================
+   Renders a checkbox list from the live products list so the Deal
+   card can be tied to one or MORE real catalog products (their sizes,
+   stock, and add-to-cart flow) instead of standing on its own or
+   being limited to a single item. Selections are tracked in
+   `dealSelectedIds` (an array of string ids) so they survive a
+   products refresh (loadAll -> render -> populateDealProductSelect).
+======================================================================= */
+function populateDealProductSelect(){
+ const wrap = document.querySelector("#dealProductPicker");
+ if(!wrap) return;
+ // If checkboxes already exist, capture whatever is currently checked
+ // first, so an in-progress selection isn't lost on a refresh.
+ const existingChecked = wrap.querySelectorAll("input[type=checkbox]").length
+  ? Array.from(wrap.querySelectorAll("input[type=checkbox]:checked")).map(i=>i.value)
+  : null;
+ if(existingChecked) dealSelectedIds = existingChecked;
+
+ if(!products.length){
+  wrap.innerHTML = `<div class="pickerEmpty">No products yet — add one first.</div>`;
+  updateDealSelectedCount();
   return;
  }
- productsLoaded = true;
- const beforeCount = cart.length;
- cart = cart.filter(i => products.some(p => p.id === i.id));
- if(cart.length !== beforeCount) save();
- categories();renderProducts();updateCart();renderNewArrivals();
+ const selectedSet = new Set(dealSelectedIds.map(String));
+ wrap.innerHTML = products.map(p=>`
+  <label>
+   <input type="checkbox" value="${p.id}" ${selectedSet.has(String(p.id))?"checked":""} onchange="updateDealSelectedCount()">
+   ${escapeHtml(p.name)} <span style="color:var(--muted)">(${escapeHtml(p.sku||'')})</span>
+  </label>
+ `).join("");
+ updateDealSelectedCount();
+}
+function getSelectedDealProductIds(){
+ const wrap = document.querySelector("#dealProductPicker");
+ if(!wrap) return [];
+ return Array.from(wrap.querySelectorAll("input[type=checkbox]:checked")).map(i=>i.value);
+}
+function updateDealSelectedCount(){
+ const n = getSelectedDealProductIds().length;
+ const el = document.querySelector("#dl_selectedCount");
+ if(el) el.textContent = n ? `— ${n} selected` : "";
 }
 
-/* ================== FIX APPLIED HERE ==================
-   Previously this used JSON.stringify(c) directly inside a
-   double-quoted onclick="" attribute. For any category name,
-   JSON.stringify wraps it in double quotes too, which prematurely
-   terminated the onclick attribute (browsers stop at the first
-   unescaped "). The result was a broken/incomplete function call
-   (selectCategory() never actually ran with the right argument),
-   so clicking a category chip never changed `category` and the
-   grid kept showing every product.
-   Fix: escape the quotes JSON.stringify adds to &quot; before
-   inserting into the attribute — the same fix already used for the
-   cart's quantity buttons in updateCart() below.
+function renderOrders(){
+ const rows = document.querySelector("#orderRows");
+ document.querySelector("#orderCountLabel").textContent = `(${orders.length})`;
+ document.querySelector("#emptyOrders").style.display = orders.length ? "none" : "block";
+ rows.innerHTML = orders.map(o=>{
+  let items=[]; try{items=JSON.parse(o.items||"[]")}catch(e){}
+  const when = o.timestamp ? new Date(o.timestamp).toLocaleString() : "";
+  return `<tr>
+   <td>${when}</td>
+   <td><span class="skuTag">${escapeHtml(o.orderId||"")}</span></td>
+   <td>${escapeHtml(o.name||"")}<br><small style="color:var(--muted)">${escapeHtml(o.phone||"")}</small></td>
+   <td>${items.map(i=>`${i.qty}× ${escapeHtml(i.name)}${i.color?` (${escapeHtml(i.color)})`:""}`).join("<br>")}</td>
+   <td>${money(o.total||0)}</td>
+   <td><span class="statusTag">${escapeHtml(o.status||"New")}</span></td>
+  </tr>`;
+ }).join("");
+}
+
+function renderChatSessions(){
+ const rows = document.querySelector("#chatRows");
+ document.querySelector("#chatCountLabel").textContent = `(${chatSessions.length})`;
+ document.querySelector("#emptyChat").style.display = chatSessions.length ? "none" : "block";
+ const totalUnread = chatSessions.reduce((s,c)=>s+(c.unread||0),0);
+ const dot = document.querySelector("#chatTabDot");
+ if(totalUnread>0){ dot.style.display="grid"; dot.textContent = totalUnread>9?"9+":totalUnread; }
+ else dot.style.display="none";
+
+ rows.innerHTML = chatSessions.map(c=>`
+  <tr class="chatSessionRow" onclick="openChatThread('${c.sessionId}')">
+   <td><b>${escapeHtml(c.name)||"Anonymous visitor"}</b>${c.phone?`<br><small style="color:var(--muted)">${escapeHtml(c.phone)}</small>`:""}</td>
+   <td style="max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(c.lastText)}</td>
+   <td>${c.lastTime ? new Date(c.lastTime).toLocaleString() : ""}</td>
+   <td>${c.unread>0 ? `<span class="unreadTag">${c.unread} new</span>` : `<span class="statusTag">Replied</span>`}</td>
+  </tr>`).join("");
+}
+async function openChatThread(sessionId){
+ activeChatSessionId = sessionId;
+ const session = chatSessions.find(c=>c.sessionId===sessionId);
+ document.querySelector("#chatModalName").textContent = (session && session.name) || "Customer";
+ document.querySelector("#chatModalPhone").textContent = (session && session.phone) || "";
+ document.querySelector("#chatThread").innerHTML = `<div style="text-align:center;color:var(--muted);font-size:12.5px;padding:20px">Loading…</div>`;
+ document.querySelector("#chatModal").classList.add("open");
+ await loadChatThread(sessionId);
+}
+async function loadChatThread(sessionId){
+ try{
+  const res = await fetch(`${SCRIPT_URL}?action=chatMessages&sessionId=${encodeURIComponent(sessionId)}`);
+  const data = await res.json();
+  const el = document.querySelector("#chatThread");
+  const msgs = data.messages || [];
+  el.innerHTML = msgs.length
+   ? msgs.map(m=>`<div class="chatBubble ${m.from}"><span>${escapeHtml(m.text)}</span><small>${m.time||""}</small></div>`).join("")
+   : `<div style="text-align:center;color:var(--muted);font-size:12.5px;padding:20px">No messages yet.</div>`;
+  el.scrollTop = el.scrollHeight;
+ }catch(err){
+  document.querySelector("#chatThread").innerHTML = `<div style="text-align:center;color:var(--muted);font-size:12.5px;padding:20px">Couldn't load messages.</div>`;
+ }
+}
+function closeChatThread(){
+ document.querySelector("#chatModal").classList.remove("open");
+ activeChatSessionId = null;
+ refreshChatSessions();
+}
+async function sendStaffReply(e){
+ e.preventDefault();
+ const input = document.querySelector("#chatReplyInput");
+ const text = input.value.trim();
+ if(!text || !activeChatSessionId) return;
+ input.value="";
+ try{
+  await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"sendChatMessage",key:ADMIN_KEY,sessionId:activeChatSessionId,message:text})});
+  await loadChatThread(activeChatSessionId);
+ }catch(err){
+  toast("Couldn't send — check your connection and try again.");
+ }
+}
+
+function nextId(){
+ return products.length ? Math.max(...products.map(p=>p.id))+1 : 1;
+}
+
+/* ================== SKU generation ==================
+   "SS-" prefix + 6-digit zero-padded number (e.g. SS-000001,
+   SS-000002, ... SS-000354). Always one higher than the
+   highest existing SKU number, so it keeps counting up
+   correctly even after deletions, regardless of how many
+   products currently exist.
 ======================================================= */
-function categories(){
- const cats=["All",...new Set(products.map(p=>p.category))];
- document.querySelector("#categories").innerHTML=cats.map(c=>{
-  const arg = JSON.stringify(c).replace(/"/g,"&quot;");
-  return `<button class="chip ${c===category?"active":""}" onclick="selectCategory(${arg})">${escapeHtml(c)}</button>`;
- }).join("");
+function generateSku(category, excludeId){
+ const used = products.filter(p=>p.id!==excludeId && p.sku);
+ let max = 0;
+ used.forEach(p=>{
+  const digits = String(p.sku).replace(/\D/g,"");
+  const n = parseInt(digits, 10);
+  if(!isNaN(n) && n>max) max = n;
+ });
+ return "SS-" + String(max+1).padStart(6,"0");
 }
-function selectCategory(c){ category=c; page=1; categories(); renderProducts(); }
-function getFilteredList(){
- const q=document.querySelector("#search").value.toLowerCase();
- let list=products.filter(p=>
-  (category==="All"||p.category===category) &&
-  (p.name.toLowerCase().includes(q) || (p.sku||"").toLowerCase().includes(q))
- );
- if(imageMatch){
-  list=list.slice().sort((a,b)=>colorDistance(a.color,imageMatch)-colorDistance(b.color,imageMatch));
- }else{
-  if(sortMode==="low")list.sort((a,b)=>a.price-b.price);
-  if(sortMode==="high")list.sort((a,b)=>b.price-a.price);
-  if(sortMode==="new")list.sort((a,b)=>Number(b.new)-Number(a.new));
+function onNameOrCatChange(){
+ const cat = document.querySelector("#f_category").value.trim() || "GEN";
+ document.querySelector("#f_sku").value = generateSku(cat, editingId);
+}
+function regenerateSku(){ onNameOrCatChange(); }
+function updateImgPreview(){ document.querySelector("#f_preview").src = document.querySelector("#f_image").value.trim(); }
+function syncColorHex(){
+ let v = document.querySelector("#f_colorHex").value.trim();
+ if(/^#[0-9a-fA-F]{6}$/.test(v)) document.querySelector("#f_color").value = v;
+}
+function onMainColorNameChange(){
+ renderStockGrid();
+ if(f_colorTouched) return;
+ const hex = colorNameToHex(document.querySelector("#f_colorName").value.trim());
+ if(hex){
+  document.querySelector("#f_color").value = hex;
+  document.querySelector("#f_colorHex").value = hex;
  }
- return list;
 }
-function starRow(rating){
- if(!rating) return "";
- const r = Math.max(0,Math.min(5,Number(rating)));
- const full = Math.round(r);
- return `<div class="ratingRow"><span class="stars">${"★".repeat(full)}${"☆".repeat(5-full)}</span><span>${r.toFixed(1)}</span></div>`;
+function toggleUrlField(){
+ const urlField = document.querySelector("#f_image");
+ const showing = urlField.style.display !== "none";
+ urlField.style.display = showing ? "none" : "block";
+ document.querySelector("#urlToggle").textContent = showing ? "or paste an image URL instead" : "hide URL field";
 }
-function cardHTML(p){
- const sizes=(p.sizes||"").split(",").map(s=>s.trim()).filter(Boolean);
- const discount = p.old && p.old>p.price ? Math.round((1-p.price/p.old)*100) : 0;
- const hasColor = !!p.color;
- const hasDesc = !!p.description;
- const metaRow = (hasColor||hasDesc) ? `<div class="cardMeta">${hasColor?`<span class="cardColorDot" style="background:${escapeHtml(p.color)}"></span>`:""}${hasDesc?`<span class="cardDesc">${escapeHtml(p.description)}</span>`:""}</div>` : "";
- const outOfStock = !productHasAnyStock(p);
- return `<a href="/product/${p.id}" class="product ${outOfStock?'outOfStock':''}" onclick="event.preventDefault();openProduct(${p.id})">
-  <div class="productImg">
-   <img src="${p.image}" alt="${escapeHtml(p.name)}" loading="lazy" onerror="this.style.display='none'">
-   ${outOfStock?`<span class="outBadge">${TEXT.outOfStock}</span>`:(p.new?'<span class="bestBadge">BEST</span>':'')}
-   ${(!outOfStock && discount>0)?`<span class="sale" style="left:auto;right:12px">${discount}% OFF</span>`:''}
-  </div>
-  <div class="productInfo">
-   <h3>${escapeHtml(p.name)}</h3>
-   <p>${escapeHtml(p.category)}${sizes.length?` · ${sizes.length} sizes`:""}</p>
-   ${p.sku?`<span class="cardSku">SKU: ${escapeHtml(p.sku)}</span>`:""}
-   ${starRow(p.rating)}
-   <div class="priceRow"><span class="price">${money(p.price)}</span>${p.old?`<span class="old">${money(p.old)}</span><span class="discPct">-${Math.round((1-p.price/p.old)*100)}%</span>`:""}</div>
-   ${metaRow}
-   <button class="add cardAddBtn" ${outOfStock?'disabled':''} onclick="event.stopPropagation();openProduct(${p.id})">${outOfStock?TEXT.outOfStock:(sizes.length?TEXT.selectSize:TEXT.addToCart)}</button>
-  </div>
- </a>`;
+function clampRating(){
+ const el = document.querySelector("#f_rating");
+ if(el.value==="") return;
+ let v = Number(el.value);
+ if(isNaN(v)) { el.value=""; return; }
+ v = Math.max(0, Math.min(5, v));
+ el.value = v;
 }
 
-let pdProduct=null, pdSize=null, pdQty=1, pdVariantIdx=0;
-function openProduct(id){
- const p = products.find(x=>x.id===id);
- if(!p) return;
- pdProduct=p; pdQty=1; pdVariantIdx=0;
- const sizes = (p.sizes||"").split(",").map(s=>s.trim()).filter(Boolean);
- // default to the first size that's actually in stock, if any are tracked
- pdSize = sizes.find(s=>!isCombinationOut(p,0,s)) || sizes[0] || null;
- renderProductDetail();
- document.querySelector("#productModal").classList.add("open");
+function averageColorOf(img){
+ const c = document.createElement("canvas"); c.width=30; c.height=30;
+ const ctx = c.getContext("2d");
+ const sw = img.naturalWidth || img.width, sh = img.naturalHeight || img.height;
+ const cropW = sw*0.5, cropH = sh*0.5;
+ const sx = (sw-cropW)/2, sy = (sh-cropH)/2;
+ ctx.drawImage(img, sx, sy, cropW, cropH, 0, 0, 30, 30);
+ const data = ctx.getImageData(0,0,30,30).data;
+ let r=0,g=0,b=0,n=0;
+ for(let i=0;i<data.length;i+=4){ r+=data[i]; g+=data[i+1]; b+=data[i+2]; n++; }
+ r=Math.round(r/n); g=Math.round(g/n); b=Math.round(b/n);
+ return "#"+[r,g,b].map(v=>v.toString(16).padStart(2,"0")).join("");
 }
-function closeProduct(){ document.querySelector("#productModal").classList.remove("open"); }
-function openZoom(src){
- document.querySelector("#zoomImg").src = src;
- document.querySelector("#zoomModal").classList.add("open");
-}
-function closeZoom(){ document.querySelector("#zoomModal").classList.remove("open"); }
-document.addEventListener("keydown", e=>{
- if(e.key !== "Escape") return;
- if(document.querySelector("#zoomModal").classList.contains("open")) closeZoom();
- else if(document.querySelector("#productModal").classList.contains("open")) closeProduct();
- else if(document.querySelector("#dealPage").style.display !== "none") closeDealPage();
- else if(document.querySelector("#checkout").classList.contains("open")) closeCheckout();
- else if(document.querySelector("#returnsModal").classList.contains("open")) closeReturns();
- else if(document.querySelector("#orderSuccessModal").classList.contains("open")) closeOrderSuccess();
- else if(document.querySelector("#returnSuccessModal").classList.contains("open")) closeReturnSuccess();
- else if(document.querySelector("#accountModal").classList.contains("open")) closeAccount();
- else if(document.querySelector("#drawer").classList.contains("open")) closeCart();
-});
-function pdChangeQty(n){
- const max = stockQtyFor(pdProduct, pdVariantIdx, pdSize);
- let next = pdQty+n;
- next = Math.max(1, next);
- if(max!==null) next = Math.min(next, Math.max(1,max));
- pdQty = next;
- renderProductDetail();
-}
-function pdPickSize(s){
- if(isCombinationOut(pdProduct, pdVariantIdx, s)) return; // guard even if a disabled button is somehow clicked
- pdSize=s; pdQty=1; renderProductDetail();
-}
-function pdPickVariant(i){
- pdVariantIdx=i; pdQty=1;
- const sizes = (pdProduct.sizes||"").split(",").map(s=>s.trim()).filter(Boolean);
- if(sizes.length && isCombinationOut(pdProduct, i, pdSize)){
-  const alt = sizes.find(s=>!isCombinationOut(pdProduct,i,s));
-  pdSize = alt || pdSize;
- }
- renderProductDetail();
-}
-function pdSwatches(p){
- return [{colorName:"", color:p.color||"#cccccc", image:p.image}, ...(Array.isArray(p.variants)?p.variants:[])];
-}
-function pdAddToCart(){
- if(!pdProduct) return;
- const sizes = (pdProduct.sizes||"").split(",").map(s=>s.trim()).filter(Boolean);
- if(sizes.length && !pdSize){ toast(TEXT.selectAvailableSize); return; }
- if(isCombinationOut(pdProduct, pdVariantIdx, pdSize)){ toast(TEXT.outOfStock); return; }
- const swatches = pdSwatches(pdProduct);
- const chosen = swatches[pdVariantIdx] || swatches[0];
- const color = chosen.colorName || (pdVariantIdx>0 ? chosen.color : "") || "";
- const max = stockQtyFor(pdProduct, pdVariantIdx, pdSize);
- const x=cart.find(i=>i.id===pdProduct.id && i.size===pdSize && (i.color||"")===color);
- const already = x ? x.qty : 0;
- if(max!==null && already+pdQty>max){
-  toast(max-already>0 ? TEXT.onlyLeft.replace("{n}", max-already) : TEXT.outOfStock);
-  return;
- }
- if(x)x.qty+=pdQty;else cart.push({id:pdProduct.id,qty:pdQty,size:pdSize,color,image:chosen.image||pdProduct.image});
- save();toast("Added to cart");closeProduct();
-}
-function renderProductDetail(){
- const p = pdProduct;
- const sizes = (p.sizes||"").split(",").map(s=>s.trim()).filter(Boolean);
- const suggestPool = products.filter(x=>x.id!==p.id && x.category===p.category);
- const suggestions = (suggestPool.length?suggestPool:products.filter(x=>x.id!==p.id)).slice().sort(()=>Math.random()-.5).slice(0,4);
- const swatches = pdSwatches(p);
- const current = swatches[pdVariantIdx] || swatches[0];
- const shownImage = current.image || p.image;
- const colorBlock = swatches.length > 1
-  ? `<div class="pdBlock"><label>Color</label><div class="pdColorRow">${swatches.map((v,i)=>{
-      const colorOut = sizes.length ? sizes.every(s=>isCombinationOut(p,i,s)) : isCombinationOut(p,i,null);
-      return `<button class="pdSwatch ${i===pdVariantIdx?'active':''} ${colorOut?'swatchOut':''}" style="background:${v.color||'#ccc'}" title="${escapeHtml(v.colorName||'')}${colorOut?' — '+TEXT.outOfStock:''}" onclick="pdPickVariant(${i})"></button>`;
-     }).join("")}</div>${current.colorName?`<div class="pdColorLabel">${escapeHtml(current.colorName)}</div>`:""}</div>`
-  : `<div class="pdBlock"><label>Color</label><div class="pdColor"><span class="pdColorDot" style="background:${p.color||'#ccc'}"></span><span>${escapeHtml(p.color||"")}</span></div></div>`;
- const curQty = stockQtyFor(p, pdVariantIdx, pdSize);
- const combinationOut = sizes.length ? (pdSize ? isCombinationOut(p, pdVariantIdx, pdSize) : true) : isCombinationOut(p, pdVariantIdx, null);
- let stockMsgHtml = "";
- if(combinationOut){
-  stockMsgHtml = `<div class="stockMsg out">${TEXT.outOfStock}</div>`;
- }else if(curQty!==null && curQty<=5){
-  stockMsgHtml = `<div class="stockMsg low">${TEXT.onlyLeft.replace("{n}",curQty)}</div>`;
- }
- const suggestBlock = `
-   <div class="pdSuggest">
-    <div class="eyebrow">You might also like</div>
-    <h3>Suggested for you</h3>
-    <div class="pdSuggestGrid">${suggestions.map(s=>`<article class="product" onclick="openProduct(${s.id})"><div class="productImg"><img src="${s.image}" alt="${escapeHtml(s.name)}" loading="lazy" onerror="this.style.display='none'"></div><div class="productInfo"><h3>${escapeHtml(s.name)}</h3><p>${escapeHtml(s.category)}</p><span class="price">${money(s.price)}</span></div></article>`).join("")}</div>
-   </div>`;
- document.querySelector("#productModalContent").innerHTML = `
-  <div class="pdWrap">
-   <div class="pdImg"><img src="${shownImage}" alt="${escapeHtml(p.name)}" onerror="this.style.display='none'" onclick="openZoom(this.src)"><button class="zoomBtn" onclick="event.stopPropagation();openZoom('${shownImage}')" aria-label="Zoom photo" title="Zoom in">🔍</button></div>
-   <div class="pdInfo">
-    <div class="eyebrow">
-     <span>${escapeHtml(p.category)}</span>
-    </div>
-    <h2>${escapeHtml(p.name)}</h2>
-    ${p.sku?`<span class="cardSku" style="margin-bottom:10px">SKU: ${escapeHtml(p.sku)}</span>`:""}
-    ${starRow(p.rating)}
-    <div class="pdPrice">${money(p.price)}${p.old?`<span class="old">${money(p.old)}</span>`:""}</div>
-    ${p.description?`<p class="pdDesc">${escapeHtml(p.description)}</p>`:""}
-    ${colorBlock}
-    ${sizes.length?`<div class="pdBlock"><label>Size</label><div class="sizeRow">${sizes.map(s=>{
-       const sOut = isCombinationOut(p, pdVariantIdx, s);
-       return `<button class="sizeBtn ${s===pdSize?'active':''} ${sOut?'sizeOut':''}" ${sOut?'disabled':''} onclick="pdPickSize('${escapeHtml(s)}')">${escapeHtml(s)}</button>`;
-      }).join("")}</div></div>`:""}
-    ${stockMsgHtml}
-    <div class="pdBlock">
-     <label>Quantity</label>
-     <div class="pdQty"><button onclick="pdChangeQty(-1)" ${combinationOut?'disabled':''}>−</button><b>${pdQty}</b><button onclick="pdChangeQty(1)" ${combinationOut || (curQty!==null && pdQty>=curQty) ?'disabled':''}>+</button></div>
-    </div>
-    <button class="add" ${combinationOut?'disabled':''} onclick="pdAddToCart()">${combinationOut?TEXT.outOfStock:'Add to cart'}</button>
-   </div>
-   ${suggestBlock}
-  </div>`;
-}
-function renderProducts(){
- if(!productsLoaded) return;
- document.querySelector("#products").removeAttribute("aria-busy");
- const list=getFilteredList();
- const totalPages=totalPagesFor(list.length);
- if(page>totalPages)page=totalPages;
- const {start,end}=pageBounds(page);
- const pageItems=list.slice(start,end);
- document.querySelector("#resultText").textContent=`${list.length} product${list.length!==1?"s":""}`;
- renderProductBlocks(pageItems);
- renderPagination(totalPages);
-}
-function renderProductBlocks(pageItems){
- const el = document.querySelector("#products");
- if(!pageItems.length){
-  el.innerHTML = `<div class="empty" style="grid-column:1/-1">No products found.</div>`;
-  return;
- }
- const cards = pageItems.map(cardHTML);
- // Promo tile only on page 1 — page 2+ is products only, per request.
- if(page===1){
-  const midBanner = midBannerHTML();
-  if(midBanner && cards.length>8){
-   cards.splice(8,0,midBanner);
-  }
- }
- el.innerHTML = cards.join("");
-}
-function midBannerHTML(){
- if(!siteSettings.midBannerImage) return "";
- const link = siteSettings.midBannerLink || "#shop";
- const text = siteSettings.midBannerText || "";
- return `<a class="midBanner" href="${escapeHtml(link)}">
-  <img src="${siteSettings.midBannerImage}" alt="Promotion" loading="lazy" onerror="this.style.display='none'">
-  ${text?`<span class="midBannerText">${escapeHtml(text)}</span>`:""}
- </a>`;
-}
-function renderPagination(totalPages){
- const el=document.querySelector("#pagination");
- if(totalPages<=1){el.innerHTML="";return}
- let html=`<button class="pageBtn" ${page===1?"disabled":""} onclick="goToPage(${page-1})">←</button>`;
- for(let i=1;i<=totalPages;i++){
-  html+=`<button class="pageBtn ${i===page?"active":""}" onclick="goToPage(${i})">${i}</button>`;
- }
- html+=`<button class="pageBtn" ${page===totalPages?"disabled":""} onclick="goToPage(${page+1})">→</button>`;
- el.innerHTML=html;
-}
-function goToPage(n){page=n;renderProducts();document.querySelector("#shop").scrollIntoView({behavior:"smooth",block:"start"})}
-function colorDistance(hexA,hexB){
- const a=hexToRgb(hexA),b=hexToRgb(hexB);
- return Math.sqrt((a[0]-b[0])**2+(a[1]-b[1])**2+(a[2]-b[2])**2);
-}
-function hexToRgb(hex){
- const h=(hex||"#cccccc").replace("#","");
- return [parseInt(h.substring(0,2),16),parseInt(h.substring(2,4),16),parseInt(h.substring(4,6),16)];
-}
-function searchByImage(file){
- if(!file)return;
- const reader=new FileReader();
- reader.onload=e=>{
-  const img=new Image();
-  img.onload=()=>{
-   const c=document.createElement("canvas");c.width=30;c.height=30;
-   const ctx=c.getContext("2d");ctx.drawImage(img,0,0,30,30);
-   const data=ctx.getImageData(0,0,30,30).data;
-   let r=0,g=0,b=0,n=0;
-   for(let i=0;i<data.length;i+=4){r+=data[i];g+=data[i+1];b+=data[i+2];n++}
-   r=Math.round(r/n);g=Math.round(g/n);b=Math.round(b/n);
-   imageMatch="#"+[r,g,b].map(v=>v.toString(16).padStart(2,"0")).join("");
-   page=1;
-   document.querySelector("#imgSearchBanner").style.display="flex";
-   renderProducts();
-   toast("Showing visually similar products");
+
+function resizeAndUploadImage_(file){
+ return new Promise((resolve, reject)=>{
+  const reader = new FileReader();
+  reader.onload = e => {
+   const img = new Image();
+   img.onload = async () => {
+    let w = img.width, h = img.height;
+    if(w > MAX_UPLOAD_DIM || h > MAX_UPLOAD_DIM){
+     const scale = MAX_UPLOAD_DIM / Math.max(w,h);
+     w = Math.round(w*scale); h = Math.round(h*scale);
+    }
+    const canvas = document.createElement("canvas");
+    canvas.width = w; canvas.height = h;
+    canvas.getContext("2d").drawImage(img,0,0,w,h);
+    const dataUrl = canvas.toDataURL("image/jpeg",0.85);
+    const base64 = dataUrl.split(",")[1];
+    const color = averageColorOf(img);
+    try{
+     const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({
+      action:"uploadImage", key:ADMIN_KEY, data:base64,
+      filename:(file.name||"product").replace(/[^a-zA-Z0-9.\-_]/g,"_"),
+      mimeType:"image/jpeg"
+     })});
+     const data = await res.json();
+     if(!data.success) throw new Error(data.error || "upload failed");
+     resolve({url:data.url, color});
+    }catch(err){ reject(err); }
+   };
+   img.src = e.target.result;
   };
-  img.src=e.target.result;
- };
- reader.readAsDataURL(file);
-}
-function clearImageSearch(){
- imageMatch=null;
- document.querySelector("#imgSearchBanner").style.display="none";
- document.querySelector("#imageSearchInput").value="";
- page=1;
- renderProducts();
-}
-function addToCart(id){const x=cart.find(i=>i.id===id && !i.size && !i.color);if(x)x.qty++;else cart.push({id,qty:1,size:null,color:""});save();toast("Added to cart")}
-function changeQty(id,size,color,n){const x=cart.find(i=>i.id===id && i.size===size && (i.color||"")===(color||""));if(!x)return;x.qty+=n;if(x.qty<=0)cart=cart.filter(i=>i!==x);save()}
-function removeItem(id,size,color){cart=cart.filter(i=>!(i.id===id && i.size===size && (i.color||"")===(color||"")));save()}
-function updateCart(){
- const count=cart.reduce((s,i)=>s+i.qty,0);document.querySelector("#cartCount").textContent=count;
- const el=document.querySelector("#cartItems");
- if(!cart.length){el.innerHTML='<div class="empty">Your cart is empty.<br><br><a class="btn" href="#shop" onclick="closeCart();closeDealPage()">Start shopping</a></div>';}
- else el.innerHTML=cart.map(i=>{
-  const p=products.find(x=>x.id===i.id);if(!p)return "";
-  const img=i.image||p.image;
-  const meta=[i.color,i.size].filter(Boolean).join(" · ");
-  /* FIX: escape the quote characters JSON.stringify adds, so they don't
-     terminate the double-quoted onclick="" attribute they're placed in. */
-  const sizeArg=i.size?JSON.stringify(i.size).replace(/"/g,"&quot;"):null, colorArg=i.color?JSON.stringify(i.color).replace(/"/g,"&quot;"):null;
-  return `<div class="cartItem"><img src="${img}" alt="" onerror="this.style.display='none'"><div><h4>${escapeHtml(p.name)}${meta?` <small style="color:var(--muted)">(${escapeHtml(meta)})</small>`:""}</h4><small>${money(p.price)}</small><div class="qty"><button onclick="changeQty(${p.id},${sizeArg},${colorArg},-1)">−</button><b>${i.qty}</b><button onclick="changeQty(${p.id},${sizeArg},${colorArg},1)">+</button></div><button class="remove" onclick="removeItem(${p.id},${sizeArg},${colorArg})">Remove</button></div><b>${money(p.price*i.qty)}</b></div>`;
- }).join("");
- const sub=cart.reduce((s,i)=>{const p=products.find(x=>x.id===i.id);return p?s+p.price*i.qty:s},0);
- const deliveryFee = computeDeliveryFee(sub);
- document.querySelector("#subtotal").textContent=money(sub);document.querySelector("#total").textContent=money(sub+deliveryFee);
- document.querySelector("#delivery").textContent = sub<=0 ? "Rs. 0" : (deliveryFee>0 ? money(deliveryFee) : "Free");
- renderDeliveryProgress(sub);
-}
-/* ================== Delivery fee logic ==================
-   deliveryThreshold/deliveryCharge come from the admin Delivery
-   tab (loaded via loadDelivery() below) rather than being hardcoded.
-   - charge <= 0 (or unset)            → always free
-   - threshold <= 0 (or unset) + charge set → every order is charged
-   - both set                          → free at/above threshold, charged below it
-================================================================= */
-function computeDeliveryFee(sub){
- if(sub<=0) return 0;
- if(!deliveryCharge || deliveryCharge<=0) return 0;
- if(!deliveryThreshold || deliveryThreshold<=0) return deliveryCharge;
- return sub>=deliveryThreshold ? 0 : deliveryCharge;
-}
-function renderDeliveryProgress(sub){
- const wrap=document.querySelector("#deliveryProgressWrap");
- if(!sub || !deliveryCharge || deliveryCharge<=0 || !deliveryThreshold || deliveryThreshold<=0){ wrap.innerHTML=""; return; }
- if(sub>=deliveryThreshold){
-  wrap.innerHTML=`<div class="deliveryProgress">🚚 ${TEXT.freeDeliveryUnlocked}</div>`;
- }else{
-  const remaining = deliveryThreshold - sub;
-  const pct = Math.min(100, Math.round(sub/deliveryThreshold*100));
-  wrap.innerHTML=`<div class="deliveryProgress"><b>${money(remaining)}</b> ${TEXT.freeDeliveryHint}<div class="progressTrack"><div class="progressFill" style="width:${pct}%"></div></div></div>`;
- }
-}
-function openCart(){document.querySelector("#drawer").classList.add("open");updateCart()}
-function closeCart(){document.querySelector("#drawer").classList.remove("open")}
-function openCheckout(){
- if(!cart.length){toast("Your cart is empty");return}
- /* Guard against stale carts: strip anything that's since sold out
-    (stock can change between when an item was added and checkout). */
- const before = cart.length;
- cart = cart.filter(i=>{
-  const p = products.find(x=>x.id===i.id);
-  if(!p) return false;
-  const variantIdx = (Array.isArray(p.variants) ? p.variants.findIndex(v=>(v.colorName||"")===(i.color||"")) : -1) + 1;
-  return !isCombinationOut(p, variantIdx, i.size||null);
+  reader.readAsDataURL(file);
  });
- if(cart.length !== before){
-  save();
-  toast("Some items in your cart just sold out and were removed");
- }
- if(!cart.length){ closeCart(); return; }
- closeCart();document.querySelector("#checkoutSummary").innerHTML=`<div style="background:var(--soft);padding:14px;border-radius:14px;margin-bottom:18px"><b>${cart.reduce((s,i)=>s+i.qty,0)} items</b> · Total ${document.querySelector("#total").textContent}</div>`;
- // Prefill email for signed-in customers so their order shows up under
- // "My account" (order history is matched by email, not a customer ID).
- if(session) document.querySelector('#checkoutForm [name="email"]').value = session.email;
- document.querySelector("#checkout").classList.add("open")
-}
-function closeCheckout(){document.querySelector("#checkout").classList.remove("open")}
-
-function generateOrderId(){
- const digits = Math.floor(100000 + Math.random()*900000);
- return `SS${digits}NP`;
 }
 
-async function placeOrder(e){
- e.preventDefault();
- const btn = document.querySelector("#placeOrderBtn");
- const form = new FormData(e.target);
- // Final stock guard right before submitting, in case something sold out
- // while the checkout form was open.
- const soldOut = cart.filter(i=>{
-  const p = products.find(x=>x.id===i.id);
-  if(!p) return true;
-  const variantIdx = (Array.isArray(p.variants) ? p.variants.findIndex(v=>(v.colorName||"")===(i.color||"")) : -1) + 1;
-  return isCombinationOut(p, variantIdx, i.size||null);
+function handleImageUpload(file){
+ if(!file) return;
+ const status = document.querySelector("#uploadStatus");
+ status.classList.remove("err");
+ status.textContent = "Uploading…";
+ resizeAndUploadImage_(file).then(({url,color})=>{
+  if(!f_colorTouched){
+   document.querySelector("#f_colorHex").value = color;
+   document.querySelector("#f_color").value = color;
+  }
+  document.querySelector("#f_image").value = url;
+  updateImgPreview();
+  status.textContent = "Uploaded ✓ — double-check the color swatch matches the photo";
+  setTimeout(()=>{ if(status.textContent.indexOf("Uploaded")===0) status.textContent=""; }, 4000);
+ }).catch(()=>{
+  status.classList.add("err");
+  status.textContent = "Couldn't upload — try again or paste a URL instead.";
  });
- if(soldOut.length){
-  cart = cart.filter(i=>!soldOut.includes(i));
-  save();
-  toast("Sorry, an item in your cart just sold out — please review your cart");
-  closeCheckout();
+}
+
+function renderVariantRows(){
+ const el = document.querySelector("#variantList");
+ if(!formVariants.length){
+  el.innerHTML = "";
   return;
  }
- const sub=cart.reduce((s,i)=>{const p=products.find(x=>x.id===i.id);return p?s+p.price*i.qty:s},0);
- const delivery = computeDeliveryFee(sub);
- const orderId = generateOrderId();
- const order = {
-  orderId,
-  name: form.get("name"), phone: form.get("phone"), email: form.get("email"), address: form.get("address"),
-  city: form.get("city"), payment: form.get("payment"),
-  items: cart.map(i=>{const p=products.find(x=>x.id===i.id);return {id:i.id,name:p?p.name:"", size:i.size||"", color:i.color||"", qty:i.qty, price:p?p.price:0};}),
-  subtotal: sub, delivery: delivery, total: sub+delivery
- };
- btn.disabled = true; btn.textContent = "Placing order…";
- try{
-  const res = await fetch(SCRIPT_URL, {
-   method: "POST",
-   body: JSON.stringify({ action: "placeOrder", order })
-  });
-  const data = await res.json();
-  if(!data.success){
-   // Server-side stock check (Code.gs) rejected this order — the
-   // definitive check, since it reads live sheet data rather than
-   // whatever the browser had cached. Drop the flagged items and let
-   // the customer retry with what's left.
-   if(Array.isArray(data.outOfStock) && data.outOfStock.length){
-    const badKeys = new Set(data.outOfStock.map(o=>o.id+"|"+(o.size||"")+"|"+(o.color||"")));
-    cart = cart.filter(i=>!badKeys.has(i.id+"|"+(i.size||"")+"|"+(i.color||"")));
-    save();
-    closeCheckout();
-    toast("Sorry, some items just sold out and were removed from your cart");
-    return;
-   }
-   throw new Error(data.error || "failed");
+ el.innerHTML = formVariants.map((v,i)=>`
+  <div class="variantRow">
+   <img class="variantThumb" src="${v.image||''}" alt="" onerror="this.style.opacity='.3'">
+   <div class="variantCol">
+    <div class="variantNameRow">
+     <input type="color" value="${v.color||'#cccccc'}" oninput="setVariantColor(${i},this.value)">
+     <input type="text" placeholder="Color name, e.g. Black/White" value="${(v.colorName||'').replace(/"/g,'&quot;')}" oninput="setVariantName(${i},this.value)">
+    </div>
+    <div class="variantActionsRow">
+     <input type="file" accept="image/*" style="display:none" id="variantFile${i}" onchange="handleVariantUpload(${i},this.files[0])">
+     <button type="button" class="btn light sm" onclick="document.querySelector('#variantFile${i}').click()">📷 Upload photo</button>
+     <span class="variantUploadStatus" id="variantStatus${i}"></span>
+    </div>
+   </div>
+   <button type="button" class="variantRemove" title="Remove this color" onclick="removeVariantRow(${i})">✕</button>
+  </div>`).join("");
+}
+function addVariantRow(){
+ formVariants.push({colorName:"", color:"#cccccc", image:"", colorTouched:false});
+ renderVariantRows();
+ renderStockGrid();
+}
+function removeVariantRow(i){
+ formVariants.splice(i,1);
+ renderVariantRows();
+ renderStockGrid();
+}
+function setVariantColor(i,val){ formVariants[i].color = val; formVariants[i].colorTouched = true; }
+function setVariantName(i,val){
+ formVariants[i].colorName = val;
+ if(!formVariants[i].colorTouched){
+  const hex = colorNameToHex(val.trim());
+  if(hex){
+   formVariants[i].color = hex;
+   renderVariantRows(); // refresh swatch + keep focus/typing smooth since it's a full re-render
+   const nameInput = document.querySelectorAll(".variantNameRow input[type=text]")[i];
+   if(nameInput){ nameInput.focus(); nameInput.setSelectionRange(val.length, val.length); }
   }
-  cart=[];save();closeCheckout();e.target.reset();
-  openOrderSuccess(data.orderId || orderId);
- }catch(err){
-  toast("Couldn't place order — please try again.");
- }finally{
-  btn.disabled = false; btn.textContent = "Place order";
  }
+ renderStockGrid();
 }
-function openOrderSuccess(orderId){
- document.querySelector("#orderIdDisplay").textContent = orderId;
- document.querySelector("#orderSuccessModal").classList.add("open");
+function handleVariantUpload(i,file){
+ if(!file) return;
+ const status = document.querySelector(`#variantStatus${i}`);
+ if(status){ status.classList.remove("err"); status.textContent = "Uploading…"; }
+ resizeAndUploadImage_(file).then(({url,color})=>{
+  formVariants[i].image = url;
+  if(!formVariants[i].colorTouched) formVariants[i].color = color;
+  renderVariantRows();
+  if(status) status.textContent = "Uploaded ✓ — check the color swatch matches";
+ }).catch(()=>{
+  if(status){ status.classList.add("err"); status.textContent = "Couldn't upload — try again."; }
+ });
 }
-function closeOrderSuccess(){ document.querySelector("#orderSuccessModal").classList.remove("open"); }
 
-function openReturns(prefillId){
- closeProduct();closeCart();closeCheckout();
- if(prefillId) document.querySelector("#returnOrderId").value = prefillId;
- document.querySelector("#returnsModal").classList.add("open");
+/* ================== Stock grid (admin-only) ==================
+   Rows = sizes (parsed from the Sizes field, or a single "Qty"
+   row for products with no sizes). Columns = main color + each
+   variant. Values live in `currentStock` as {colorLabel:{size:qty}}
+   and are synced from the DOM before every re-render so nothing
+   is lost when you add/rename a variant or edit Sizes.
+================================================================= */
+function stockColumns(){
+ const cols = [{key:"main", label: document.querySelector("#f_colorName").value.trim() || "Main"}];
+ formVariants.forEach((v,i)=>{
+  cols.push({key:"v"+i, label: v.colorName.trim() || `Color ${i+2}`});
+ });
+ return cols;
 }
-function closeReturns(){ document.querySelector("#returnsModal").classList.remove("open"); }
-function openReturnSuccess(returnId){
- document.querySelector("#returnIdDisplay").textContent = returnId || "—";
- document.querySelector("#returnSuccessModal").classList.add("open");
+function stockSizes(){
+ const raw = document.querySelector("#f_sizes").value.trim();
+ if(!raw) return ["Qty"];
+ return raw.split(",").map(s=>s.trim()).filter(Boolean);
 }
-function closeReturnSuccess(){ document.querySelector("#returnSuccessModal").classList.remove("open"); }
-
-async function submitReturn(e){
- e.preventDefault();
- const btn = document.querySelector("#submitReturnBtn");
- const form = new FormData(e.target);
- const ret = {
-  orderId: (form.get("orderId")||"").toUpperCase().trim(),
-  name: form.get("name"), phone: form.get("phone"), email: form.get("email"),
-  address: form.get("address"),
-  reason: form.get("reason"), details: form.get("details")
- };
- btn.disabled = true; btn.textContent = "Submitting…";
- try{
-  const res = await fetch(SCRIPT_URL, {
-   method: "POST",
-   body: JSON.stringify({ action: "placeReturn", return: ret })
+function syncStockFromDom(){
+ const cols = stockColumns();
+ document.querySelectorAll("#stockGridWrap input").forEach(inp=>{
+  const col = inp.dataset.col, size = inp.dataset.size;
+  const label = (cols.find(c=>c.key===col)||{}).label || col;
+  const val = inp.value.trim();
+  if(!currentStock[label]) currentStock[label] = {};
+  if(val==="") delete currentStock[label][size];
+  else currentStock[label][size] = val;
+ });
+}
+function renderStockGrid(){
+ syncStockFromDom();
+ const cols = stockColumns();
+ const sizes = stockSizes();
+ const threshold = Number(document.querySelector("#f_lowThreshold").value)||0;
+ const wrap = document.querySelector("#stockGridWrap");
+ let html = "<table><thead><tr><th>Size</th>"+cols.map(c=>`<th>${escapeHtml(c.label)}</th>`).join("")+"</tr></thead><tbody>";
+ sizes.forEach(sz=>{
+  html += "<tr><td>"+escapeHtml(sz)+"</td>"+cols.map(c=>{
+   const existing = (currentStock[c.label] && currentStock[c.label][sz]!==undefined) ? currentStock[c.label][sz] : "";
+   return `<td><input type="number" min="0" data-col="${c.key}" data-size="${escapeHtml(sz)}" value="${existing}" oninput="applyStockCellClass(this,${threshold})"></td>`;
+  }).join("")+"</tr>";
+ });
+ html += "</tbody></table>";
+ wrap.innerHTML = html;
+ wrap.querySelectorAll("input").forEach(inp=>applyStockCellClass(inp,threshold));
+}
+function applyStockCellClass(inp,threshold){
+ inp.classList.remove("zero","low");
+ const val = inp.value.trim();
+ if(val==="") return;
+ const n = Number(val);
+ if(n<=0) inp.classList.add("zero");
+ else if(n<=threshold) inp.classList.add("low");
+}
+function collectStock(){
+ syncStockFromDom();
+ const out = {};
+ Object.keys(currentStock).forEach(label=>{
+  const sizes = currentStock[label];
+  const cleaned = {};
+  Object.keys(sizes).forEach(sz=>{
+   const n = Number(sizes[sz]);
+   if(sizes[sz]!=="" && !isNaN(n)) cleaned[sz]=n;
   });
+  if(Object.keys(cleaned).length) out[label]=cleaned;
+ });
+ return out;
+}
+
+function loadBannerIntoForm(settings){
+ document.querySelector("#bn_image").value = settings.bannerImage || "";
+ document.querySelector("#bn_link").value = settings.bannerLink || "";
+ document.querySelector("#bn_uploadStatus").textContent = "";
+ document.querySelector("#bn_uploadStatus").classList.remove("err");
+ updateBannerPreview();
+}
+function updateBannerPreview(){
+ const url = document.querySelector("#bn_image").value.trim();
+ document.querySelector("#bn_preview").src = url || "https://placehold.co/1600x500/eef6f2/182220?text=No+banner+set+yet";
+}
+function toggleBannerUrlField(){
+ const urlField = document.querySelector("#bn_image");
+ const showing = urlField.style.display !== "none";
+ urlField.style.display = showing ? "none" : "block";
+ document.querySelector("#bn_urlToggle").textContent = showing ? "or paste an image URL instead" : "hide URL field";
+}
+function handleBannerUpload(file){
+ if(!file) return;
+ const status = document.querySelector("#bn_uploadStatus");
+ status.classList.remove("err");
+ status.textContent = "Uploading…";
+ resizeAndUploadImage_(file).then(({url})=>{
+  document.querySelector("#bn_image").value = url;
+  updateBannerPreview();
+  status.textContent = "Uploaded ✓ — click Save banner to publish it";
+ }).catch(()=>{
+  status.classList.add("err");
+  status.textContent = "Couldn't upload — try again or paste a URL instead.";
+ });
+}
+async function saveBanner(){
+ const bannerImage = document.querySelector("#bn_image").value.trim();
+ const bannerLink = document.querySelector("#bn_link").value.trim();
+ if(!bannerImage){
+  toast("Upload or paste a banner image first");
+  return;
+ }
+ const btn = document.querySelector("#bn_saveBtn");
+ btn.disabled = true; btn.textContent = "Saving…";
+ try{
+  const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"updateSettings",key:ADMIN_KEY,settings:{bannerImage,bannerLink}})});
   const data = await res.json();
-  if(!data.success) throw new Error(data.error || "failed");
-  closeReturns();e.target.reset();
-  openReturnSuccess(data.returnId);
+  if(!data.success) throw new Error(data.error||"failed");
+  toast("Banner saved — it's live on your storefront");
  }catch(err){
-  toast("Couldn't submit return — please try again.");
+  toast("Couldn't save — check your connection and try again.");
  }finally{
-  btn.disabled = false; btn.textContent = "Submit return request";
+  btn.disabled = false; btn.textContent = "Save banner";
+ }
+}
+async function deleteBanner(){
+ if(!confirm("Remove the banner from your storefront? This can't be undone.")) return;
+ const btn = document.querySelector("#bn_deleteBtn");
+ btn.disabled = true; btn.textContent = "Deleting…";
+ try{
+  const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"updateSettings",key:ADMIN_KEY,settings:{bannerImage:"",bannerLink:""}})});
+  const data = await res.json();
+  if(!data.success) throw new Error(data.error||"failed");
+  document.querySelector("#bn_image").value = "";
+  document.querySelector("#bn_link").value = "";
+  updateBannerPreview();
+  toast("Banner removed from your storefront");
+ }catch(err){
+  toast("Couldn't delete — check your connection and try again.");
+ }finally{
+  btn.disabled = false; btn.textContent = "Delete banner";
  }
 }
 
-let toastTimer;function toast(t){const e=document.querySelector("#toast");e.textContent=t;e.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>e.classList.remove("show"),1800)}
+/* ================== In-grid banner ==================
+   Same pattern as the hero banner above, stored under different
+   setting keys (midBannerImage/midBannerLink/midBannerText) so the
+   two don't overwrite each other. index.html shows this one inside
+   the product grid, after the 8th product.
+=================================================== */
+function loadMidBannerIntoForm(settings){
+ document.querySelector("#mb_image").value = settings.midBannerImage || "";
+ document.querySelector("#mb_link").value = settings.midBannerLink || "";
+ document.querySelector("#mb_text").value = settings.midBannerText || "";
+ document.querySelector("#mb_uploadStatus").textContent = "";
+ document.querySelector("#mb_uploadStatus").classList.remove("err");
+ updateMidBannerPreview();
+}
+function updateMidBannerPreview(){
+ const url = document.querySelector("#mb_image").value.trim();
+ document.querySelector("#mb_preview").src = url || "https://placehold.co/1600x500/eef6f2/182220?text=No+banner+set+yet";
+}
+function toggleMidBannerUrlField(){
+ const urlField = document.querySelector("#mb_image");
+ const showing = urlField.style.display !== "none";
+ urlField.style.display = showing ? "none" : "block";
+ document.querySelector("#mb_urlToggle").textContent = showing ? "or paste an image URL instead" : "hide URL field";
+}
+function handleMidBannerUpload(file){
+ if(!file) return;
+ const status = document.querySelector("#mb_uploadStatus");
+ status.classList.remove("err");
+ status.textContent = "Uploading…";
+ resizeAndUploadImage_(file).then(({url})=>{
+  document.querySelector("#mb_image").value = url;
+  updateMidBannerPreview();
+  status.textContent = "Uploaded ✓ — click Save banner to publish it";
+ }).catch(()=>{
+  status.classList.add("err");
+  status.textContent = "Couldn't upload — try again or paste a URL instead.";
+ });
+}
+async function saveMidBanner(){
+ const midBannerImage = document.querySelector("#mb_image").value.trim();
+ const midBannerLink = document.querySelector("#mb_link").value.trim();
+ const midBannerText = document.querySelector("#mb_text").value.trim();
+ if(!midBannerImage){
+  toast("Upload or paste a banner image first");
+  return;
+ }
+ if(!midBannerLink){
+  toast("Add a link for this banner first");
+  return;
+ }
+ const btn = document.querySelector("#mb_saveBtn");
+ btn.disabled = true; btn.textContent = "Saving…";
+ try{
+  const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"updateSettings",key:ADMIN_KEY,settings:{midBannerImage,midBannerLink,midBannerText}})});
+  const data = await res.json();
+  if(!data.success) throw new Error(data.error||"failed");
+  toast("In-grid banner saved — it's live on your storefront");
+ }catch(err){
+  toast("Couldn't save — check your connection and try again.");
+ }finally{
+  btn.disabled = false; btn.textContent = "Save banner";
+ }
+}
+async function deleteMidBanner(){
+ if(!confirm("Remove the in-grid banner from your storefront? This can't be undone.")) return;
+ const btn = document.querySelector("#mb_deleteBtn");
+ btn.disabled = true; btn.textContent = "Deleting…";
+ try{
+  const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"updateSettings",key:ADMIN_KEY,settings:{midBannerImage:"",midBannerLink:"",midBannerText:""}})});
+  const data = await res.json();
+  if(!data.success) throw new Error(data.error||"failed");
+  document.querySelector("#mb_image").value = "";
+  document.querySelector("#mb_link").value = "";
+  document.querySelector("#mb_text").value = "";
+  updateMidBannerPreview();
+  toast("In-grid banner removed from your storefront");
+ }catch(err){
+  toast("Couldn't delete — check your connection and try again.");
+ }finally{
+  btn.disabled = false; btn.textContent = "Delete banner";
+ }
+}
 
-/* ================== Customer accounts ==================
-   Optional — customers can keep checking out as a guest without
-   ever signing up. An account just lets them come back and see
-   their past orders. Order history is matched by email (whatever
-   email they used at checkout), since orders aren't otherwise
-   linked to an account. Session is a signed token from the backend,
-   kept in localStorage so it survives reloads; logging out just
-   clears it client-side.
+/* ================== Deal of the week ==================
+   Same upload/preview pattern as the two banners above, stored under
+   its own setting keys (dealTitle/dealSubtitle/dealProductId/
+   dealImage/dealBadgeText/dealPrice) so it never collides with them.
+   index.html shows this as its own section, above "New arrivals",
+   and keeps it hidden until dealImage is set. dealProductId now holds
+   a comma-separated list of product ids (one or more) so the storefront
+   can offer several linked products instead of only one, while still
+   reusing the normal size-select / add-to-cart flow per product.
+=================================================== */
+function loadDealIntoForm(settings){
+ const raw = settings.dealProductId !== undefined && settings.dealProductId !== null ? String(settings.dealProductId) : "";
+ dealSelectedIds = raw.split(",").map(s=>s.trim()).filter(Boolean);
+ populateDealProductSelect();
+ document.querySelector("#dl_title").value = settings.dealTitle || "";
+ document.querySelector("#dl_subtitle").value = settings.dealSubtitle || "";
+ document.querySelector("#dl_image").value = settings.dealImage || "";
+ document.querySelector("#dl_badgeText").value = settings.dealBadgeText || "";
+ document.querySelector("#dl_price").value = settings.dealPrice || "";
+ document.querySelector("#dl_uploadStatus").textContent = "";
+ document.querySelector("#dl_uploadStatus").classList.remove("err");
+ updateDealPreview();
+}
+function updateDealPreview(){
+ const url = document.querySelector("#dl_image").value.trim();
+ document.querySelector("#dl_preview").src = url || "https://placehold.co/600x600/eef6f2/182220?text=No+photo+set+yet";
+}
+function toggleDealUrlField(){
+ const urlField = document.querySelector("#dl_image");
+ const showing = urlField.style.display !== "none";
+ urlField.style.display = showing ? "none" : "block";
+ document.querySelector("#dl_urlToggle").textContent = showing ? "or paste an image URL instead" : "hide URL field";
+}
+function handleDealUpload(file){
+ if(!file) return;
+ const status = document.querySelector("#dl_uploadStatus");
+ status.classList.remove("err");
+ status.textContent = "Uploading…";
+ resizeAndUploadImage_(file).then(({url})=>{
+  document.querySelector("#dl_image").value = url;
+  updateDealPreview();
+  status.textContent = "Uploaded ✓ — click Save deal to publish it";
+ }).catch(()=>{
+  status.classList.add("err");
+  status.textContent = "Couldn't upload — try again or paste a URL instead.";
+ });
+}
+async function saveDeal(){
+ const dealImage = document.querySelector("#dl_image").value.trim();
+ if(!dealImage){
+  toast("Upload or paste a featured photo first");
+  return;
+ }
+ const selectedIds = getSelectedDealProductIds();
+ const settings = {
+  dealTitle: document.querySelector("#dl_title").value.trim(),
+  dealSubtitle: document.querySelector("#dl_subtitle").value.trim(),
+  dealProductId: selectedIds.join(","),
+  dealImage,
+  dealBadgeText: document.querySelector("#dl_badgeText").value.trim(),
+  dealPrice: document.querySelector("#dl_price").value.trim()
+ };
+ const btn = document.querySelector("#dl_saveBtn");
+ btn.disabled = true; btn.textContent = "Saving…";
+ try{
+  const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"updateSettings",key:ADMIN_KEY,settings})});
+  const data = await res.json();
+  if(!data.success) throw new Error(data.error||"failed");
+  dealSelectedIds = selectedIds;
+  toast("Deal saved — it's live on your storefront");
+ }catch(err){
+  toast("Couldn't save — check your connection and try again.");
+ }finally{
+  btn.disabled = false; btn.textContent = "Save deal";
+ }
+}
+async function deleteDeal(){
+ if(!confirm("Remove the Deal of the week section from your storefront? This can't be undone.")) return;
+ const btn = document.querySelector("#dl_deleteBtn");
+ btn.disabled = true; btn.textContent = "Deleting…";
+ try{
+  const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"updateSettings",key:ADMIN_KEY,settings:{
+   dealTitle:"",dealSubtitle:"",dealProductId:"",dealImage:"",dealBadgeText:"",dealPrice:""
+  }})});
+  const data = await res.json();
+  if(!data.success) throw new Error(data.error||"failed");
+  loadDealIntoForm({});
+  toast("Deal removed from your storefront");
+ }catch(err){
+  toast("Couldn't delete — check your connection and try again.");
+ }finally{
+  btn.disabled = false; btn.textContent = "Delete deal";
+ }
+}
+
+/* ================== Delivery settings ==================
+   Two numbers stored in the same Settings sheet/object as the
+   banner: freeDeliveryThreshold (Rs. order total at/above which
+   delivery is free) and deliveryCharge (flat Rs. fee applied
+   below that threshold). index.html now reads these two settings
+   live (loadDelivery()) instead of using hardcoded numbers, so
+   changes made here take effect on the storefront on next load.
 =========================================================== */
-let session = null;
-try{ session = JSON.parse(localStorage.getItem("ss-session")||"null"); }catch(err){ session = null; }
-let acctMode = "login"; // "login" | "signup" | "forgot" | "resetCode" — all only relevant while logged out
-let resetEmail = ""; // email a reset code was just sent to, carried from the "forgot" step to "resetCode"
-
-function updateAccountBadge(){
- document.querySelector("#acctBadge").style.display = session ? "grid" : "none";
+function loadDeliveryIntoForm(settings){
+ document.querySelector("#dv_threshold").value = (settings.freeDeliveryThreshold!==undefined && settings.freeDeliveryThreshold!==null && settings.freeDeliveryThreshold!=="") ? settings.freeDeliveryThreshold : "";
+ document.querySelector("#dv_charge").value = (settings.deliveryCharge!==undefined && settings.deliveryCharge!==null && settings.deliveryCharge!=="") ? settings.deliveryCharge : "";
+ updateDeliveryPreview();
 }
-function openAccount(){
- closeProduct();closeCart();closeCheckout();closeReturns();
- renderAccountModal();
- document.querySelector("#accountModal").classList.add("open");
-}
-function closeAccount(){ document.querySelector("#accountModal").classList.remove("open"); }
-function switchAccountMode(mode){ acctMode = mode; renderAccountModal(); }
-
-function renderAccountModal(){
- const box = document.querySelector("#accountModalBox");
- if(session){
-  box.innerHTML = `
-   <div class="modalHead"><h2>My account</h2><button class="close" onclick="closeAccount()">×</button></div>
-   <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Signed in as <b>${escapeHtml(session.name||session.email)}</b></p>
-   <div style="font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:10px">Your orders</div>
-   <div id="acctOrdersWrap"><p style="color:var(--muted);font-size:13px">Loading your orders…</p></div>
-   <button class="btn light" style="width:100%;margin-top:16px" onclick="logoutAccount()">Log out</button>
-  `;
-  loadMyOrders();
- }else if(acctMode === "forgot"){
-  box.innerHTML = `
-   <div class="modalHead"><h2>Reset password</h2><button class="close" onclick="closeAccount()">×</button></div>
-   <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Enter your account email and we'll send a 6-digit code to reset your password.</p>
-   <form id="acctForm" onsubmit="submitForgot(event)">
-    <div class="formGrid">
-     <div class="field full"><label>Email</label><input required type="email" name="email" placeholder="you@example.com"></div>
-    </div>
-    <button class="btn" id="acctSubmitBtn" style="width:100%;margin-top:5px">Send reset code</button>
-   </form>
-   <p style="text-align:center;font-size:13px;color:var(--muted);margin-top:14px">
-    <a href="#" onclick="switchAccountMode('login');return false;" style="color:var(--gold);font-weight:700">Back to log in</a>
-   </p>
-  `;
- }else if(acctMode === "resetCode"){
-  box.innerHTML = `
-   <div class="modalHead"><h2>Enter your code</h2><button class="close" onclick="closeAccount()">×</button></div>
-   <p style="color:var(--muted);font-size:13px;margin-bottom:16px">We sent a 6-digit code to <b>${escapeHtml(resetEmail)}</b>. It expires in 15 minutes.</p>
-   <form id="acctForm" onsubmit="submitReset(event)">
-    <div class="formGrid">
-     <div class="field full"><label>6-digit code</label><input required name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="123456"></div>
-     <div class="field full"><label>New password</label><input required type="password" name="newPassword" minlength="6" placeholder="At least 6 characters"></div>
-    </div>
-    <button class="btn" id="acctSubmitBtn" style="width:100%;margin-top:5px">Reset password</button>
-   </form>
-   <p style="text-align:center;font-size:13px;color:var(--muted);margin-top:14px">
-    Didn't get a code? <a href="#" onclick="switchAccountMode('forgot');return false;" style="color:var(--gold);font-weight:700">Try again</a>
-   </p>
-  `;
+function updateDeliveryPreview(){
+ const threshold = document.querySelector("#dv_threshold").value.trim();
+ const charge = document.querySelector("#dv_charge").value.trim();
+ const preview = document.querySelector("#dv_preview");
+ if(charge==="" || Number(charge)<=0){
+  preview.textContent = "Preview: delivery is free on every order.";
+ }else if(threshold==="" || Number(threshold)<=0){
+  preview.textContent = `Preview: every order is charged ${money(charge)} for delivery.`;
  }else{
-  const isLogin = acctMode === "login";
-  box.innerHTML = `
-   <div class="modalHead"><h2>${isLogin?"Log in":"Create account"}</h2><button class="close" onclick="closeAccount()">×</button></div>
-   <p style="color:var(--muted);font-size:13px;margin-bottom:16px">${isLogin?"See your past orders anytime.":"Optional — you can still check out as a guest without an account."}</p>
-   <form id="acctForm" onsubmit="${isLogin?'submitLogin(event)':'submitSignup(event)'}">
-    <div class="formGrid">
-     ${isLogin?"":'<div class="field full"><label>Full name</label><input required name="name" placeholder="Your name"></div>'}
-     <div class="field full"><label>Email</label><input required type="email" name="email" placeholder="you@example.com"></div>
-     ${isLogin?"":'<div class="field full"><label>Phone (optional)</label><input name="phone" placeholder="98XXXXXXXX"></div>'}
-     <div class="field full"><label>Password</label><input required type="password" name="password" minlength="6" placeholder="At least 6 characters"></div>
-    </div>
-    <button class="btn" id="acctSubmitBtn" style="width:100%;margin-top:5px">${isLogin?"Log in":"Create account"}</button>
-   </form>
-   ${isLogin?'<p style="text-align:right;margin-top:8px"><a href="#" onclick="switchAccountMode(\'forgot\');return false;" style="color:var(--muted);font-size:12.5px">Forgot password?</a></p>':""}
-   <p style="text-align:center;font-size:13px;color:var(--muted);margin-top:14px">
-    ${isLogin
-     ? `New here? <a href="#" onclick="switchAccountMode('signup');return false;" style="color:var(--gold);font-weight:700">Create an account</a>`
-     : `Already have an account? <a href="#" onclick="switchAccountMode('login');return false;" style="color:var(--gold);font-weight:700">Log in</a>`}
-   </p>
-  `;
+  preview.textContent = `Preview: orders under ${money(threshold)} are charged ${money(charge)} delivery. Orders of ${money(threshold)} or more ship free.`;
  }
 }
-
-async function submitLogin(e){
- e.preventDefault();
- const btn = document.querySelector("#acctSubmitBtn");
- const form = new FormData(e.target);
- btn.disabled = true; btn.textContent = "Logging in…";
+async function saveDelivery(){
+ const freeDeliveryThreshold = document.querySelector("#dv_threshold").value.trim();
+ const deliveryCharge = document.querySelector("#dv_charge").value.trim();
+ const btn = document.querySelector("#dv_saveBtn");
+ btn.disabled = true; btn.textContent = "Saving…";
  try{
-  const res = await fetch(SCRIPT_URL, { method:"POST", body: JSON.stringify({ action:"login", email: form.get("email"), password: form.get("password") }) });
+  const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"updateSettings",key:ADMIN_KEY,settings:{
+   freeDeliveryThreshold: freeDeliveryThreshold===""?"":Number(freeDeliveryThreshold),
+   deliveryCharge: deliveryCharge===""?"":Number(deliveryCharge)
+  }})});
   const data = await res.json();
-  if(!data.success) throw new Error(data.error || "Couldn't log in");
-  session = { token: data.token, email: data.email, name: data.name };
-  localStorage.setItem("ss-session", JSON.stringify(session));
-  updateAccountBadge();
-  renderAccountModal();
-  toast("Logged in");
+  if(!data.success) throw new Error(data.error||"failed");
+  toast("Delivery settings saved");
  }catch(err){
-  toast(err.message || "Couldn't log in — check your email and password.");
-  btn.disabled = false; btn.textContent = "Log in";
+  toast("Couldn't save — check your connection and try again.");
+ }finally{
+  btn.disabled = false; btn.textContent = "Save delivery settings";
  }
-}
-async function submitSignup(e){
- e.preventDefault();
- const btn = document.querySelector("#acctSubmitBtn");
- const form = new FormData(e.target);
- btn.disabled = true; btn.textContent = "Creating account…";
- try{
-  const res = await fetch(SCRIPT_URL, { method:"POST", body: JSON.stringify({ action:"signup", name: form.get("name"), email: form.get("email"), phone: form.get("phone"), password: form.get("password") }) });
-  const data = await res.json();
-  if(!data.success) throw new Error(data.error || "Couldn't create account");
-  session = { token: data.token, email: data.email, name: data.name };
-  localStorage.setItem("ss-session", JSON.stringify(session));
-  updateAccountBadge();
-  renderAccountModal();
-  toast("Account created");
- }catch(err){
-  toast(err.message || "Couldn't create account — please try again.");
-  btn.disabled = false; btn.textContent = "Create account";
- }
-}
-async function submitForgot(e){
- e.preventDefault();
- const btn = document.querySelector("#acctSubmitBtn");
- const form = new FormData(e.target);
- resetEmail = (form.get("email")||"").trim();
- btn.disabled = true; btn.textContent = "Sending…";
- try{
-  const res = await fetch(SCRIPT_URL, { method:"POST", body: JSON.stringify({ action:"requestPasswordReset", email: resetEmail }) });
-  const data = await res.json();
-  if(!data.success) throw new Error(data.error || "Couldn't send reset code");
-  acctMode = "resetCode";
-  renderAccountModal();
-  toast("Check your email for the code");
- }catch(err){
-  toast(err.message || "Couldn't send reset code — please try again.");
-  btn.disabled = false; btn.textContent = "Send reset code";
- }
-}
-async function submitReset(e){
- e.preventDefault();
- const btn = document.querySelector("#acctSubmitBtn");
- const form = new FormData(e.target);
- btn.disabled = true; btn.textContent = "Resetting…";
- try{
-  const res = await fetch(SCRIPT_URL, { method:"POST", body: JSON.stringify({ action:"resetPassword", email: resetEmail, code: form.get("code"), newPassword: form.get("newPassword") }) });
-  const data = await res.json();
-  if(!data.success) throw new Error(data.error || "Couldn't reset password");
-  session = { token: data.token, email: data.email, name: data.name };
-  localStorage.setItem("ss-session", JSON.stringify(session));
-  updateAccountBadge();
-  acctMode = "login";
-  renderAccountModal();
-  toast("Password reset — you're logged in");
- }catch(err){
-  toast(err.message || "Couldn't reset password — check the code and try again.");
-  btn.disabled = false; btn.textContent = "Reset password";
- }
-}
-function logoutAccount(){
- session = null;
- localStorage.removeItem("ss-session");
- updateAccountBadge();
- acctMode = "login";
- closeAccount();
- toast("Logged out");
-}
-async function loadMyOrders(){
- const wrap = document.querySelector("#acctOrdersWrap");
- if(!wrap || !session) return;
- try{
-  const res = await fetch(`${SCRIPT_URL}?action=myOrders&token=${encodeURIComponent(session.token)}`);
-  const data = await res.json();
-  if(data.error){
-   // Token invalid or expired — sign out client-side so they can log back in.
-   session = null;
-   localStorage.removeItem("ss-session");
-   updateAccountBadge();
-   acctMode = "login";
-   renderAccountModal();
-   toast("Your session expired — please log in again");
-   return;
-  }
-  const orders = data.orders || [];
-  if(!orders.length){
-   wrap.innerHTML = `<p style="color:var(--muted);font-size:13px">No orders yet — once you place one with this email, it'll show up here.</p>`;
-   return;
-  }
-  wrap.innerHTML = orders.map(o=>`
-   <div style="border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-     <b style="font-size:13.5px">${escapeHtml(o.orderId)}</b>
-     <span style="font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)">${escapeHtml(o.status||"New")}</span>
-    </div>
-    <div style="font-size:12.5px;color:var(--muted)">${o.timestamp?new Date(o.timestamp).toLocaleDateString():""} · ${money(o.total)}</div>
-   </div>
-  `).join("");
- }catch(err){
-  wrap.innerHTML = `<p style="color:var(--muted);font-size:13px">Couldn't load your orders — check your connection.</p>`;
- }
-}
-updateAccountBadge();
-
-
-function escapeHtml(s){ const d=document.createElement("div"); d.textContent=s||""; return d.innerHTML; }
-
-/* ================== Exclusive Deal of the Week — dedicated page ==================
-   Clicking "Shop Now" on the deal card takes the customer to a real
-   full-page view instead of a popup: the regular shop (<main>), the
-   deal promo band, and the footer are all hidden, and only the offer
-   products show — there's no way to browse the regular catalog while
-   here, only "← Back to shop" (or the browser Back button, via the
-   #deal hash) returns them to the normal store.
-   Offer list = the linked "Deal product" from admin first, then any
-   other product currently on sale, capped to a small curated set.
-   Each card is the normal cardHTML() with a scarcity line (from the
-   same admin stock data used elsewhere) inserted above the title, and
-   opening one still uses the regular openProduct() modal, so sizes,
-   colors and add-to-cart all behave exactly as they do on the main grid.
-================================================================= */
-let dealPageTimerHandle = null;
-let dealPageOpen = false;
-
-/* ================== Multiple linked deal products ==================
-   admin.html's "Deal of the week" picker lets staff check several
-   products (dealProductId is saved as a comma-separated id list, e.g.
-   "3,5,12"). Parse ALL of them here — the old code only ever read the
-   first id via Number(), so a multi-select in admin silently collapsed
-   to a single product (or nothing, since Number("3,5,12") is NaN).
-================================================================= */
-function dealPageLinkedIds(){
- const raw = siteSettings.dealProductId!==undefined && siteSettings.dealProductId!==null ? String(siteSettings.dealProductId) : "";
- return raw.split(",").map(s=>Number(s.trim())).filter(n=>!isNaN(n) && n>0);
-}
-function dealPageOfferProducts(){
- const linkedIds = dealPageLinkedIds();
- const linked = linkedIds.map(id=>products.find(p=>p.id===id)).filter(Boolean);
- const linkedSet = new Set(linked.map(p=>p.id));
- const onSale = products
-  .filter(p=>p.old && p.old>p.price && !linkedSet.has(p.id))
-  .sort((a,b)=>(b.old-b.price)/b.old - (a.old-a.price)/a.old);
- // Every explicitly-linked product is always shown; sale items only
- // top up the page if there's room left in the cap below.
- const list = linked.length ? [...linked, ...onSale] : onSale;
- return list.slice(0,12); // raised from 8 so a bigger multi-product deal isn't truncated
-}
-function dealScarcityBadgeHTML(p){
- const total = productTotalStock(p);
- if(total===null) return "";
- if(total<=0) return `<div class="stockMsg out" style="margin:0 0 6px">${TEXT.outOfStock}</div>`;
- if(total<=10) return `<div class="stockMsg low" style="margin:0 0 6px">Only ${total} left in stock</div>`;
- return "";
 }
 
-/* ================== Deal page cards: qty stepper on the card ==================
-   Unlike the main grid (where "Add to cart" opens the full product modal),
-   deal cards let a shopper pick a size (if any) and bump quantity right on
-   the card, then add to cart directly — useful for grabbing several items
-   off this page without hopping in and out of a modal each time.
-   Per-card selection (qty/size/color variant) lives in dealCardState,
-   keyed by product id, and is reset whenever the deal page (re)opens.
-================================================================= */
-let dealCardState = {};
-function dealCardHTML(p){
- const sizes=(p.sizes||"").split(",").map(s=>s.trim()).filter(Boolean);
- const discount = p.old && p.old>p.price ? Math.round((1-p.price/p.old)*100) : 0;
- if(!dealCardState[p.id]){
-  const defaultSize = sizes.find(s=>!isCombinationOut(p,0,s)) || sizes[0] || null;
-  dealCardState[p.id] = { qty:1, size:defaultSize, variantIdx:0 };
+function openForm(id){
+ editingId = id;
+ document.querySelector("#formTitle").textContent = id ? "Edit product" : "Add product";
+ document.querySelector("#uploadStatus").textContent = "";
+ document.querySelector("#uploadStatus").classList.remove("err");
+ document.querySelector("#f_image").style.display = "none";
+ document.querySelector("#urlToggle").textContent = "or paste an image URL instead";
+ f_colorTouched = false;
+ document.querySelector("#f_lowThreshold").value = DEFAULT_LOW_STOCK;
+ if(id){
+  const p = products.find(x=>x.id===id);
+  document.querySelector("#f_name").value = p.name;
+  document.querySelector("#f_category").value = p.category;
+  document.querySelector("#f_sku").value = p.sku || generateSku(p.category, id);
+  document.querySelector("#f_price").value = p.price;
+  document.querySelector("#f_old").value = p.old || "";
+  document.querySelector("#f_description").value = p.description || "";
+  document.querySelector("#f_sizes").value = p.sizes || "";
+  document.querySelector("#f_image").value = p.image;
+  document.querySelector("#f_colorName").value = p.colorName || "";
+  document.querySelector("#f_color").value = p.color || "#cccccc";
+  document.querySelector("#f_colorHex").value = p.color || "#cccccc";
+  document.querySelector("#f_rating").value = (p.rating!==undefined && p.rating!==null && p.rating!=="") ? p.rating : "";
+  document.querySelector("#f_new").checked = !!p.new;
+  f_colorTouched = !!(p.color && p.color !== "#cccccc");
+  formVariants = Array.isArray(p.variants) ? p.variants.map(v=>({colorName:v.colorName||"",color:v.color||"#cccccc",image:v.image||"",colorTouched:!!(v.color && v.color!=="#cccccc")})) : [];
+  currentStock = p.stock ? JSON.parse(JSON.stringify(p.stock)) : {};
+ }else{
+  document.querySelector("#f_name").value = "";
+  document.querySelector("#f_category").value = "";
+  document.querySelector("#f_sku").value = generateSku("GEN", null);
+  document.querySelector("#f_price").value = "";
+  document.querySelector("#f_old").value = "";
+  document.querySelector("#f_description").value = "";
+  document.querySelector("#f_sizes").value = "";
+  document.querySelector("#f_image").value = "";
+  document.querySelector("#f_colorName").value = "";
+  document.querySelector("#f_color").value = "#cccccc";
+  document.querySelector("#f_colorHex").value = "#cccccc";
+  document.querySelector("#f_rating").value = "";
+  document.querySelector("#f_new").checked = false;
+  formVariants = [];
+  currentStock = {};
  }
- const state = dealCardState[p.id];
- const outOfStock = !productHasAnyStock(p);
- const combinationOut = sizes.length ? (state.size ? isCombinationOut(p,state.variantIdx,state.size) : true) : isCombinationOut(p,state.variantIdx,null);
- const maxQty = stockQtyFor(p, state.variantIdx, state.size);
- const scarcity = dealScarcityBadgeHTML(p);
- const sizeSelectHtml = sizes.length ? `<select class="dealSizeSelect" ${outOfStock?'disabled':''} onchange="dealPickSize(${p.id}, this.value)">
-   ${sizes.map(s=>{
-     const sOut = isCombinationOut(p, state.variantIdx, s);
-     return `<option value="${escapeHtml(s)}" ${s===state.size?'selected':''} ${sOut?'disabled':''}>${escapeHtml(s)}${sOut?` — ${TEXT.outOfStock}`:''}</option>`;
-    }).join("")}
-  </select>` : "";
- let stockLine = "";
- if(!scarcity){
-  if(combinationOut) stockLine = `<div class="stockMsg out">${TEXT.outOfStock}</div>`;
-  else if(maxQty!==null && maxQty<=5) stockLine = `<div class="stockMsg low">${TEXT.onlyLeft.replace("{n}",maxQty)}</div>`;
- }
- return `<div class="product dealProductCard ${outOfStock?'outOfStock':''}" id="dealCard_${p.id}">
-  <div class="productImg" onclick="openProduct(${p.id})">
-   <img src="${p.image}" alt="${escapeHtml(p.name)}" loading="lazy" onerror="this.style.display='none'">
-   ${outOfStock?`<span class="outBadge">${TEXT.outOfStock}</span>`:(p.new?'<span class="bestBadge">BEST</span>':'')}
-   ${(!outOfStock && discount>0)?`<span class="sale" style="left:auto;right:12px">${discount}% OFF</span>`:''}
-  </div>
-  <div class="productInfo">
-   ${scarcity}
-   <h3 onclick="openProduct(${p.id})">${escapeHtml(p.name)}</h3>
-   <p>${escapeHtml(p.category)}${sizes.length?` · ${sizes.length} sizes`:""}</p>
-   <div class="priceRow"><span class="price">${money(p.price)}</span>${p.old?`<span class="old">${money(p.old)}</span><span class="discPct">-${Math.round((1-p.price/p.old)*100)}%</span>`:""}</div>
-   <div style="margin-top:10px">
-    ${sizeSelectHtml}
-    ${stockLine}
-    <div class="dealQtyRow">
-     <div class="pdQty">
-      <button type="button" onclick="dealChangeQty(${p.id},-1)" ${combinationOut?'disabled':''}>−</button>
-      <b>${state.qty}</b>
-      <button type="button" onclick="dealChangeQty(${p.id},1)" ${combinationOut || (maxQty!==null && state.qty>=maxQty) ?'disabled':''}>+</button>
-     </div>
-    </div>
-    <button class="add cardAddBtn" ${combinationOut?'disabled':''} onclick="dealAddToCart(${p.id})">${combinationOut?TEXT.outOfStock:TEXT.addToCart}</button>
-   </div>
-  </div>
- </div>`;
+ renderVariantRows();
+ updateImgPreview();
+ renderStockGrid();
+ document.querySelector("#formModal").classList.add("open");
 }
-function refreshDealCard(id){
- const el = document.querySelector(`#dealCard_${id}`);
- const p = products.find(x=>x.id===id);
- if(el && p) el.outerHTML = dealCardHTML(p);
-}
-function dealChangeQty(id,n){
- const p = products.find(x=>x.id===id);
- const state = dealCardState[id];
- if(!p || !state) return;
- const max = stockQtyFor(p, state.variantIdx, state.size);
- let next = state.qty+n;
- next = Math.max(1, next);
- if(max!==null) next = Math.min(next, Math.max(1,max));
- state.qty = next;
- refreshDealCard(id);
-}
-function dealPickSize(id,size){
- const p = products.find(x=>x.id===id);
- const state = dealCardState[id];
- if(!p || !state) return;
- if(isCombinationOut(p, state.variantIdx, size)) return;
- state.size = size;
- state.qty = 1;
- refreshDealCard(id);
-}
-function dealAddToCart(id){
- const p = products.find(x=>x.id===id);
- const state = dealCardState[id];
- if(!p || !state) return;
- const sizes = (p.sizes||"").split(",").map(s=>s.trim()).filter(Boolean);
- if(sizes.length && !state.size){ toast(TEXT.selectAvailableSize); return; }
- if(isCombinationOut(p, state.variantIdx, state.size)){ toast(TEXT.outOfStock); return; }
- const swatches = pdSwatches(p);
- const chosen = swatches[state.variantIdx] || swatches[0];
- const color = chosen.colorName || (state.variantIdx>0 ? chosen.color : "") || "";
- const max = stockQtyFor(p, state.variantIdx, state.size);
- const x = cart.find(i=>i.id===p.id && i.size===state.size && (i.color||"")===color);
- const already = x ? x.qty : 0;
- if(max!==null && already+state.qty>max){
-  toast(max-already>0 ? TEXT.onlyLeft.replace("{n}", max-already) : TEXT.outOfStock);
+function closeForm(){ document.querySelector("#formModal").classList.remove("open"); }
+
+async function saveProduct(){
+ const name = document.querySelector("#f_name").value.trim();
+ const category = document.querySelector("#f_category").value.trim();
+ const price = Number(document.querySelector("#f_price").value);
+ const old = Number(document.querySelector("#f_old").value)||0;
+ const image = document.querySelector("#f_image").value.trim();
+ const colorName = document.querySelector("#f_colorName").value.trim();
+ const color = document.querySelector("#f_colorHex").value.trim() || "#cccccc";
+ const ratingRaw = document.querySelector("#f_rating").value.trim();
+ const rating = ratingRaw==="" ? "" : Math.max(0, Math.min(5, Number(ratingRaw)));
+ const isNew = document.querySelector("#f_new").checked;
+ const sku = document.querySelector("#f_sku").value.trim();
+ const description = document.querySelector("#f_description").value.trim();
+ const sizes = document.querySelector("#f_sizes").value.trim();
+ const variants = formVariants.filter(v=>v.image).map(v=>({colorName:v.colorName, color:v.color, image:v.image}));
+ const stock = collectStock();
+
+ if(!name || !category || !price || !image){
+  toast("Please fill in name, category, price and a photo");
   return;
  }
- if(x) x.qty += state.qty; else cart.push({id:p.id, qty:state.qty, size:state.size, color, image: chosen.image||p.image});
- save();
- toast("Added to cart");
- state.qty = 1; // ready for the next add, keep the chosen size
- refreshDealCard(id);
-}
-function dealPageDeadline(){
- // Resets nightly at midnight so the countdown always has something
- // meaningful to show without needing a dedicated end-date setting.
- const d = new Date();
- d.setHours(24,0,0,0);
- return d;
-}
-function tickDealPageTimer(){
- const h = document.querySelector("#dt_h"), m = document.querySelector("#dt_m"), s = document.querySelector("#dt_s");
- if(!h || !m || !s){ clearInterval(dealPageTimerHandle); dealPageTimerHandle=null; return; }
- let diff = dealPageDeadline().getTime() - Date.now();
- if(diff<0) diff = 0;
- const hh = Math.floor(diff/3600000);
- const mm = Math.floor((diff%3600000)/60000);
- const ss = Math.floor((diff%60000)/1000);
- h.textContent = String(hh).padStart(2,"0");
- m.textContent = String(mm).padStart(2,"0");
- s.textContent = String(ss).padStart(2,"0");
-}
-function openDealPage(){
- if(!productsLoaded){ toast("Still loading products — try again in a moment"); return; }
- const offers = dealPageOfferProducts();
- const title = siteSettings.dealTitle || "Exclusive Deal of the Week";
- const subtitle = siteSettings.dealSubtitle || "A hand-picked set of offers — limited stock, while it lasts.";
- document.querySelector("#dp_title").textContent = title;
- document.querySelector("#dp_subtitle").textContent = subtitle;
- dealCardState = {}; // fresh qty/size selections each time the page opens
- document.querySelector("#dp_grid").innerHTML = offers.length
-  ? offers.map(p=>dealCardHTML(p)).join("")
-  : `<div class="dealPageEmpty">No offer products are set up yet — add a "Deal product" or a sale price in admin.</div>`;
-
- // Hide the regular shop and show only the deal page.
- document.querySelector("main").style.display = "none";
- document.querySelector("#dealSection").style.display = "none";
- document.querySelector("footer").style.display = "none";
- document.querySelector("#chatFab").style.display = "none";
- document.querySelector("#dealPage").style.display = "block";
- dealPageOpen = true;
- window.scrollTo({top:0, behavior:"instant" in window ? "instant" : "auto"});
- if(location.hash !== "#deal") history.pushState({dealPage:true}, "", "#deal");
-
- tickDealPageTimer();
- clearInterval(dealPageTimerHandle);
- dealPageTimerHandle = setInterval(tickDealPageTimer, 1000);
-}
-function closeDealPage(){
- if(!dealPageOpen) return;
- document.querySelector("#dealPage").style.display = "none";
- document.querySelector("main").style.display = "";
- document.querySelector("#chatFab").style.display = "grid";
- // Restore the promo band only if a deal is actually configured.
- if(siteSettings.dealImage) document.querySelector("#dealSection").style.display = "block";
- document.querySelector("footer").style.display = "";
- dealPageOpen = false;
- clearInterval(dealPageTimerHandle);
- dealPageTimerHandle = null;
- if(location.hash === "#deal") history.back();
-}
-// Browser Back button while on the deal page closes it instead of
-// leaving the site, since it was opened via a pushState hash.
-window.addEventListener("popstate", ()=>{
- if(dealPageOpen && location.hash !== "#deal") closeDealPage();
-});
-
-let chatSessionId = localStorage.getItem("shopslipper-chat-id");
-let chatMessages = JSON.parse(localStorage.getItem("shopslipper-chat-msgs")||"[]");
-let chatUnread = 0, chatPollStarted = false;
-
-/* Starting a chat, sending messages, and the message thread now live on
-   chat.html — the chat button above just links straight there. This page
-   only polls quietly for an unread count, shown as a badge on the button. */
-function startChatPolling(){
- if(chatPollStarted) return;
- chatPollStarted = true;
- fetchChatMessages();
- setInterval(fetchChatMessages, 8000);
-}
-async function fetchChatMessages(){
- if(!chatSessionId) return;
+ const btn = document.querySelector("#saveBtn");
+ btn.disabled = true; btn.textContent = "Saving…";
  try{
-  const res = await fetch(`${SCRIPT_URL}?action=chatMessages&sessionId=${encodeURIComponent(chatSessionId)}`);
-  const data = await res.json();
-  if(data && Array.isArray(data.messages)){
-   const prevCount = chatMessages.length;
-   chatMessages = data.messages;
-   localStorage.setItem("shopslipper-chat-msgs", JSON.stringify(chatMessages));
-   if(chatMessages.length > prevCount){ chatUnread += (chatMessages.length - prevCount); updateChatFabBadge(); }
+  if(editingId){
+   const product = {id:editingId,name,category,price,old,image,colorName,color,rating,new:isNew,sku,description,sizes,variants,stock};
+   const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"updateProduct",key:ADMIN_KEY,product})});
+   const data = await res.json();
+   if(!data.success) throw new Error(data.error||"failed");
+   Object.assign(products.find(p=>p.id===editingId), product);
+  }else{
+   const product = {name,category,price,old,image,colorName,color,rating,new:isNew,sku,description,sizes,variants,stock};
+   const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"addProduct",key:ADMIN_KEY,product})});
+   const data = await res.json();
+   if(!data.success) throw new Error(data.error||"failed");
+   products.push({...product,id:data.id});
   }
- }catch(err){ /* backend not reachable yet — ignore, will retry on next poll */ }
-}
-function updateChatFabBadge(){
- const b = document.querySelector("#chatFabBadge");
- if(chatUnread>0){ b.style.display="grid"; b.textContent = chatUnread>9?"9+":chatUnread; }
- else b.style.display="none";
-}
-if(chatSessionId) startChatPolling();
-
-let siteSettings = {}; // last-loaded ?action=settings payload — read by midBannerHTML()
-async function loadBanner(){
- const fallbackImg = "https://placehold.co/1600x500/eef6f2/182220?text=Your+Banner+Here";
- try{
-  const res = await fetch(`${SCRIPT_URL}?action=settings`);
-  const data = await res.json();
-  const settings = data.settings || {};
-  siteSettings = settings;
-  document.querySelector("#heroBannerImg").src = settings.bannerImage || fallbackImg;
-  document.querySelector("#heroBanner").href = settings.bannerLink || "#shop";
-  applyDeliverySettings(settings);
-  renderDeal(settings);
-  // Settings can arrive after the first product render (loadBanner and
-  // loadProducts fire in parallel below), so re-render once we have
-  // them, in case the in-grid promo tile needs to appear.
-  renderProducts();
+  closeForm();
+  render();
+  toast(editingId ? "Product updated" : "Product added");
  }catch(err){
-  document.querySelector("#heroBannerImg").src = fallbackImg;
-  document.querySelector("#heroBanner").href = "#shop";
+  toast("Couldn't save — check your connection and try again.");
+ }finally{
+  btn.disabled = false; btn.textContent = "Save product";
  }
 }
-/* ================== Delivery settings loader ==================
-   Reads the same ?action=settings payload the banner uses, so it
-   only costs one extra field read, no extra request. Falls back to
-   the module-level defaults above if the Sheet has no values saved.
-================================================================= */
-function applyDeliverySettings(settings){
- deliveryThreshold = (settings.freeDeliveryThreshold!==undefined && settings.freeDeliveryThreshold!==null && settings.freeDeliveryThreshold!=="")
-  ? Number(settings.freeDeliveryThreshold) : deliveryThreshold;
- deliveryCharge = (settings.deliveryCharge!==undefined && settings.deliveryCharge!==null && settings.deliveryCharge!=="")
-  ? Number(settings.deliveryCharge) : deliveryCharge;
- updateCart();
+
+async function deleteProduct(id){
+ if(!confirm("Delete this product? This can't be undone.")) return;
+ try{
+  const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"deleteProduct",key:ADMIN_KEY,id})});
+  const data = await res.json();
+  if(!data.success) throw new Error(data.error||"failed");
+  products = products.filter(p=>p.id!==id);
+  render();
+  toast("Product deleted");
+ }catch(err){
+  toast("Couldn't delete — check your connection and try again.");
+ }
 }
 
-function renderDeal(settings){
- const wrap = document.querySelector("#dealSection");
- if(!settings.dealImage){ wrap.style.display="none"; return; }
- wrap.style.display="block";
- document.querySelector("#dl_titleOut").textContent = settings.dealTitle || "Exclusive Deal of the Week";
- document.querySelector("#dl_subtitleOut").textContent = settings.dealSubtitle || "";
- document.querySelector("#dl_imgWrap").style.display = "flex";
- document.querySelector("#dl_imgOut").src = settings.dealImage;
- const badge = document.querySelector("#dl_badgeOut");
- if(settings.dealBadgeText){ badge.style.display="inline-block"; badge.textContent = settings.dealBadgeText; }
- else badge.style.display="none";
- document.querySelector("#dl_priceOut").textContent = settings.dealPrice || "";
+let toastTimer;
+function toast(t){
+ const e = document.querySelector("#toast");
+ e.textContent = t; e.classList.add("show");
+ clearTimeout(toastTimer);
+ toastTimer = setTimeout(()=>e.classList.remove("show"), 2200);
 }
-
-loadBanner();
-loadProducts();
-
-// If someone arrives via a shared product link or a search result
-// (e.g. shopslipper.online/?product=123, which the SEO product pages
-// link to), open that product's modal automatically once products
-// have loaded.
-(function(){
- const productParam = new URLSearchParams(location.search).get("product");
- if(!productParam) return;
- const id = Number(productParam);
- const waitForProducts = setInterval(()=>{
-  if(productsLoaded){
-   clearInterval(waitForProducts);
-   if(products.some(p=>p.id===id)) openProduct(id);
-  }
- }, 150);
-})();
 </script>
 </body>
 </html>
