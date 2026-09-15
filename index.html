@@ -353,6 +353,19 @@ footer .logo span{color:#c8f0d6}
 .dealProductCard .productImg{cursor:pointer}
 .dealProductCard h3{cursor:pointer}
 .dealSizeSelect{width:100%;margin-bottom:10px;border:1px solid var(--line);border-radius:10px;padding:9px 10px;font-size:12.5px;background:#fff;color:var(--text)}
+.reviewSliderWrap{display:flex;align-items:center;gap:14px}
+.reviewSliderViewport{flex:1;overflow:hidden}
+.reviewSliderTrack{display:flex;transition:transform .4s var(--ease)}
+.reviewSlide{flex:0 0 100%;padding:0 10px;text-align:center}
+.reviewSlideStars{color:#e0a825;letter-spacing:3px;font-size:18px;margin-bottom:12px}
+.reviewSlideText{font-family:var(--serif);font-style:italic;font-size:16px;color:var(--text);line-height:1.65;max-width:600px;margin:0 auto 14px}
+.reviewSlideName{font-weight:700;font-size:13px;color:var(--gold);letter-spacing:.3px}
+.reviewNavBtn{width:42px;height:42px;border-radius:50%;background:#fff;border:1px solid var(--line);flex-shrink:0;font-size:16px;color:var(--text);transition:.2s border-color,.2s background,.2s color}
+.reviewNavBtn:hover{border-color:var(--text);background:var(--gold);color:#fff}
+.reviewDots{display:flex;justify-content:center;gap:8px;margin-top:18px}
+.reviewDot{width:8px;height:8px;border-radius:50%;background:var(--line);transition:.2s background,.2s transform}
+.reviewDot.active{background:var(--gold);transform:scale(1.4)}
+.reviewsEmpty{color:var(--muted);font-size:13px}
 .dealQtyRow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
 .dealQtyRow .pdQty{margin-bottom:0}
 </style>
@@ -461,6 +474,22 @@ footer .logo span{color:#c8f0d6}
    </div>
    <button class="btn light" onclick="openReturns()">Start a return</button>
   </div>
+ </div>
+</section>
+
+<section class="section" id="testimonials" style="padding-top:0">
+ <div class="container">
+  <div class="sectionHead"><div><div class="eyebrow">What customers say</div><h2>Real reviews</h2></div></div>
+  <div class="reviewSliderWrap">
+   <button class="reviewNavBtn" onclick="reviewSlide(-1)" aria-label="Previous review">←</button>
+   <div class="reviewSliderViewport"><div class="reviewSliderTrack" id="reviewSliderTrack"><div class="reviewsEmpty" style="padding:30px 0;text-align:center">Loading reviews…</div></div></div>
+   <button class="reviewNavBtn" onclick="reviewSlide(1)" aria-label="Next review">→</button>
+  </div>
+  <div class="reviewDots" id="reviewDots"></div>
+  <div style="text-align:center;margin-top:22px">
+   <button class="btn" id="writeReviewBtn" onclick="toggleSiteReviewForm()">Write your review</button>
+  </div>
+  <div id="siteReviewFormWrap" style="display:none;margin-top:20px"></div>
  </div>
 </section>
 </main>
@@ -1704,6 +1733,106 @@ function refreshDealCard(id){
  const p = dealProducts.find(x=>x.id===id);
  if(el && p) el.outerHTML = dealCardHTML(p);
 }
+function reviewStars(r){
+ const full = Math.max(0,Math.min(5,Math.round(Number(r)||0)));
+ return "★".repeat(full)+"☆".repeat(5-full);
+}
+
+/* ================== Homepage testimonial slider ================== */
+let siteReviews=[], reviewIndex=0, reviewAutoTimer=null;
+let siteReviewFormOpen=false, siteReviewRating=0;
+
+async function loadSiteReviews(){
+ try{
+  const res = await fetch(`${SCRIPT_URL}?action=siteReviews`);
+  const data = await res.json();
+  siteReviews = data.reviews || [];
+ }catch(err){
+  siteReviews = [];
+ }
+ reviewIndex = 0;
+ renderReviewSlider();
+ startReviewAutoSlide();
+}
+function renderReviewSlider(){
+ const track = document.querySelector("#reviewSliderTrack");
+ const dots = document.querySelector("#reviewDots");
+ if(!track) return;
+ if(!siteReviews.length){
+  track.style.transform = "translateX(0)";
+  track.innerHTML = `<div class="reviewsEmpty" style="padding:30px 0;text-align:center;flex:0 0 100%">No reviews yet — be the first to write one.</div>`;
+  dots.innerHTML = "";
+  return;
+ }
+ if(reviewIndex>=siteReviews.length) reviewIndex=0;
+ track.style.transform = `translateX(-${reviewIndex*100}%)`;
+ track.innerHTML = siteReviews.map(r=>`
+  <div class="reviewSlide">
+   <div class="reviewSlideStars">${reviewStars(r.rating)}</div>
+   <p class="reviewSlideText">"${escapeHtml(r.text)}"</p>
+   <div class="reviewSlideName">${escapeHtml(r.name)}</div>
+  </div>`).join("");
+ dots.innerHTML = siteReviews.map((_,i)=>`<button class="reviewDot ${i===reviewIndex?'active':''}" onclick="goToReview(${i})" aria-label="Review ${i+1}"></button>`).join("");
+}
+function goToReview(i){ reviewIndex=i; renderReviewSlider(); startReviewAutoSlide(); }
+function reviewSlide(dir){
+ if(!siteReviews.length) return;
+ reviewIndex = (reviewIndex+dir+siteReviews.length)%siteReviews.length;
+ renderReviewSlider();
+ startReviewAutoSlide();
+}
+function startReviewAutoSlide(){
+ clearInterval(reviewAutoTimer);
+ if(siteReviews.length>1) reviewAutoTimer=setInterval(()=>reviewSlide(1), 5000);
+}
+function toggleSiteReviewForm(){
+ siteReviewFormOpen = !siteReviewFormOpen;
+ siteReviewRating = 0;
+ renderSiteReviewForm();
+}
+function siteSetReviewRating(n){
+ siteReviewRating = n;
+ document.querySelectorAll("#siteReviewStars .reviewStarBtn").forEach((b,i)=>b.classList.toggle("active", i<n));
+}
+function renderSiteReviewForm(){
+ const wrap = document.querySelector("#siteReviewFormWrap");
+ const btn = document.querySelector("#writeReviewBtn");
+ if(!siteReviewFormOpen){ wrap.style.display="none"; wrap.innerHTML=""; btn.textContent="Write your review"; return; }
+ btn.textContent = "Cancel";
+ wrap.style.display = "block";
+ wrap.innerHTML = `
+  <form id="siteReviewForm" onsubmit="submitSiteReview(event)" style="max-width:480px;margin:0 auto;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow)">
+   <div class="pdBlock">
+    <label>Your rating</label>
+    <div class="reviewStarPicker" id="siteReviewStars">${[1,2,3,4,5].map(n=>`<button type="button" class="reviewStarBtn" onclick="siteSetReviewRating(${n})">★</button>`).join("")}</div>
+   </div>
+   <div class="formGrid">
+    <div class="field full"><label>Your name</label><input required name="name" placeholder="Your name"></div>
+    <div class="field full"><label>Your review</label><textarea required name="text" rows="3" placeholder="Tell us what you think"></textarea></div>
+   </div>
+   <button class="btn" id="siteReviewSubmitBtn" style="width:100%;margin-top:5px">Submit review</button>
+  </form>`;
+}
+async function submitSiteReview(e){
+ e.preventDefault();
+ const btn = document.querySelector("#siteReviewSubmitBtn");
+ const form = new FormData(e.target);
+ if(!siteReviewRating){ toast("Please select a rating"); return; }
+ btn.disabled = true; btn.textContent = "Submitting…";
+ try{
+  const res = await fetch(SCRIPT_URL, { method:"POST", body: JSON.stringify({ action:"submitReview", review: {
+   productId: 0, name: form.get("name"), text: form.get("text"), rating: siteReviewRating
+  }})});
+  const data = await res.json();
+  if(!data.success) throw new Error(data.error || "Couldn't submit review");
+  siteReviewFormOpen = false; siteReviewRating = 0;
+  renderSiteReviewForm();
+  toast("Thanks! Your review will show once approved.");
+ }catch(err){
+  toast(err.message || "Couldn't submit review — please try again.");
+  btn.disabled = false; btn.textContent = "Submit review";
+ }
+}
 function dealChangeQty(id,n){
  if(dealExpired()) return;
  const p = dealProducts.find(x=>x.id===id);
@@ -1933,6 +2062,7 @@ function renderDeal(settings){
 })();
 loadBanner();
 initProductsAndCart();
+loadSiteReviews();
 // If someone arrives via a shared product link or a search result
 // (e.g. shopslipper.online/?product=123, which the SEO product pages
 // link to), open that product's modal automatically once products
