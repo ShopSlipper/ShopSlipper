@@ -163,7 +163,6 @@ select.statusSelect[data-status="Processing"]{background-color:#fdf3e0;color:#a3
  Code.gs. That script's backend supports:
    GET  action=orders                             -> list all orders
    POST action=updateStatus {key,orderId,status}   -> status must be
-                                                       "New" or
                                                        "Processing"
                                                        only — the
                                                        backend rejects
@@ -173,11 +172,12 @@ select.statusSelect[data-status="Processing"]{background-color:#fdf3e0;color:#a3
    POST action=deleteOrders {key,orderIds:[...]}
 
  STATUS EDITING IS INTENTIONALLY LIMITED: an order can only be
- manually set to "New" or "Processing" from this page. Once an
- order is Shipped / Delivered / Cancelled (moved there by the
- background sync from ShopSlipper Data / the rider workflow), its
- status shows as a plain read-only badge here instead of a
- dropdown — those transitions don't happen from this page.
+ manually set to "Processing" from this page, and only while it's
+ currently "New". Processing orders are handled on shipped.html,
+ not here. Once an order is Processing, Shipped, Delivered, or
+ Cancelled, its status shows as a plain read-only badge here
+ instead of a dropdown — those transitions don't happen from this
+ page.
 ============================================================= -->
 
 <div id="gate">
@@ -273,9 +273,12 @@ select.statusSelect[data-status="Processing"]{background-color:#fdf3e0;color:#a3
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHNkrQJ5p3rHNjNtf7x4nbOTk3i90T8Iat_fXgScIUxidzdPcNda_UU3yWMxt9AYJ7/exec";
 const ADMIN_KEY  = "shopslipper2026";
 
-// The only statuses this page is allowed to set manually. Must match
+// This page only acts on orders that are currently New —
+// Processing orders are handled on shipped.html, not here.
+const STATUSES_WITH_CONTROL = ["New"];
+// The only status this page is allowed to set manually. Must match
 // ALLOWED_MANUAL_STATUSES in order-mastersheet-sync.gs.
-const EDITABLE_STATUSES = ["New", "Processing"];
+const EDITABLE_STATUSES = ["Processing"];
 
 let orders = [];
 let filtered = [];
@@ -420,8 +423,8 @@ function renderDetail(){
  const items = parseItems(o);
  const when = o.timestamp ? new Date(o.timestamp).toLocaleString() : "";
  const status = o.status || "New";
- const isEditable = EDITABLE_STATUSES.includes(status);
- const statusControl = isEditable
+ const showControl = STATUSES_WITH_CONTROL.includes(status);
+ const statusControl = showControl
   ? `<select class="statusSelect" data-status="${status}" onchange="changeStatus('${escapeHtml(o.orderId)}', this)">
       ${EDITABLE_STATUSES.map(s=>`<option value="${s}" ${s===status?'selected':''}>${s}</option>`).join("")}
      </select>`
