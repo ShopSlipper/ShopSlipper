@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShopSlipper — Delivery</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#ffffff;--card:#ffffff;--text:#182220;--muted:#6f8582;
+  --line:#e6ece9;--brand:#127a3e;--soft:#e9f5ee;--danger:#c0392b;--danger-soft:#fbeae8;
+  --radius:14px;--serif:'Inter',system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer;border:0;background:none}
+a{color:inherit}
+
+/* ---------- gate ---------- */
+#gate{min-height:100vh;display:grid;place-items:center;padding:20px;background:#f5faf7}
+.gateBox{background:var(--card);border:1px solid var(--line);border-radius:24px;box-shadow:0 16px 40px rgba(20,40,38,.08);padding:40px;width:min(380px,100%);text-align:center}
+.gateBox h1{font-family:var(--serif);font-weight:600;font-size:24px;margin-bottom:6px}
+.gateBox p{color:var(--muted);font-size:13.5px;margin-bottom:22px}
+.gateBox input{width:100%;border:1px solid var(--line);border-radius:12px;padding:13px 14px;outline:none;margin-bottom:12px;font-size:14px}
+.gateBox input:focus{border-color:var(--brand)}
+.gateErr{color:var(--danger);font-size:12.5px;margin-bottom:10px;display:none}
+.gateBox .btn{width:100%;background:var(--brand);color:#fff;border-radius:999px;padding:12px;font-weight:600;font-size:14px}
+#app{display:none;flex-direction:column;height:100vh}
+#app.on{display:flex}
+
+/* ---------- header ---------- */
+header{background:var(--brand);color:#fff;flex:0 0 auto}
+.nav{height:74px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 24px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-weight:600;font-size:18px}
+.brand .mark{width:36px;height:36px;border-radius:50%;object-fit:cover;background:#fff}
+.brand small{display:block;color:rgba(255,255,255,.75);font-weight:600;font-size:11px;letter-spacing:.6px;text-transform:uppercase}
+.headActions{display:flex;gap:10px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 17px;border-radius:999px;background:rgba(255,255,255,.16);color:#fff;font-weight:600;font-size:13px;transition:.15s background,.15s opacity,.15s transform}
+.btn:hover{background:rgba(255,255,255,.26)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.solid{background:var(--brand);color:#fff}
+.btn.solid:hover{opacity:.9;background:var(--brand)}
+.btn.outline{background:#fff;color:var(--brand);border:1px solid var(--brand)}
+.btn.danger{background:var(--danger);color:#fff}
+.btn.sm{padding:8px 13px;font-size:12px}
+
+/* ---------- body layout: sidebar + main, like chat.html ---------- */
+.layout{flex:1 1 auto;display:flex;min-height:0}
+.sidebar{width:340px;flex:0 0 340px;border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+.sidebarHead{padding:24px 20px 14px}
+.sidebarHead h1{font-family:var(--serif);font-weight:600;font-size:22px;display:flex;align-items:baseline;gap:6px}
+.sidebarHead h1 span{font-family:'Inter';font-weight:400;color:var(--muted);font-size:16px}
+.statusPill{margin-top:12px;background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:10px 13px;font-size:12.5px;color:var(--muted)}
+.statusPill b{color:var(--text)}
+.bulkPill{margin-top:12px;background:var(--danger-soft);border:1px solid #f0c9c3;border-radius:12px;padding:9px 13px;font-size:12.5px;color:var(--danger);display:none;align-items:center;justify-content:space-between;gap:8px}
+.bulkPill.show{display:flex}
+.bulkPill button{font-weight:700;font-size:12px;color:var(--danger)}
+.searchBox{padding:0 20px 14px}
+.searchBox .inputWrap{position:relative}
+.searchBox input{width:100%;border:1px solid var(--line);border-radius:11px;padding:10px 12px 10px 32px;font-size:13px;outline:none;background:#fafcfb}
+.searchBox input:focus{border-color:var(--brand);background:#fff}
+.searchBox .sIcon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px}
+.filterRow{display:flex;gap:6px;padding:0 20px 14px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:11.5px;font-weight:600;color:var(--muted);background:#fff}
+.chip.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+
+.orderList{flex:1;overflow-y:auto;border-top:1px solid var(--line)}
+.orderItem{display:flex;gap:10px;align-items:flex-start;padding:14px 20px;border-bottom:1px solid var(--line);cursor:pointer;transition:.12s background}
+.orderItem:hover{background:#fafcfb}
+.orderItem.active{background:var(--soft)}
+.orderItem .chk{margin-top:3px;flex:0 0 auto}
+.orderItem .oi-main{flex:1;min-width:0}
+.orderItem .oi-top{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.orderItem .oi-name{font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.orderItem .oi-total{font-size:12.5px;color:var(--muted);white-space:nowrap;flex:0 0 auto}
+.orderItem .oi-sub{color:var(--muted);font-size:12px;margin-top:2px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.orderItem .skuTag{font-family:monospace;font-size:10.5px;background:var(--soft);padding:2px 6px;border-radius:5px;color:var(--brand)}
+.miniStatus{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--soft);color:var(--brand)}
+.miniStatus[data-s="Cancelled"]{background:var(--danger-soft);color:var(--danger)}
+.miniStatus[data-s="Delivered"]{background:#e5f2ea;color:#1f7a44}
+.miniStatus[data-s="Shipped"]{background:#eaf1fb;color:#2a5ca8}
+.miniStatus[data-s="Processing"]{background:#fdf3e0;color:#a3730c}
+.emptyList{padding:40px 20px;text-align:center;color:var(--muted);font-size:13px}
+
+/* ---------- main / detail panel ---------- */
+.main{flex:1;min-width:0;overflow-y:auto;background:#fff}
+.placeholder{height:100%;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:14px;text-align:center;padding:40px}
+.detail{max-width:680px;margin:0 auto;padding:36px 32px 60px}
+.detailHead{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:24px;flex-wrap:wrap}
+.detailHead h2{font-family:var(--serif);font-weight:600;font-size:24px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.detailHead .ts{color:var(--muted);font-size:12.5px;margin-top:4px}
+.detailActions{display:flex;gap:8px;flex:0 0 auto;align-items:center}
+.iconBtn{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;background:var(--soft);color:var(--brand);font-size:14px}
+.iconBtn:hover{background:#d9f0e2}
+.iconBtn.danger{background:var(--danger-soft);color:var(--danger)}
+.iconBtn.danger:hover{background:#f6d5d0}
+.iconBtn.close{background:#f1f3f2;color:var(--muted)}
+.iconBtn.close:hover{background:#e4e8e6;color:var(--text)}
+
+select.statusSelect{border:1px solid var(--line);border-radius:999px;padding:7px 28px 7px 12px;font-size:12px;font-weight:700;background:var(--soft);color:var(--brand);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23127a3e'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center}
+select.statusSelect[data-status="Cancelled"]{background-color:var(--danger-soft);color:var(--danger)}
+select.statusSelect[data-status="Delivered"]{background-color:#e5f2ea;color:#1f7a44}
+select.statusSelect[data-status="Shipped"]{background-color:#eaf1fb;color:#2a5ca8}
+select.statusSelect[data-status="Processing"]{background-color:#fdf3e0;color:#a3730c}
+.statusBadgeStatic{display:inline-flex;align-items:center;padding:7px 14px;border-radius:999px;font-size:12px;font-weight:700}
+
+.infoGrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px}
+.infoCard{border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.infoCard label{display:block;font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px}
+.infoCard .val{font-size:14px}
+.infoCard.full{grid-column:1/-1}
+
+.section{margin-bottom:24px}
+.section h3{font-family:var(--serif);font-weight:600;font-size:15px;margin-bottom:10px}
+.itemRow{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.itemRow:last-child{border-bottom:0}
+.totalRow{display:flex;justify-content:space-between;padding-top:12px;margin-top:4px;border-top:2px solid var(--text);font-weight:700;font-size:15px}
+
+.toast{position:fixed;left:50%;bottom:25px;transform:translate(-50%,20px);background:var(--brand);color:#fff;padding:12px 18px;border-radius:999px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:100}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.err{background:var(--danger)}
+.spinning{display:inline-block;animation:spin360 .7s linear}
+@keyframes spin360{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+
+/* ---------- modals ---------- */
+.modalWrap{position:fixed;inset:0;background:rgba(15,30,25,.45);display:none;align-items:center;justify-content:center;padding:20px;z-index:200}
+.modalWrap.show{display:flex}
+.modal{background:#fff;border-radius:20px;padding:26px;width:min(420px,100%);box-shadow:0 16px 40px rgba(20,40,38,.15)}
+.modal h3{font-family:var(--serif);font-size:19px;margin-bottom:4px}
+.modal p.sub{color:var(--muted);font-size:12.5px;margin-bottom:18px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px}
+.field input,.field textarea{width:100%;border:1px solid var(--line);border-radius:11px;padding:10px 12px;font-size:13.5px;outline:none}
+.field input:focus,.field textarea:focus{border-color:var(--brand)}
+.field textarea{resize:vertical;min-height:64px}
+.modalActions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+.confirmModal .modal{width:min(360px,100%);text-align:center}
+.confirmModal .modal p{color:var(--muted);font-size:13.5px;margin-bottom:20px}
+.confirmModal .modalActions{justify-content:center}
+
+@media(max-width:820px){
+ .layout{flex-direction:column}
+ .sidebar{width:100%;flex:0 0 auto;max-height:46vh;border-right:0;border-bottom:1px solid var(--line)}
+ .main{flex:1}
+ .infoGrid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+ PASSWORD: change ADMIN_KEY below to match ADMIN_KEY in the
+ Order Mastersheet's Apps Script (order-mastersheet-sync.gs).
+ Client-side gate only — not real security, just keeps casual
+ visitors out.
+
+ This page now talks to the ORDER MASTERSHEET's own Web App
+ deployment (order-mastersheet-sync.gs), NOT ShopSlipper Data's
+ Code.gs. That script's backend supports:
+   GET  action=orders                             -> list all orders
+   POST action=updateStatus {key,orderId,status,reason?}
+                                                    -> status must be
+                                                       "Delivered" or
+                                                       "Cancelled"
+                                                       only — the
+                                                       backend rejects
+                                                       anything else.
+                                                       "reason" is
+                                                       required when
+                                                       status is
+                                                       "Cancelled"
+                                                       (backend
+                                                       rejects the
+                                                       request
+                                                       without one).
+   POST action=updateOrder  {key,orderId,name,phone,address}
+   POST action=deleteOrder  {key,orderId}
+   POST action=deleteOrders {key,orderIds:[...]}
+
+ STATUS EDITING IS INTENTIONALLY LIMITED: an order can only be
+ manually set to "Delivered" or "Cancelled" from this page, and
+ only while it's currently "Shipped". New/Processing orders are
+ handled on orders.html/shipped.html, not here. Choosing
+ "Cancelled" opens a small prompt asking for a reason — that
+ reason is saved alongside the order and required before the
+ request is sent. Once an order is Delivered or Cancelled, its
+ status shows as a plain read-only badge here instead of a
+ dropdown.
+============================================================= -->
+
+<div id="gate">
+ <div class="gateBox">
+  <h1>Orders access</h1>
+  <p>Enter your admin password to view incoming orders.</p>
+  <div class="gateErr" id="gateErr">Incorrect password. Try again.</div>
+  <input type="password" id="gatePass" placeholder="Password" onkeydown="if(event.key==='Enter')tryLogin()">
+  <button class="btn" onclick="tryLogin()">Enter →</button>
+ </div>
+</div>
+
+<div id="app">
+ <header>
+  <div class="nav">
+   <div class="brand"><img class="mark" src="https://raw.githubusercontent.com/ShopSlipper/ShopSlipper/main/shop_slipper_transparent.png" alt="Shop Slipper logo"><div>Shop Slipper<small>Delivery</small></div></div>
+   <div class="headActions">
+    <button class="btn sm" id="refreshBtn" onclick="loadOrders()"><span id="refreshIcon">↻</span> Refresh</button>
+    <button class="btn sm" onclick="logout()">Log out</button>
+   </div>
+  </div>
+ </header>
+
+ <div class="layout">
+  <aside class="sidebar">
+   <div class="sidebarHead">
+    <h1>Delivery <span id="orderCountLabel">(0)</span></h1>
+    <div class="statusPill" id="sourceNote">Loading orders from the Order Mastersheet…</div>
+    <div class="bulkPill" id="bulkBar">
+     <span><b id="bulkCount">0</b> selected</span>
+     <span style="display:flex;gap:12px">
+      <button onclick="confirmBulkDelete()">Delete</button>
+      <button onclick="clearSelection()" style="color:var(--muted)">Clear</button>
+     </span>
+    </div>
+   </div>
+   <div class="searchBox">
+    <div class="inputWrap">
+     <span class="sIcon">⌕</span>
+     <input type="text" id="searchInput" placeholder="Search orders…" oninput="applyFilters()">
+    </div>
+   </div>
+   <div class="filterRow" id="filterRow">
+    <button class="chip active" data-s="">All</button>
+    <button class="chip" data-s="New">New</button>
+    <button class="chip" data-s="Processing">Processing</button>
+    <button class="chip" data-s="Shipped">Shipped</button>
+    <button class="chip" data-s="Delivered">Delivered</button>
+    <button class="chip" data-s="Cancelled">Cancelled</button>
+   </div>
+   <div class="orderList" id="orderList"></div>
+  </aside>
+
+  <main class="main" id="mainPanel">
+   <div class="placeholder">Select an order from the list to view details.</div>
+  </main>
+ </div>
+</div>
+
+<!-- edit modal -->
+<div class="modalWrap" id="editModal">
+ <div class="modal">
+  <h3>Edit order</h3>
+  <p class="sub">Update customer contact and delivery address.</p>
+  <div class="field"><label>Name</label><input id="editName" type="text"></div>
+  <div class="field"><label>Phone</label><input id="editPhone" type="tel"></div>
+  <div class="field"><label>Address</label><textarea id="editAddress"></textarea></div>
+  <div class="modalActions">
+   <button class="btn outline sm" onclick="closeEditModal()">Cancel</button>
+   <button class="btn solid sm" onclick="saveEdit()">Save changes</button>
+  </div>
+ </div>
+</div>
+
+<!-- confirm delete modal -->
+<div class="modalWrap confirmModal" id="confirmModal">
+ <div class="modal">
+  <h3 id="confirmTitle">Delete order?</h3>
+  <p id="confirmBody">This can't be undone.</p>
+  <div class="modalActions">
+   <button class="btn outline sm" onclick="closeConfirmModal()">Cancel</button>
+   <button class="btn sm danger" id="confirmActionBtn">Delete</button>
+  </div>
+ </div>
+</div>
+
+<!-- cancellation reason modal -->
+<div class="modalWrap" id="reasonModal">
+ <div class="modal">
+  <h3>Cancellation reason</h3>
+  <p class="sub">Required — tell us why this order is being cancelled.</p>
+  <div class="field"><label>Reason</label><textarea id="cancelReason" placeholder="e.g. Customer requested cancellation, out of stock, unreachable…"></textarea></div>
+  <div class="modalActions">
+   <button class="btn outline sm" onclick="closeReasonModal()">Back</button>
+   <button class="btn solid sm" onclick="confirmCancel()">Confirm cancellation</button>
+  </div>
+ </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================== CONFIG ================== */
+// Order Mastersheet's own Web App /exec URL (order-mastersheet-sync.gs),
+// NOT ShopSlipper Data's Code.gs URL.
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHNkrQJ5p3rHNjNtf7x4nbOTk3i90T8Iat_fXgScIUxidzdPcNda_UU3yWMxt9AYJ7/exec";
+const ADMIN_KEY  = "shopslipper2026";
+
+// This page only acts on orders that are currently Shipped —
+// New/Processing orders are handled on orders.html/shipped.html.
+const STATUSES_WITH_CONTROL = ["Shipped"];
+// The statuses this page is allowed to set manually. Must match
+// ALLOWED_MANUAL_STATUSES in order-mastersheet-sync.gs. Choosing
+// "Cancelled" requires a reason (see promptCancelReason below).
+const EDITABLE_STATUSES = ["Delivered", "Cancelled"];
+
+let orders = [];
+let filtered = [];
+let selected = new Set();
+let activeId = null;
+let statusFilterVal = "";
+
+function tryLogin(){
+ const val = document.querySelector("#gatePass").value;
+ if(val === ADMIN_KEY){
+  sessionStorage.setItem("ss-orders-ok","1");
+  document.querySelector("#gate").style.display="none";
+  document.querySelector("#app").classList.add("on");
+  loadOrders();
+ }else{
+  document.querySelector("#gateErr").style.display="block";
+ }
+}
+function logout(){
+ sessionStorage.removeItem("ss-orders-ok");
+ location.reload();
+}
+if(sessionStorage.getItem("ss-orders-ok")==="1"){
+ document.querySelector("#gate").style.display="none";
+ document.querySelector("#app").classList.add("on");
+}
+
+function money(n){return "Rs. "+Number(n||0).toLocaleString("en-IN")}
+function escapeHtml(s){ const d=document.createElement("div"); d.textContent=s||""; return d.innerHTML; }
+function parseItems(o){ try{ return JSON.parse(o.items||"[]"); }catch(e){ return []; } }
+
+/* ---------- load ---------- */
+async function loadOrders(){
+ const refreshIcon = document.querySelector("#refreshIcon");
+ const refreshBtn = document.querySelector("#refreshBtn");
+ if(refreshIcon){ refreshIcon.classList.remove("spinning"); void refreshIcon.offsetWidth; refreshIcon.classList.add("spinning"); }
+ if(refreshBtn) refreshBtn.disabled = true;
+ try{
+  const res = await fetch(`${SCRIPT_URL}?action=orders&key=${encodeURIComponent(ADMIN_KEY)}`);
+  const data = await res.json();
+  if(data.error) throw new Error(data.error);
+  orders = (data.orders || []);
+  document.querySelector("#sourceNote").innerHTML = `Connected — <b>${orders.length}</b> orders.`;
+  applyFilters();
+ }catch(err){
+  document.querySelector("#sourceNote").innerHTML = `Couldn't reach the Sheet. Try refreshing.`;
+ }finally{
+  if(refreshBtn) refreshBtn.disabled = false;
+ }
+}
+setInterval(()=>{ if(sessionStorage.getItem("ss-orders-ok")==="1") loadOrders(); }, 15000);
+
+/* ---------- filters ---------- */
+document.querySelector("#filterRow").addEventListener("click", (e)=>{
+ const chip = e.target.closest(".chip");
+ if(!chip) return;
+ document.querySelectorAll("#filterRow .chip").forEach(c=>c.classList.remove("active"));
+ chip.classList.add("active");
+ statusFilterVal = chip.dataset.s;
+ applyFilters();
+});
+
+function applyFilters(){
+ const q = document.querySelector("#searchInput").value.trim().toLowerCase();
+ filtered = orders.filter(o=>{
+  if(statusFilterVal && (o.status||"New") !== statusFilterVal) return false;
+  if(!q) return true;
+  const items = parseItems(o);
+  const itemNames = items.map(i=>i.name||"").join(" ").toLowerCase();
+  const hay = [o.orderId,o.name,o.phone,o.address,itemNames].join(" ").toLowerCase();
+  return hay.includes(q);
+ });
+ if(activeId && !filtered.some(o=>o.orderId===activeId)) activeId = null;
+ renderList();
+ renderDetail();
+}
+
+/* ---------- selection ---------- */
+function toggleRow(id, ev){
+ ev.stopPropagation();
+ if(selected.has(id)) selected.delete(id); else selected.add(id);
+ renderList();
+}
+function clearSelection(){ selected.clear(); renderList(); }
+function updateBulkBar(){
+ document.querySelector("#bulkCount").textContent = selected.size;
+ document.querySelector("#bulkBar").classList.toggle("show", selected.size>0);
+ document.querySelector("#sourceNote").style.display = selected.size>0 ? "none" : "block";
+}
+
+/* ---------- list render ---------- */
+function selectOrder(id){
+ activeId = id;
+ renderList();
+ renderDetail();
+}
+// Closes the open order and returns to the "select an order" placeholder,
+// without touching search/filter state or the checkbox selection.
+function closeDetail(){
+ activeId = null;
+ renderList();
+ renderDetail();
+}
+function renderList(){
+ const list = document.querySelector("#orderList");
+ document.querySelector("#orderCountLabel").textContent = `(${filtered.length})`;
+ updateBulkBar();
+ if(!filtered.length){
+  list.innerHTML = `<div class="emptyList">No orders found.</div>`;
+  return;
+ }
+ list.innerHTML = filtered.map(o=>{
+  const items = parseItems(o);
+  const itemSummary = items.map(i=>`${i.qty}× ${i.name}`).join(", ");
+  const status = o.status || "New";
+  const checked = selected.has(o.orderId) ? "checked" : "";
+  return `<div class="orderItem ${o.orderId===activeId?'active':''}" onclick="selectOrder('${escapeHtml(o.orderId)}')">
+   <input class="chk" type="checkbox" ${checked} onclick="toggleRow('${escapeHtml(o.orderId)}', event)">
+   <div class="oi-main">
+    <div class="oi-top">
+     <span class="oi-name">${escapeHtml(o.name||"Unknown")}</span>
+     <span class="oi-total">${money(o.total||0)}</span>
+    </div>
+    <div class="oi-sub">
+     <span class="skuTag">${escapeHtml(o.orderId||"")}</span>
+     <span class="miniStatus" data-s="${status}">${status}</span>
+    </div>
+    <div class="oi-sub" style="margin-top:3px">${escapeHtml(o.phone||"")}${itemSummary?` · ${escapeHtml(itemSummary)}`:""}</div>
+   </div>
+  </div>`;
+ }).join("");
+}
+
+/* ---------- detail render ---------- */
+function renderDetail(){
+ const main = document.querySelector("#mainPanel");
+ const o = orders.find(x=>x.orderId===activeId);
+ if(!o){
+  main.innerHTML = `<div class="placeholder">Select an order from the list to view details.</div>`;
+  return;
+ }
+ const items = parseItems(o);
+ const when = o.timestamp ? new Date(o.timestamp).toLocaleString() : "";
+ const status = o.status || "New";
+ const showControl = STATUSES_WITH_CONTROL.includes(status);
+ const statusControl = showControl
+  ? `<select class="statusSelect" data-status="${status}" onchange="changeStatus('${escapeHtml(o.orderId)}', this)">
+      ${EDITABLE_STATUSES.map(s=>`<option value="${s}" ${s===status?'selected':''}>${s}</option>`).join("")}
+     </select>`
+  : `<span class="miniStatus statusBadgeStatic" data-s="${status}" title="Set by the delivery/rider workflow — not editable here">${status}</span>`;
+ main.innerHTML = `
+  <div class="detail">
+   <div class="detailHead">
+    <div>
+     <h2>${escapeHtml(o.name||"Unknown")} <span class="skuTag">${escapeHtml(o.orderId||"")}</span></h2>
+     <div class="ts">${when}</div>
+    </div>
+    <div class="detailActions">
+     ${statusControl}
+     <button class="iconBtn" title="Edit" onclick="openEditModal('${escapeHtml(o.orderId)}')">✎</button>
+     <button class="iconBtn danger" title="Delete" onclick="confirmSingleDelete('${escapeHtml(o.orderId)}')">🗑</button>
+     <button class="iconBtn close" title="Close" onclick="closeDetail()">✕</button>
+    </div>
+   </div>
+
+   <div class="infoGrid">
+    <div class="infoCard"><label>Phone</label><div class="val">${escapeHtml(o.phone||"—")}</div></div>
+    <div class="infoCard"><label>Total</label><div class="val">${money(o.total||0)}</div></div>
+    <div class="infoCard full"><label>Address</label><div class="val">${escapeHtml(o.address||"—")}</div></div>
+    ${status==="Cancelled"?`<div class="infoCard full"><label>Cancellation reason</label><div class="val">${escapeHtml(o.reason||"—")}</div></div>`:""}
+   </div>
+
+   <div class="section">
+    <h3>Items</h3>
+    ${items.map(i=>`<div class="itemRow"><span>${i.qty}× ${escapeHtml(i.name)}${i.color?` (${escapeHtml(i.color)})`:""}</span><span>${money((i.price||0)*(i.qty||1))}</span></div>`).join("") || `<div style="color:var(--muted);font-size:13px">No items recorded.</div>`}
+    <div class="totalRow"><span>Total</span><span>${money(o.total||0)}</span></div>
+   </div>
+  </div>`;
+}
+
+/* ---------- status change ---------- */
+// "Delivered" goes straight through. "Cancelled" first opens the
+// reason modal — the request isn't sent until a reason is entered.
+async function changeStatus(orderId, sel){
+ const newStatus = sel.value;
+ if(newStatus === "Cancelled"){
+  promptCancelReason(orderId, sel);
+  return;
+ }
+ await submitStatusChange(orderId, newStatus, sel, "");
+}
+
+let pendingCancel = null; // { orderId, sel, prevStatus }
+function promptCancelReason(orderId, sel){
+ pendingCancel = { orderId, sel, prevStatus: sel.getAttribute("data-status") };
+ document.querySelector("#cancelReason").value = "";
+ document.querySelector("#reasonModal").classList.add("show");
+}
+function closeReasonModal(){
+ // Revert the dropdown's visual selection back to its actual current
+ // status, since the user picked "Cancelled" but didn't confirm it.
+ if(pendingCancel) pendingCancel.sel.value = pendingCancel.prevStatus;
+ document.querySelector("#reasonModal").classList.remove("show");
+ pendingCancel = null;
+}
+async function confirmCancel(){
+ if(!pendingCancel) return;
+ const reason = document.querySelector("#cancelReason").value.trim();
+ if(!reason){ toast("Please enter a reason.", true); return; }
+ const { orderId, sel } = pendingCancel;
+ document.querySelector("#reasonModal").classList.remove("show");
+ pendingCancel = null;
+ await submitStatusChange(orderId, "Cancelled", sel, reason);
+}
+
+async function submitStatusChange(orderId, newStatus, sel, reason){
+ const prevStatus = sel.getAttribute("data-status");
+ sel.setAttribute("data-status", newStatus);
+ try{
+  const res = await fetch(SCRIPT_URL, {
+   method:"POST",
+   headers:{"Content-Type":"text/plain;charset=utf-8"},
+   body: JSON.stringify({ action:"updateStatus", key:ADMIN_KEY, orderId, status:newStatus, reason })
+  });
+  const data = await res.json();
+  if(data.error) throw new Error(data.error);
+  const o = orders.find(x=>x.orderId===orderId);
+  if(o){ o.status = newStatus; o.reason = reason; }
+  toast(`Status updated to "${newStatus}"`);
+  renderList();
+  renderDetail();
+ }catch(err){
+  sel.setAttribute("data-status", prevStatus);
+  sel.value = prevStatus; // revert dropdown on failure
+  toast(err.message || "Couldn't update status — try again.", true);
+ }
+}
+
+/* ---------- edit ---------- */
+let editingId = null;
+function openEditModal(orderId){
+ const o = orders.find(x=>x.orderId===orderId);
+ if(!o) return;
+ editingId = orderId;
+ document.querySelector("#editName").value = o.name || "";
+ document.querySelector("#editPhone").value = o.phone || "";
+ document.querySelector("#editAddress").value = o.address || "";
+ document.querySelector("#editModal").classList.add("show");
+}
+function closeEditModal(){
+ document.querySelector("#editModal").classList.remove("show");
+ editingId = null;
+}
+async function saveEdit(){
+ if(!editingId) return;
+ const name = document.querySelector("#editName").value.trim();
+ const phone = document.querySelector("#editPhone").value.trim();
+ const address = document.querySelector("#editAddress").value.trim();
+ try{
+  const res = await fetch(SCRIPT_URL, {
+   method:"POST",
+   headers:{"Content-Type":"text/plain;charset=utf-8"},
+   body: JSON.stringify({ action:"updateOrder", key:ADMIN_KEY, orderId:editingId, name, phone, address })
+  });
+  const data = await res.json();
+  if(data.error) throw new Error(data.error);
+  const o = orders.find(x=>x.orderId===editingId);
+  if(o){ o.name=name; o.phone=phone; o.address=address; }
+  toast("Order updated.");
+  closeEditModal();
+  applyFilters();
+ }catch(err){
+  toast("Couldn't save changes — try again.", true);
+ }
+}
+
+/* ---------- delete ---------- */
+let pendingDelete = null;
+function confirmSingleDelete(orderId){
+ pendingDelete = { type:"single", ids:[orderId] };
+ document.querySelector("#confirmTitle").textContent = "Delete this order?";
+ document.querySelector("#confirmBody").textContent = `Order ${orderId} will be permanently removed. This can't be undone.`;
+ document.querySelector("#confirmModal").classList.add("show");
+}
+function confirmBulkDelete(){
+ if(selected.size===0) return;
+ pendingDelete = { type:"bulk", ids:Array.from(selected) };
+ document.querySelector("#confirmTitle").textContent = "Delete selected orders?";
+ document.querySelector("#confirmBody").textContent = `${selected.size} order(s) will be permanently removed. This can't be undone.`;
+ document.querySelector("#confirmModal").classList.add("show");
+}
+function closeConfirmModal(){
+ document.querySelector("#confirmModal").classList.remove("show");
+ pendingDelete = null;
+}
+document.querySelector("#confirmActionBtn").addEventListener("click", async ()=>{
+ if(!pendingDelete) return;
+ const { type, ids } = pendingDelete;
+ try{
+  const body = type==="single"
+   ? { action:"deleteOrder", key:ADMIN_KEY, orderId:ids[0] }
+   : { action:"deleteOrders", key:ADMIN_KEY, orderIds:ids };
+  const res = await fetch(SCRIPT_URL, {
+   method:"POST",
+   headers:{"Content-Type":"text/plain;charset=utf-8"},
+   body: JSON.stringify(body)
+  });
+  const data = await res.json();
+  if(data.error) throw new Error(data.error);
+  orders = orders.filter(o=>!ids.includes(o.orderId));
+  ids.forEach(id=>selected.delete(id));
+  if(ids.includes(activeId)) activeId = null;
+  toast(ids.length>1 ? `${ids.length} orders deleted.` : "Order deleted.");
+  closeConfirmModal();
+  applyFilters();
+ }catch(err){
+  toast("Couldn't delete — try again.", true);
+  closeConfirmModal();
+ }
+});
+
+/* ---------- toast ---------- */
+let toastTimer;
+function toast(t, isErr){
+ const e = document.querySelector("#toast");
+ e.textContent = t;
+ e.classList.toggle("err", !!isErr);
+ e.classList.add("show");
+ clearTimeout(toastTimer);
+ toastTimer = setTimeout(()=>e.classList.remove("show"), 2400);
+}
+</script>
+</body>
+</html>
