@@ -48,7 +48,7 @@ header{background:var(--brand);color:#fff;flex:0 0 auto}
 .btn.danger{background:var(--danger);color:#fff}
 .btn.sm{padding:8px 13px;font-size:12px}
 
-/* ---------- body layout: sidebar + main, like chat.html ---------- */
+/* ---------- body layout: sidebar + main ---------- */
 .layout{flex:1 1 auto;display:flex;min-height:0}
 .sidebar{width:340px;flex:0 0 340px;border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
 .sidebarHead{padding:24px 20px 14px}
@@ -84,6 +84,7 @@ header{background:var(--brand);color:#fff;flex:0 0 auto}
 .miniStatus[data-s="Delivered"]{background:#e5f2ea;color:#1f7a44}
 .miniStatus[data-s="Shipped"]{background:#eaf1fb;color:#2a5ca8}
 .miniStatus[data-s="Processing"]{background:#fdf3e0;color:#a3730c}
+.miniStatus[data-s="Out for delivery"]{background:#f3e8fb;color:#7a3fa0}
 .emptyList{padding:40px 20px;text-align:center;color:var(--muted);font-size:13px}
 
 /* ---------- main / detail panel ---------- */
@@ -106,6 +107,7 @@ select.statusSelect[data-status="Cancelled"]{background-color:var(--danger-soft)
 select.statusSelect[data-status="Delivered"]{background-color:#e5f2ea;color:#1f7a44}
 select.statusSelect[data-status="Shipped"]{background-color:#eaf1fb;color:#2a5ca8}
 select.statusSelect[data-status="Processing"]{background-color:#fdf3e0;color:#a3730c}
+select.statusSelect[data-status="Out for delivery"]{background-color:#f3e8fb;color:#7a3fa0}
 .statusBadgeStatic{display:inline-flex;align-items:center;padding:7px 14px;border-radius:999px;font-size:12px;font-weight:700}
 
 .infoGrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px}
@@ -158,24 +160,22 @@ select.statusSelect[data-status="Processing"]{background-color:#fdf3e0;color:#a3
  Client-side gate only — not real security, just keeps casual
  visitors out.
 
- This page now talks to the ORDER MASTERSHEET's own Web App
- deployment (order-mastersheet-sync.gs), NOT ShopSlipper Data's
- Code.gs. That script's backend supports:
+ This page talks to the ORDER MASTERSHEET's own Web App
+ deployment (order-mastersheet-sync.gs). That script's backend
+ supports:
    GET  action=orders                             -> list all orders
    POST action=updateStatus {key,orderId,status,reason?}
                                                     -> status must be
                                                        "Delivered" or
-                                                       "Cancelled"
-                                                       only — the
-                                                       backend rejects
-                                                       anything else.
-                                                       "reason" is
+                                                       "Cancelled" only —
+                                                       the backend
+                                                       rejects anything
+                                                       else. "reason" is
                                                        required when
                                                        status is
-                                                       "Cancelled"
-                                                       (backend
-                                                       rejects the
-                                                       request
+                                                       "Cancelled" (the
+                                                       backend rejects
+                                                       the request
                                                        without one).
    POST action=updateOrder  {key,orderId,name,phone,address}
    POST action=deleteOrder  {key,orderId}
@@ -183,13 +183,20 @@ select.statusSelect[data-status="Processing"]{background-color:#fdf3e0;color:#a3
 
  STATUS EDITING IS INTENTIONALLY LIMITED: an order can only be
  manually set to "Delivered" or "Cancelled" from this page, and
- only while it's currently "Shipped". New/Processing orders are
- handled on orders.html/shipped.html, not here. Choosing
- "Cancelled" opens a small prompt asking for a reason — that
- reason is saved alongside the order and required before the
- request is sent. Once an order is Delivered or Cancelled, its
- status shows as a plain read-only badge here instead of a
- dropdown.
+ only while it's currently "Out for delivery". Other stages are handled
+ on their own pages, not here. Choosing "Cancelled" opens a small
+ prompt asking for a reason — that reason is saved alongside the
+ order and required before the request is sent. Once an order has
+ moved past "Out for delivery", its status shows as a plain read-only
+ badge here instead of a dropdown.
+
+ PIPELINE: New -> Processing -> Shipped -> Out for delivery ->
+ Delivered, with Cancelled (+ reason) reachable from every stage
+ except Delivered itself.
+   orders.html      -> New              -> Processing | Cancelled
+   processing.html  -> Processing       -> Shipped     | Cancelled
+   shipped.html     -> Shipped          -> Out for delivery | Cancelled
+   delivery.html    -> Out for delivery -> Delivered   | Cancelled
 ============================================================= -->
 
 <div id="gate">
@@ -237,6 +244,7 @@ select.statusSelect[data-status="Processing"]{background-color:#fdf3e0;color:#a3
     <button class="chip" data-s="New">New</button>
     <button class="chip" data-s="Processing">Processing</button>
     <button class="chip" data-s="Shipped">Shipped</button>
+    <button class="chip" data-s="Out for delivery">Out for delivery</button>
     <button class="chip" data-s="Delivered">Delivered</button>
     <button class="chip" data-s="Cancelled">Cancelled</button>
    </div>
@@ -293,14 +301,13 @@ select.statusSelect[data-status="Processing"]{background-color:#fdf3e0;color:#a3
 
 <script>
 /* ================== CONFIG ================== */
-// Order Mastersheet's own Web App /exec URL (order-mastersheet-sync.gs),
-// NOT ShopSlipper Data's Code.gs URL.
+// Order Mastersheet's own Web App /exec URL (order-mastersheet-sync.gs).
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHNkrQJ5p3rHNjNtf7x4nbOTk3i90T8Iat_fXgScIUxidzdPcNda_UU3yWMxt9AYJ7/exec";
 const ADMIN_KEY  = "shopslipper2026";
 
-// This page only acts on orders that are currently Shipped —
-// New/Processing orders are handled on orders.html/shipped.html.
-const STATUSES_WITH_CONTROL = ["Shipped"];
+// This page only acts on orders that are currently Out for delivery.
+// Other stages are handled on their own pages.
+const STATUSES_WITH_CONTROL = ["Out for delivery"];
 // The statuses this page is allowed to set manually. Must match
 // ALLOWED_MANUAL_STATUSES in order-mastersheet-sync.gs. Choosing
 // "Cancelled" requires a reason (see promptCancelReason below).
@@ -454,7 +461,7 @@ function renderDetail(){
   ? `<select class="statusSelect" data-status="${status}" onchange="changeStatus('${escapeHtml(o.orderId)}', this)">
       ${EDITABLE_STATUSES.map(s=>`<option value="${s}" ${s===status?'selected':''}>${s}</option>`).join("")}
      </select>`
-  : `<span class="miniStatus statusBadgeStatic" data-s="${status}" title="Set by the delivery/rider workflow — not editable here">${status}</span>`;
+  : `<span class="miniStatus statusBadgeStatic" data-s="${status}" title="Not editable from this page">${status}</span>`;
  main.innerHTML = `
   <div class="detail">
    <div class="detailHead">
@@ -486,8 +493,8 @@ function renderDetail(){
 }
 
 /* ---------- status change ---------- */
-// "Delivered" goes straight through. "Cancelled" first opens the
-// reason modal — the request isn't sent until a reason is entered.
+// The forward status goes straight through. "Cancelled" first opens
+// the reason modal — the request isn't sent until a reason is entered.
 async function changeStatus(orderId, sel){
  const newStatus = sel.value;
  if(newStatus === "Cancelled"){
