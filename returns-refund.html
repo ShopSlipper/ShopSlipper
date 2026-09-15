@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShopSlipper — Returns · Refund</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#ffffff;--card:#ffffff;--text:#182220;--muted:#6f8582;
+  --line:#e6ece9;--brand:#127a3e;--soft:#e9f5ee;--danger:#c0392b;--danger-soft:#fbeae8;
+  --radius:14px;--serif:'Inter',system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer;border:0;background:none}
+a{color:inherit}
+
+#gate{min-height:100vh;display:grid;place-items:center;padding:20px;background:#f5faf7}
+.gateBox{background:var(--card);border:1px solid var(--line);border-radius:24px;box-shadow:0 16px 40px rgba(20,40,38,.08);padding:40px;width:min(380px,100%);text-align:center}
+.gateBox h1{font-family:var(--serif);font-weight:600;font-size:24px;margin-bottom:6px}
+.gateBox p{color:var(--muted);font-size:13.5px;margin-bottom:22px}
+.gateBox input{width:100%;border:1px solid var(--line);border-radius:12px;padding:13px 14px;outline:none;margin-bottom:12px;font-size:14px}
+.gateBox input:focus{border-color:var(--brand)}
+.gateErr{color:var(--danger);font-size:12.5px;margin-bottom:10px;display:none}
+.gateBox .btn{width:100%;background:var(--brand);color:#fff;border-radius:999px;padding:12px;font-weight:600;font-size:14px}
+#app{display:none;flex-direction:column;height:100vh}
+#app.on{display:flex}
+
+header{background:var(--brand);color:#fff;flex:0 0 auto}
+.nav{height:74px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 24px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-weight:600;font-size:18px}
+.brand .mark{width:36px;height:36px;border-radius:50%;object-fit:cover;background:#fff}
+.brand small{display:block;color:rgba(255,255,255,.75);font-weight:600;font-size:11px;letter-spacing:.6px;text-transform:uppercase}
+.headActions{display:flex;gap:10px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 17px;border-radius:999px;background:rgba(255,255,255,.16);color:#fff;font-weight:600;font-size:13px;transition:.15s background,.15s opacity,.15s transform}
+.btn:hover{background:rgba(255,255,255,.26)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.solid{background:var(--brand);color:#fff}
+.btn.solid:hover{opacity:.9;background:var(--brand)}
+.btn.outline{background:#fff;color:var(--brand);border:1px solid var(--brand)}
+.btn.sm{padding:8px 13px;font-size:12px}
+
+.layout{flex:1 1 auto;display:flex;min-height:0}
+.sidebar{width:340px;flex:0 0 340px;border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+.sidebarHead{padding:24px 20px 14px}
+.sidebarHead h1{font-family:var(--serif);font-weight:600;font-size:22px}
+.statusPill{margin-top:12px;background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:10px 13px;font-size:12.5px;color:var(--muted)}
+.statusPill b{color:var(--text)}
+
+/* Two big topic tabs — Pending / Refunded — replacing the small
+   filter chips used on the other returns pages, since these two
+   ARE the page's primary navigation here rather than a filter on
+   top of a single list. */
+.topicTabs{display:flex;gap:8px;padding:0 20px 14px}
+.topicTab{flex:1;text-align:center;border:1px solid var(--line);border-radius:12px;padding:10px 8px;font-size:13px;font-weight:700;color:var(--muted);background:#fafcfb;display:flex;flex-direction:column;align-items:center;gap:2px}
+.topicTab .cnt{font-size:11px;font-weight:600;color:var(--muted)}
+.topicTab.active{background:var(--soft);border-color:var(--brand);color:var(--brand)}
+.topicTab.active .cnt{color:var(--brand)}
+
+.searchBox{padding:0 20px 14px}
+.searchBox .inputWrap{position:relative}
+.searchBox input{width:100%;border:1px solid var(--line);border-radius:11px;padding:10px 12px 10px 32px;font-size:13px;outline:none;background:#fafcfb}
+.searchBox input:focus{border-color:var(--brand);background:#fff}
+.searchBox .sIcon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px}
+
+.orderList{flex:1;overflow-y:auto;border-top:1px solid var(--line)}
+.orderItem{display:flex;gap:10px;align-items:flex-start;padding:14px 20px;border-bottom:1px solid var(--line);cursor:pointer;transition:.12s background}
+.orderItem:hover{background:#fafcfb}
+.orderItem.active{background:var(--soft)}
+.orderItem .oi-main{flex:1;min-width:0}
+.orderItem .oi-top{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.orderItem .oi-name{font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.orderItem .oi-total{font-size:12.5px;color:var(--muted);white-space:nowrap;flex:0 0 auto}
+.orderItem .oi-sub{color:var(--muted);font-size:12px;margin-top:2px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.orderItem .skuTag{font-family:monospace;font-size:10.5px;background:var(--soft);padding:2px 6px;border-radius:5px;color:var(--brand)}
+.miniStatus{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--soft);color:var(--brand)}
+.miniStatus[data-s="Pending"]{background:#fdf3e0;color:#a3730c}
+.miniStatus[data-s="Refunded"]{background:#e5f2ea;color:#1f7a44}
+.emptyList{padding:40px 20px;text-align:center;color:var(--muted);font-size:13px}
+
+.main{flex:1;min-width:0;overflow-y:auto;background:#fff}
+.placeholder{height:100%;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:14px;text-align:center;padding:40px}
+.detail{max-width:680px;margin:0 auto;padding:36px 32px 60px}
+.detailHead{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:24px;flex-wrap:wrap}
+.detailHead h2{font-family:var(--serif);font-weight:600;font-size:24px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.detailHead .ts{color:var(--muted);font-size:12.5px;margin-top:4px}
+.detailActions{display:flex;gap:8px;flex:0 0 auto;align-items:center}
+.iconBtn{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;background:var(--soft);color:var(--brand);font-size:14px}
+.iconBtn:hover{background:#d9f0e2}
+.iconBtn.close{background:#f1f3f2;color:var(--muted)}
+.iconBtn.close:hover{background:#e4e8e6;color:var(--text)}
+.statusBadgeStatic{display:inline-flex;align-items:center;padding:7px 14px;border-radius:999px;font-size:12px;font-weight:700}
+
+.infoGrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px}
+.infoCard{border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.infoCard label{display:block;font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px}
+.infoCard .val{font-size:14px}
+.infoCard.full{grid-column:1/-1}
+
+.toast{position:fixed;left:50%;bottom:25px;transform:translate(-50%,20px);background:var(--brand);color:#fff;padding:12px 18px;border-radius:999px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:100}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.err{background:var(--danger)}
+.spinning{display:inline-block;animation:spin360 .7s linear}
+@keyframes spin360{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+
+@media(max-width:820px){
+ .layout{flex-direction:column}
+ .sidebar{width:100%;flex:0 0 auto;max-height:50vh;border-right:0;border-bottom:1px solid var(--line)}
+ .main{flex:1}
+ .infoGrid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+ PASSWORD: change ADMIN_KEY below to match ADMIN_KEY in
+ returns-mastersheet-sync.gs.
+
+ This page only shows returns whose main status is "Refund" (set
+ by returns-approved.html). Within that, it tracks a SEPARATE
+ field, refundStatus ("Pending" / "Refunded"), via two tabs on the
+ left — this page never touches the main status field at all.
+
+   Pending tab  -> returns just approved for refund, not yet paid
+   Refunded tab -> returns already paid out — read-only, no further
+                   action from here (this is the end of the line for
+                   a refund return; there's no separate "Closed" step
+                   for this branch)
+
+ Marking a Pending refund as Refunded is a one-way action — the
+ backend (updateRefundStatus_) only allows Pending -> Refunded, never
+ the reverse, same "no revert" spirit as the other status pages.
+============================================================= -->
+
+<div id="gate">
+ <div class="gateBox">
+  <h1>Returns access</h1>
+  <p>Enter your admin password to view refunds.</p>
+  <div class="gateErr" id="gateErr">Incorrect password. Try again.</div>
+  <input type="password" id="gatePass" placeholder="Password" onkeydown="if(event.key==='Enter')tryLogin()">
+  <button class="btn" onclick="tryLogin()">Enter →</button>
+ </div>
+</div>
+
+<div id="app">
+ <header>
+  <div class="nav">
+   <div class="brand"><img class="mark" src="https://raw.githubusercontent.com/ShopSlipper/ShopSlipper/main/shop_slipper_transparent.png" alt="Shop Slipper logo"><div>Shop Slipper<small>Refund</small></div></div>
+   <div class="headActions">
+    <button class="btn sm" id="refreshBtn" onclick="loadReturns()"><span id="refreshIcon">↻</span> Refresh</button>
+    <button class="btn sm" onclick="logout()">Log out</button>
+   </div>
+  </div>
+ </header>
+
+ <div class="layout">
+  <aside class="sidebar">
+   <div class="sidebarHead">
+    <h1>Refund</h1>
+    <div class="statusPill" id="sourceNote">Loading returns from the Returns Mastersheet…</div>
+   </div>
+   <div class="topicTabs" id="topicTabs">
+    <button class="topicTab active" data-t="Pending">Pending<span class="cnt" id="pendingCount">0</span></button>
+    <button class="topicTab" data-t="Refunded">Refunded<span class="cnt" id="refundedCount">0</span></button>
+   </div>
+   <div class="searchBox">
+    <div class="inputWrap">
+     <span class="sIcon">⌕</span>
+     <input type="text" id="searchInput" placeholder="Search refunds…" oninput="applyFilters()">
+    </div>
+   </div>
+   <div class="orderList" id="orderList"></div>
+  </aside>
+
+  <main class="main" id="mainPanel">
+   <div class="placeholder">Select a return from the list to view details.</div>
+  </main>
+ </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================== CONFIG ================== */
+const SCRIPT_URL = "PASTE_YOUR_RETURNS_MASTERSHEET_EXEC_URL_HERE";
+const ADMIN_KEY  = "shopslipper2026";
+
+let orders = [];       // every return with status === "Refund"
+let filtered = [];
+let activeId = null;
+let activeTab = "Pending"; // "Pending" | "Refunded"
+
+function tryLogin(){
+ const val = document.querySelector("#gatePass").value;
+ if(val === ADMIN_KEY){
+  sessionStorage.setItem("ss-returns-ok","1");
+  document.querySelector("#gate").style.display="none";
+  document.querySelector("#app").classList.add("on");
+  loadReturns();
+ }else{
+  document.querySelector("#gateErr").style.display="block";
+ }
+}
+function logout(){
+ sessionStorage.removeItem("ss-returns-ok");
+ location.reload();
+}
+if(sessionStorage.getItem("ss-returns-ok")==="1"){
+ document.querySelector("#gate").style.display="none";
+ document.querySelector("#app").classList.add("on");
+}
+
+function escapeHtml(s){ const d=document.createElement("div"); d.textContent=s||""; return d.innerHTML; }
+
+/* ---------- load ---------- */
+async function loadReturns(){
+ const refreshIcon = document.querySelector("#refreshIcon");
+ const refreshBtn = document.querySelector("#refreshBtn");
+ if(refreshIcon){ refreshIcon.classList.remove("spinning"); void refreshIcon.offsetWidth; refreshIcon.classList.add("spinning"); }
+ if(refreshBtn) refreshBtn.disabled = true;
+ try{
+  const res = await fetch(`${SCRIPT_URL}?action=returns&key=${encodeURIComponent(ADMIN_KEY)}`);
+  const data = await res.json();
+  if(data.error) throw new Error(data.error);
+  // This page only ever deals with returns in the Refund stage.
+  orders = (data.returns || []).filter(o => (o.status||"") === "Refund");
+  document.querySelector("#sourceNote").innerHTML = `Connected — <b>${orders.length}</b> in refund.`;
+  applyFilters();
+ }catch(err){
+  document.querySelector("#sourceNote").innerHTML = `Couldn't reach the Sheet. Try refreshing.`;
+ }finally{
+  if(refreshBtn) refreshBtn.disabled = false;
+ }
+}
+setInterval(()=>{ if(sessionStorage.getItem("ss-returns-ok")==="1") loadReturns(); }, 15000);
+
+/* ---------- tabs ---------- */
+document.querySelector("#topicTabs").addEventListener("click", (e)=>{
+ const tab = e.target.closest(".topicTab");
+ if(!tab) return;
+ document.querySelectorAll(".topicTab").forEach(t=>t.classList.remove("active"));
+ tab.classList.add("active");
+ activeTab = tab.dataset.t;
+ applyFilters();
+});
+
+/* ---------- filters ---------- */
+function applyFilters(){
+ const q = document.querySelector("#searchInput").value.trim().toLowerCase();
+ const pendingN = orders.filter(o => (o.refundStatus||"Pending") === "Pending").length;
+ const refundedN = orders.filter(o => o.refundStatus === "Refunded").length;
+ document.querySelector("#pendingCount").textContent = pendingN;
+ document.querySelector("#refundedCount").textContent = refundedN;
+
+ filtered = orders.filter(o=>{
+  const rs = o.refundStatus || "Pending";
+  if(rs !== activeTab) return false;
+  if(!q) return true;
+  const hay = [o.returnId,o.orderId,o.name,o.phone,o.email,o.reason,o.details].join(" ").toLowerCase();
+  return hay.includes(q);
+ });
+ if(activeId && !filtered.some(o=>o.returnId===activeId)) activeId = null;
+ renderList();
+ renderDetail();
+}
+
+/* ---------- list render ---------- */
+function selectOrder(id){
+ activeId = id;
+ renderList();
+ renderDetail();
+}
+function closeDetail(){
+ activeId = null;
+ renderList();
+ renderDetail();
+}
+function renderList(){
+ const list = document.querySelector("#orderList");
+ if(!filtered.length){
+  list.innerHTML = `<div class="emptyList">No ${activeTab.toLowerCase()} refunds.</div>`;
+  return;
+ }
+ list.innerHTML = filtered.map(o=>{
+  const rs = o.refundStatus || "Pending";
+  return `<div class="orderItem ${o.returnId===activeId?'active':''}" onclick="selectOrder('${escapeHtml(o.returnId)}')">
+   <div class="oi-main">
+    <div class="oi-top">
+     <span class="oi-name">${escapeHtml(o.name||"Unknown")}</span>
+     <span class="oi-total">${escapeHtml(o.orderId||"")}</span>
+    </div>
+    <div class="oi-sub">
+     <span class="skuTag">${escapeHtml(o.returnId||"")}</span>
+     <span class="miniStatus" data-s="${rs}">${rs}</span>
+    </div>
+    <div class="oi-sub" style="margin-top:3px">${escapeHtml(o.phone||"")}${o.reason?` · ${escapeHtml(o.reason)}`:""}</div>
+   </div>
+  </div>`;
+ }).join("");
+}
+
+/* ---------- detail render ---------- */
+function renderDetail(){
+ const main = document.querySelector("#mainPanel");
+ const o = orders.find(x=>x.returnId===activeId);
+ if(!o){
+  main.innerHTML = `<div class="placeholder">Select a return from the list to view details.</div>`;
+  return;
+ }
+ const when = o.timestamp ? new Date(o.timestamp).toLocaleString() : "";
+ const rs = o.refundStatus || "Pending";
+ const action = rs === "Pending"
+  ? `<button class="btn sm solid" onclick="markRefunded('${escapeHtml(o.returnId)}')">Mark as Refunded</button>`
+  : `<span class="miniStatus statusBadgeStatic" data-s="Refunded">Refunded</span>`;
+ main.innerHTML = `
+  <div class="detail">
+   <div class="detailHead">
+    <div>
+     <h2>${escapeHtml(o.name||"Unknown")} <span class="skuTag">${escapeHtml(o.returnId||"")}</span></h2>
+     <div class="ts">${when}</div>
+    </div>
+    <div class="detailActions">
+     ${action}
+     <button class="iconBtn close" title="Close" onclick="closeDetail()">✕</button>
+    </div>
+   </div>
+
+   <div class="infoGrid">
+    <div class="infoCard"><label>Order ID</label><div class="val">${escapeHtml(o.orderId||"—")}</div></div>
+    <div class="infoCard"><label>Phone</label><div class="val">${escapeHtml(o.phone||"—")}</div></div>
+    <div class="infoCard"><label>Email</label><div class="val">${escapeHtml(o.email||"—")}</div></div>
+    <div class="infoCard"><label>Reason</label><div class="val">${escapeHtml(o.reason||"—")}</div></div>
+    <div class="infoCard full"><label>Additional details</label><div class="val">${escapeHtml(o.details||"—")}</div></div>
+   </div>
+  </div>`;
+}
+
+/* ---------- mark refunded ---------- */
+async function markRefunded(returnId){
+ try{
+  const res = await fetch(SCRIPT_URL, {
+   method:"POST",
+   headers:{"Content-Type":"text/plain;charset=utf-8"},
+   body: JSON.stringify({ action:"updateRefundStatus", key:ADMIN_KEY, returnId, refundStatus:"Refunded" })
+  });
+  const data = await res.json();
+  if(data.error) throw new Error(data.error);
+  const o = orders.find(x=>x.returnId===returnId);
+  if(o) o.refundStatus = "Refunded";
+  toast("Marked as refunded.");
+  applyFilters();
+ }catch(err){
+  toast(err.message || "Couldn't update — try again.", true);
+ }
+}
+
+/* ---------- toast ---------- */
+let toastTimer;
+function toast(t, isErr){
+ const e = document.querySelector("#toast");
+ e.textContent = t;
+ e.classList.toggle("err", !!isErr);
+ e.classList.add("show");
+ clearTimeout(toastTimer);
+ toastTimer = setTimeout(()=>e.classList.remove("show"), 2400);
+}
+</script>
+</body>
+</html>
