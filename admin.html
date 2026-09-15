@@ -145,6 +145,14 @@ tr:last-child td{border-bottom:0}
 .dealPreviewWrap{border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--soft);margin-bottom:18px;max-width:260px}
 .dealPreviewWrap img{width:100%;height:auto;aspect-ratio:1/1;object-fit:contain;display:block;background:#fff}
 
+/* ---- Deal product multi-select picker ---- */
+.dealProductPicker{max-height:190px;overflow:auto;border:1px solid var(--line);border-radius:12px;padding:6px 10px;display:flex;flex-direction:column;gap:1px;background:#fff}
+.dealProductPicker label{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:400;padding:7px 4px;border-radius:8px;cursor:pointer}
+.dealProductPicker label:hover{background:var(--soft)}
+.dealProductPicker input[type=checkbox]{width:15px;height:15px;flex-shrink:0}
+.dealProductPicker .pickerEmpty{font-size:12.5px;color:var(--muted);padding:8px 4px}
+.dealSelectedCount{font-size:11px;color:var(--muted)}
+
 /* ---- Stock tracker (admin-only — never sent to storefront) ---- */
 .stockNote{font-size:11px;color:var(--muted);margin-bottom:8px;display:block}
 .stockThreshRow{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
@@ -320,15 +328,15 @@ tr:last-child td{border-bottom:0}
      </div>
 
      <div class="panelHead" style="margin-top:36px"><h2>Deal of the week</h2></div>
-     <div class="note">A dedicated promo block shown near the top of your storefront, above "New arrivals" — a headline, short description, a photo, and a real product tied to it so shoppers can pick a size and add it to cart directly from this card, just like a normal product. Optional; leave the product unset to keep it off.</div>
+     <div class="note">A dedicated promo block shown near the top of your storefront, above "New arrivals" — a headline, short description, a photo, and one or more real products tied to it so shoppers can pick a size and add it to cart directly from this card, just like a normal product. Optional; leave no products selected to keep it off.</div>
      <div class="dealPreviewWrap">
       <img id="dl_preview" src="" alt="Deal photo preview">
      </div>
      <div class="formGrid">
       <div class="field full">
-       <label>Linked product</label>
-       <select id="dl_productId"></select>
-       <span style="font-size:11px;color:var(--muted)">The product shoppers actually buy from this card — its sizes, stock, and add-to-cart behave exactly like the product grid.</span>
+       <label>Linked products <span class="dealSelectedCount" id="dl_selectedCount"></span></label>
+       <div class="dealProductPicker" id="dealProductPicker"></div>
+       <span style="font-size:11px;color:var(--muted)">The product(s) shoppers can buy from this card — sizes, stock, and add-to-cart behave exactly like the product grid. Check one for a single-item deal, or several to let shoppers choose among them.</span>
       </div>
       <div class="field full">
        <label>Headline</label>
@@ -521,6 +529,7 @@ let activeChatSessionId = null;
 let formVariants = [];
 let f_colorTouched = false;
 let currentStock = {}; // {colorLabel: {size: qty}} for the product currently open in the modal
+let dealSelectedIds = []; // ids (as strings) of products currently linked to the Deal of the week
 
 const TAB_META = {
  products:{title:"Products", sub:"Add, edit, and manage your product catalog."},
@@ -692,18 +701,46 @@ function render(){
 }
 
 /* ================== Deal-of-the-week product picker ==================
-   Populates the <select> in the Deal tab from the live products list,
-   so the Deal card can be tied to a real catalog product (its sizes,
-   stock, and add-to-cart flow) instead of standing on its own. Keeps
-   whatever is currently selected if it still exists after a refresh.
+   Renders a checkbox list from the live products list so the Deal
+   card can be tied to one or MORE real catalog products (their sizes,
+   stock, and add-to-cart flow) instead of standing on its own or
+   being limited to a single item. Selections are tracked in
+   `dealSelectedIds` (an array of string ids) so they survive a
+   products refresh (loadAll -> render -> populateDealProductSelect).
 ======================================================================= */
 function populateDealProductSelect(){
- const sel = document.querySelector("#dl_productId");
- if(!sel) return;
- const current = sel.value;
- sel.innerHTML = `<option value="">— none (just a static promo, no cart action) —</option>` +
-  products.map(p=>`<option value="${p.id}">${escapeHtml(p.name)} (${escapeHtml(p.sku||'')})</option>`).join("");
- if(current && products.some(p=>String(p.id)===String(current))) sel.value = current;
+ const wrap = document.querySelector("#dealProductPicker");
+ if(!wrap) return;
+ // If checkboxes already exist, capture whatever is currently checked
+ // first, so an in-progress selection isn't lost on a refresh.
+ const existingChecked = wrap.querySelectorAll("input[type=checkbox]").length
+  ? Array.from(wrap.querySelectorAll("input[type=checkbox]:checked")).map(i=>i.value)
+  : null;
+ if(existingChecked) dealSelectedIds = existingChecked;
+
+ if(!products.length){
+  wrap.innerHTML = `<div class="pickerEmpty">No products yet — add one first.</div>`;
+  updateDealSelectedCount();
+  return;
+ }
+ const selectedSet = new Set(dealSelectedIds.map(String));
+ wrap.innerHTML = products.map(p=>`
+  <label>
+   <input type="checkbox" value="${p.id}" ${selectedSet.has(String(p.id))?"checked":""} onchange="updateDealSelectedCount()">
+   ${escapeHtml(p.name)} <span style="color:var(--muted)">(${escapeHtml(p.sku||'')})</span>
+  </label>
+ `).join("");
+ updateDealSelectedCount();
+}
+function getSelectedDealProductIds(){
+ const wrap = document.querySelector("#dealProductPicker");
+ if(!wrap) return [];
+ return Array.from(wrap.querySelectorAll("input[type=checkbox]:checked")).map(i=>i.value);
+}
+function updateDealSelectedCount(){
+ const n = getSelectedDealProductIds().length;
+ const el = document.querySelector("#dl_selectedCount");
+ if(el) el.textContent = n ? `— ${n} selected` : "";
 }
 
 function renderOrders(){
@@ -1195,13 +1232,15 @@ async function deleteMidBanner(){
    its own setting keys (dealTitle/dealSubtitle/dealProductId/
    dealImage/dealBadgeText/dealPrice) so it never collides with them.
    index.html shows this as its own section, above "New arrivals",
-   and keeps it hidden until dealImage is set. dealProductId ties the
-   card to a real catalog product so the storefront can reuse its
-   normal size-select / add-to-cart flow.
+   and keeps it hidden until dealImage is set. dealProductId now holds
+   a comma-separated list of product ids (one or more) so the storefront
+   can offer several linked products instead of only one, while still
+   reusing the normal size-select / add-to-cart flow per product.
 =================================================== */
 function loadDealIntoForm(settings){
+ const raw = settings.dealProductId !== undefined && settings.dealProductId !== null ? String(settings.dealProductId) : "";
+ dealSelectedIds = raw.split(",").map(s=>s.trim()).filter(Boolean);
  populateDealProductSelect();
- document.querySelector("#dl_productId").value = settings.dealProductId || "";
  document.querySelector("#dl_title").value = settings.dealTitle || "";
  document.querySelector("#dl_subtitle").value = settings.dealSubtitle || "";
  document.querySelector("#dl_image").value = settings.dealImage || "";
@@ -1241,10 +1280,11 @@ async function saveDeal(){
   toast("Upload or paste a featured photo first");
   return;
  }
+ const selectedIds = getSelectedDealProductIds();
  const settings = {
   dealTitle: document.querySelector("#dl_title").value.trim(),
   dealSubtitle: document.querySelector("#dl_subtitle").value.trim(),
-  dealProductId: document.querySelector("#dl_productId").value,
+  dealProductId: selectedIds.join(","),
   dealImage,
   dealBadgeText: document.querySelector("#dl_badgeText").value.trim(),
   dealPrice: document.querySelector("#dl_price").value.trim()
@@ -1255,6 +1295,7 @@ async function saveDeal(){
   const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"updateSettings",key:ADMIN_KEY,settings})});
   const data = await res.json();
   if(!data.success) throw new Error(data.error||"failed");
+  dealSelectedIds = selectedIds;
   toast("Deal saved — it's live on your storefront");
  }catch(err){
   toast("Couldn't save — check your connection and try again.");
