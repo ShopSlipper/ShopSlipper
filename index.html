@@ -980,7 +980,7 @@ function renderProductDetail(){
  // "Suggested for you" only ever pulls from the main catalog (`products`)
  // — deal-only products never appear here, on purpose.
  const suggestPool = products.filter(x=>x.id!==p.id && x.category===p.category);
- const suggestions = (suggestPool.length?suggestPool:products.filter(x=>x.id!==p.id)).slice().sort(()=>Math.random()-.5).slice(0,4);
+ const suggestions = dealPageOpen ? [] : (suggestPool.length?suggestPool:products.filter(x=>x.id!==p.id)).slice().sort(()=>Math.random()-.5).slice(0,4);
  const swatches = pdSwatches(p);
  const current = swatches[pdVariantIdx] || swatches[0];
  const shownImage = current.image || p.image;
