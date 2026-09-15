@@ -1481,8 +1481,8 @@ function escapeHtml(s){ const d=document.createElement("div"); d.textContent=s||
    products show — there's no way to browse the regular catalog while
    here, only "← Back to shop" (or the browser Back button, via the
    #deal hash) returns them to the normal store.
-   Offer list = the linked "Deal product" from admin first, then any
-   other product currently on sale, capped to a small curated set.
+   Offer list = exactly the product(s) picked in admin's "Deal of the
+   week" panel — nothing else is mixed in automatically.
    Each card is the normal cardHTML() with a scarcity line (from the
    same admin stock data used elsewhere) inserted above the title, and
    opening one still uses the regular openProduct() modal, so sizes,
@@ -1492,13 +1492,15 @@ let dealPageTimerHandle = null;
 let dealPageOpen = false;
 
 function dealPageOfferProducts(){
- const linkedId = Number(siteSettings.dealProductId) || null;
- const linked = linkedId ? products.find(p=>p.id===linkedId) : null;
- const onSale = products
-  .filter(p=>p.old && p.old>p.price && (!linked || p.id!==linked.id))
-  .sort((a,b)=>(b.old-b.price)/b.old - (a.old-a.price)/a.old);
- const list = linked ? [linked, ...onSale] : onSale;
- return list.slice(0,8); // keep the page to a limited, curated set of offers
+ // dealProductId holds a comma-separated list of product ids picked in
+ // admin's "Deal of the week" panel. The Exclusive Deal page should show
+ // ONLY those hand-picked products — no automatic mixing in of every other
+ // on-sale product site-wide — in the order they were selected there.
+ const linkedIds = String(siteSettings.dealProductId||"")
+  .split(",").map(s=>s.trim()).filter(Boolean).map(Number);
+ return linkedIds
+  .map(id=>products.find(p=>p.id===id))
+  .filter(Boolean);
 }
 function dealScarcityBadgeHTML(p){
  const total = productTotalStock(p);
