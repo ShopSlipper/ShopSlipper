@@ -146,11 +146,15 @@ tr:last-child td{border-bottom:0}
 .dealPreviewWrap img{width:100%;height:auto;aspect-ratio:1/1;object-fit:contain;display:block;background:#fff}
 
 /* ---- Deal product multi-select picker ---- */
-.dealProductPicker{max-height:190px;overflow:auto;border:1px solid var(--line);border-radius:12px;padding:6px 10px;display:flex;flex-direction:column;gap:1px;background:#fff}
-.dealProductPicker label{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:400;padding:7px 4px;border-radius:8px;cursor:pointer}
-.dealProductPicker label:hover{background:var(--soft)}
+.dealProductPicker{max-height:230px;overflow:auto;border:1px solid var(--line);border-radius:12px;padding:6px 10px;display:flex;flex-direction:column;gap:1px;background:#fff}
+.dealProductPicker label{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:400;padding:7px 4px;border-radius:8px;cursor:pointer;flex:1;min-width:0}
 .dealProductPicker input[type=checkbox]{width:15px;height:15px;flex-shrink:0}
 .dealProductPicker .pickerEmpty{font-size:12.5px;color:var(--muted);padding:8px 4px}
+.dealPickerAddRow{padding:2px 2px 8px;border-bottom:1px solid var(--line);margin-bottom:5px}
+.dealPickerRow{display:flex;align-items:center;justify-content:space-between;gap:6px;border-radius:8px}
+.dealPickerRow:hover{background:var(--soft)}
+.dealPickerActions{display:flex;gap:4px;flex-shrink:0;padding-right:2px}
+.dealPickerActions .iconBtn{width:26px;height:26px;font-size:11px}
 .dealSelectedCount{font-size:11px;color:var(--muted)}
 
 /* ---- Stock tracker (admin-only — never sent to storefront) ---- */
@@ -530,6 +534,7 @@ let formVariants = [];
 let f_colorTouched = false;
 let currentStock = {}; // {colorLabel: {size: qty}} for the product currently open in the modal
 let dealSelectedIds = []; // ids (as strings) of products currently linked to the Deal of the week
+let dealPickerAddPending = false; // true while the product form was opened from the Deal picker's "+ Add product" button
 
 const TAB_META = {
  products:{title:"Products", sub:"Add, edit, and manage your product catalog."},
@@ -718,19 +723,36 @@ function populateDealProductSelect(){
   : null;
  if(existingChecked) dealSelectedIds = existingChecked;
 
+ const addRow = `<div class="dealPickerAddRow"><button type="button" class="btn light sm" style="width:fit-content" onclick="openProductFormForDeal()">+ Add product</button></div>`;
+
  if(!products.length){
-  wrap.innerHTML = `<div class="pickerEmpty">No products yet — add one first.</div>`;
+  wrap.innerHTML = addRow + `<div class="pickerEmpty">No products yet — add one above.</div>`;
   updateDealSelectedCount();
   return;
  }
  const selectedSet = new Set(dealSelectedIds.map(String));
- wrap.innerHTML = products.map(p=>`
-  <label>
-   <input type="checkbox" value="${p.id}" ${selectedSet.has(String(p.id))?"checked":""} onchange="updateDealSelectedCount()">
-   ${escapeHtml(p.name)} <span style="color:var(--muted)">(${escapeHtml(p.sku||'')})</span>
-  </label>
+ wrap.innerHTML = addRow + products.map(p=>`
+  <div class="dealPickerRow">
+   <label>
+    <input type="checkbox" value="${p.id}" ${selectedSet.has(String(p.id))?"checked":""} onchange="updateDealSelectedCount()">
+    ${escapeHtml(p.name)} <span style="color:var(--muted)">(${escapeHtml(p.sku||'')})</span>
+   </label>
+   <div class="dealPickerActions">
+    <button type="button" class="iconBtn" title="Edit" onclick="openForm(${p.id})">✎</button>
+    <button type="button" class="iconBtn" title="Delete" onclick="deleteProduct(${p.id})">🗑</button>
+   </div>
+  </div>
  `).join("");
  updateDealSelectedCount();
+}
+// Opens the shared product form from the Deal picker. Marks
+// dealPickerAddPending so saveProduct() knows to auto-link the newly
+// created product to the deal once it's saved (openForm() itself always
+// resets this flag first, so it never leaks into a normal "Add product"
+// click from the Products tab or into an edit).
+function openProductFormForDeal(){
+ openForm(null);
+ dealPickerAddPending = true;
 }
 function getSelectedDealProductIds(){
  const wrap = document.querySelector("#dealProductPicker");
@@ -1368,6 +1390,7 @@ async function saveDelivery(){
 }
 
 function openForm(id){
+ dealPickerAddPending = false;
  editingId = id;
  document.querySelector("#formTitle").textContent = id ? "Edit product" : "Add product";
  document.querySelector("#uploadStatus").textContent = "";
@@ -1454,7 +1477,11 @@ async function saveProduct(){
    const data = await res.json();
    if(!data.success) throw new Error(data.error||"failed");
    products.push({...product,id:data.id});
+   if(dealPickerAddPending){
+    dealSelectedIds = [...dealSelectedIds, String(data.id)];
+   }
   }
+  dealPickerAddPending = false;
   closeForm();
   render();
   toast(editingId ? "Product updated" : "Product added");
