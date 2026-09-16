@@ -616,7 +616,8 @@ tr:last-child td{border-bottom:0}
 
 <script>
 /* ================== CONFIG ================== */
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzKHLu21Y5oJeM7KQ5dcI3mTXpNnZlDRoTn19nCuqZ7SNb73S6cj9QaTY2Sd-QHTFoE/exec"; // must match index.html, ends in /exec
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzKHLu21Y5oJeM7KQ5dcI3mTXpNnZlDRoTn19nCuqZ7SNb73S6cj9QaTY2Sd-QHTFoE/exec";
+const RETURNS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyMFhu8-cWFuYG9deEVL3bHrs6HWBcaZcWyxjyqQRm8k5Cu7wMM8a_9K7s2JLy6_7j_/exec"; // Return Order Mastersheet backend  // must match index.html, ends in /exec
 const ADMIN_KEY  = "shopslipper2026";              // must match ADMIN_KEY in Code.gs
 /* =============================================
  Honest note: ADMIN_KEY is a shared client-side
@@ -758,7 +759,7 @@ async function loadAll(){
   const [pRes, oRes, rRes, cRes, sRes, dRes] = await Promise.all([
    fetch(`${SCRIPT_URL}?action=products`),
    fetch(`${SCRIPT_URL}?action=orders&key=${encodeURIComponent(ADMIN_KEY)}`),
-   fetch(`${SCRIPT_URL}?action=returns&key=${encodeURIComponent(ADMIN_KEY)}`),
+   fetch(`${RETURNS_SCRIPT_URL}?action=returns&key=${encodeURIComponent(ADMIN_KEY)}`),
    fetch(`${SCRIPT_URL}?action=chatSessions&key=${encodeURIComponent(ADMIN_KEY)}`),
    fetch(`${SCRIPT_URL}?action=settings`),
    fetch(`${SCRIPT_URL}?action=dealProducts`)
@@ -1060,7 +1061,7 @@ async function handleReturnStatusChange(newStatus){
  const btns = document.querySelectorAll("#rt_actions button");
  btns.forEach(b=>b.disabled=true);
  try{
-  const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"updateStatus",key:ADMIN_KEY,returnId:activeReturnId,status:newStatus})});
+  const res = await fetch(RETURNS_SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"updateStatus",key:ADMIN_KEY,returnId:activeReturnId,status:newStatus})});
   const data = await res.json();
   if(!data.success) throw new Error(data.error||"failed");
   const r = returnsList.find(x=>String(x.returnId)===String(activeReturnId));
@@ -1086,7 +1087,7 @@ async function confirmCancelReturn(){
  const btn = document.querySelector("#rt_cancelConfirmBtn");
  btn.disabled = true; btn.textContent = "Cancelling…";
  try{
-  const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"updateStatus",key:ADMIN_KEY,returnId:activeReturnId,status:"Cancelled",reason})});
+  const res = await fetch(RETURNS_SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"updateStatus",key:ADMIN_KEY,returnId:activeReturnId,status:"Cancelled",reason})});
   const data = await res.json();
   if(!data.success) throw new Error(data.error||"failed");
   const r = returnsList.find(x=>String(x.returnId)===String(activeReturnId));
@@ -1105,7 +1106,7 @@ async function handleMarkRefunded(){
  const btns = document.querySelectorAll("#rt_actions button");
  btns.forEach(b=>b.disabled=true);
  try{
-  const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"updateRefundStatus",key:ADMIN_KEY,returnId:activeReturnId,refundStatus:"Refunded"})});
+  const res = await fetch(RETURNS_SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"updateRefundStatus",key:ADMIN_KEY,returnId:activeReturnId,refundStatus:"Refunded"})});
   const data = await res.json();
   if(!data.success) throw new Error(data.error||"failed");
   const r = returnsList.find(x=>String(x.returnId)===String(activeReturnId));
