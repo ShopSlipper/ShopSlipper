@@ -80,7 +80,7 @@ header{background:var(--brand);color:#fff;flex:0 0 auto}
 .orderItem .oi-sub{color:var(--muted);font-size:12px;margin-top:2px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .orderItem .skuTag{font-family:monospace;font-size:10.5px;background:var(--soft);padding:2px 6px;border-radius:5px;color:var(--brand)}
 .miniStatus{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--soft);color:var(--brand)}
-.miniStatus[data-s="Pending"]{background:#fdf3e0;color:#a3730c}
+.miniStatus[data-s="Processing"]{background:#fdf3e0;color:#a3730c}
 .miniStatus[data-s="Refunded"]{background:#e5f2ea;color:#1f7a44}
 .emptyList{padding:40px 20px;text-align:center;color:var(--muted);font-size:13px}
 
@@ -167,7 +167,7 @@ header{background:var(--brand);color:#fff;flex:0 0 auto}
     <div class="statusPill" id="sourceNote">Loading returns from the Returns Mastersheet…</div>
    </div>
    <div class="topicTabs" id="topicTabs">
-    <button class="topicTab active" data-t="Pending">Pending<span class="cnt" id="pendingCount">0</span></button>
+    <button class="topicTab active" data-t="Processing">Processing<span class="cnt" id="pendingCount">0</span></button>
     <button class="topicTab" data-t="Refunded">Refunded<span class="cnt" id="refundedCount">0</span></button>
    </div>
    <div class="searchBox">
@@ -195,7 +195,7 @@ const ADMIN_KEY  = "shopslipper2026";
 let orders = [];       // every return with status === "Refund"
 let filtered = [];
 let activeId = null;
-let activeTab = "Pending"; // "Pending" | "Refunded"
+let activeTab = "Processing"; // "Processing" | "Refunded"
 
 function tryLogin(){
  const val = document.querySelector("#gatePass").value;
@@ -254,13 +254,13 @@ document.querySelector("#topicTabs").addEventListener("click", (e)=>{
 /* ---------- filters ---------- */
 function applyFilters(){
  const q = document.querySelector("#searchInput").value.trim().toLowerCase();
- const pendingN = orders.filter(o => (o.refundStatus||"Pending") === "Pending").length;
+ const pendingN = orders.filter(o => (o.refundStatus||"Processing") === "Processing").length;
  const refundedN = orders.filter(o => o.refundStatus === "Refunded").length;
  document.querySelector("#pendingCount").textContent = pendingN;
  document.querySelector("#refundedCount").textContent = refundedN;
 
  filtered = orders.filter(o=>{
-  const rs = o.refundStatus || "Pending";
+  const rs = o.refundStatus || "Processing";
   if(rs !== activeTab) return false;
   if(!q) return true;
   const hay = [o.returnId,o.orderId,o.name,o.phone,o.email,o.reason,o.details].join(" ").toLowerCase();
@@ -289,7 +289,7 @@ function renderList(){
   return;
  }
  list.innerHTML = filtered.map(o=>{
-  const rs = o.refundStatus || "Pending";
+  const rs = o.refundStatus || "Processing";
   return `<div class="orderItem ${o.returnId===activeId?'active':''}" onclick="selectOrder('${escapeHtml(o.returnId)}')">
    <div class="oi-main">
     <div class="oi-top">
@@ -316,7 +316,7 @@ function renderDetail(){
  }
  const when = o.timestamp ? new Date(o.timestamp).toLocaleString() : "";
  const rs = o.refundStatus || "Pending";
- const action = rs === "Pending"
+ const action = rs === "Processing"
   ? `<button class="btn sm solid" onclick="markRefunded('${escapeHtml(o.returnId)}')">Mark as Refunded</button>`
   : `<span class="miniStatus statusBadgeStatic" data-s="Refunded">Refunded</span>`;
  main.innerHTML = `
