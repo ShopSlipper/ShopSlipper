@@ -91,6 +91,9 @@ main{flex:1;min-height:0;display:flex}
 .chatBubble.customer{align-self:flex-start;background:#fff;border:1px solid var(--line);border-bottom-left-radius:4px}
 .chatBubble.staff{align-self:flex-end;background:var(--gold);color:#fff;border-bottom-right-radius:4px}
 .chatBubble small{display:block;margin-top:4px;font-size:10px;opacity:.6}
+.chatBubble.sending{opacity:.55}
+.chatBubble.failed{opacity:.75;border:1px solid var(--danger)!important}
+.chatBubble.failed small{color:var(--danger);opacity:1}  
 .chatBubble.hasImg{padding:6px}
 .chatImg{display:block;max-width:220px;max-height:220px;width:100%;object-fit:cover;border-radius:12px;cursor:zoom-in;margin-bottom:4px}
 .msgDelBtn{position:absolute;top:-9px;right:-9px;width:22px;height:22px;border-radius:50%;background:var(--danger);color:#fff;font-size:11px;line-height:1;display:grid;place-items:center;opacity:0;transition:.15s;box-shadow:0 2px 6px rgba(0,0,0,.2)}
@@ -368,18 +371,25 @@ async function sendStaffReply(e){
  if((!text && !pendingStaffImage) || !activeChatSessionId) return;
  input.value="";
  const imageToSend = pendingStaffImage;
+ const previewDataUrl = imageToSend ? document.querySelector("#imagePreviewThumb").src : null;
  clearImagePreview();
+
+ const tempId = "temp-" + Date.now();
+ const thread = document.querySelector("#chatThread");
+ const emptyMsg = thread.querySelector("div[style*='text-align:center']");
+ if(emptyMsg) emptyMsg.remove();
+ const bubble = document.createElement("div");
+ bubble.className = "chatBubble staff sending";
+ bubble.id = tempId;
+ bubble.innerHTML = `${previewDataUrl ? `<img class="chatImg" src="${previewDataUrl}" alt="photo">` : ""}${text ? `<span>${escapeHtml(text)}</span>` : ""}<small>Sending…</small>`;
+ thread.appendChild(bubble);
+ thread.scrollTop = thread.scrollHeight;
 
  let imageUrl = "";
  if(imageToSend){
   const sendBtn = document.querySelector("#chatSendBtn");
   sendBtn.disabled = true;
   try{
-   // Reuses the same public action=uploadChatImage endpoint the
-   // customer widget uses (no key needed there — see Code.gs). Staff
-   // could also go through the admin-only action=uploadImage, but
-   // that writes into the PRODUCT image folder; this keeps staff
-   // photos in the same chat folder as customer photos.
    const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({
     action:"uploadChatImage",
     sessionId: activeChatSessionId,
@@ -392,27 +402,32 @@ async function sendStaffReply(e){
    imageUrl = data.url;
   }catch(err){
    sendBtn.disabled = false;
+   markBubbleFailed(tempId);
    toast("Couldn't send photo — " + (err.message || "please try again."));
    return;
   }
   sendBtn.disabled = false;
  }
 
- // No local "sending…" bubble here on purpose: staff should never see
- // their own typing/sending dots. The customer sees the "Typing…"
- // animation instead, driven by the setTyping pings below and cleared
- // automatically the moment this message actually lands (see
- // clearTyping_ in Code.gs).
  try{
   await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"sendChatMessage",key:ADMIN_KEY,sessionId:activeChatSessionId,message:text,imageUrl})});
   playSentSound();
   await loadChatThread(activeChatSessionId);
-  loadChatSessions(); // background refresh so this chat jumps to the top immediately, not on the next 5s poll
+  loadChatSessions();
  }catch(err){
+  markBubbleFailed(tempId);
   toast("Couldn't send — check your connection and try again.");
  }
 }
 
+function markBubbleFailed(tempId){
+ const bubble = document.querySelector("#"+tempId);
+ if(!bubble) return;
+ bubble.classList.remove("sending");
+ bubble.classList.add("failed");
+ const small = bubble.querySelector("small");
+ if(small) small.textContent = "Not sent — tap to retry";
+}
 /* ================== Staff photo attach: pick, downscale, preview ==================
    Same pattern as chat-widget.html's customer-side attach flow — picks
    a file, downscales it client-side via canvas, shows a thumbnail +
