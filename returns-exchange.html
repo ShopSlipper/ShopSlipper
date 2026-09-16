@@ -157,19 +157,22 @@ select.statusSelect[data-status="Exchange"]{background-color:#f3e8fb;color:#7a3f
 
  STATUS PIPELINE:
    New      -> Approved | Cancelled   (Cancelled needs a reason)
-   Approved -> Refund   | Exchange
-   Exchange -> Closed
+   Approved -> Refund   | Exchange | Cancelled
+   Exchange -> Exchanged | Cancelled
 
  THIS PAGE only acts on returns currently "Exchange" — the last
- stop in the New -> Approved -> Exchange -> Closed chain. Once
- marked Closed, a return leaves this page for good (Closed is
+ stop in the New -> Approved -> Exchange -> Exchanged chain. Once
+ marked Exchanged, a return leaves this page for good (Exchanged is
  terminal, same as Refunded is on the separate returns-refund.html
  page).
 
    returns-new.html      -> New      -> Approved | Cancelled
-   returns-approved.html -> Approved -> Refund    | Exchange
-   returns-refund.html   -> Refund   -> Pending / Refunded tabs (separate page)
-   returns-exchange.html -> Exchange -> Closed   (THIS PAGE)
+   returns-approved.html -> Approved -> Refund    | Exchange | Cancelled
+   returns-refund.html   -> Refund   -> Processing/Refunded tabs, or Cancelled
+   returns-exchange.html -> Exchange -> Exchanged | Cancelled   (THIS PAGE)
+
+ List order: sorted newest-first by timestamp in applyFilters(), so a
+ new request always lands at the top instead of the bottom.
 ============================================================= -->
 
 <div id="gate">
@@ -278,7 +281,7 @@ const ADMIN_KEY  = "shopslipper2026";
 // This page only acts on returns that are currently Exchange.
 const STATUSES_WITH_CONTROL = ["Exchange"];
 // Statuses this page can set. Must match ALLOWED_TRANSITIONS["Exchange"]
-// in returns-mastersheet-sync.gs. Closed doesn't require a reason.
+// in returns-mastersheet-sync.gs. Exchanged doesn't require a reason.
 const EDITABLE_STATUSES = ["Exchanged", "Cancelled"];
 
 let orders = [];
@@ -348,6 +351,8 @@ function applyFilters(){
   const hay = [o.returnId,o.orderId,o.name,o.phone,o.email,o.reason,o.details].join(" ").toLowerCase();
   return hay.includes(q);
  });
+ // Newest requests first.
+ filtered.sort((a,b) => new Date(b.timestamp||0) - new Date(a.timestamp||0));
  if(activeId && !filtered.some(o=>o.returnId===activeId)) activeId = null;
  renderList();
  renderDetail();
