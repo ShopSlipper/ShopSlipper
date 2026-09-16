@@ -153,12 +153,16 @@ select.statusSelect[data-status="Exchange"]{background-color:#f3e8fb;color:#7a3f
    New      -> Approved | Cancelled   (Cancelled needs a reason)   (THIS PAGE)
    Approved -> Refund   | Exchange | Cancelled
    Exchange -> Exchanged | Cancelled
-   Refund   -> Processing / Refunded tabs (separate page)
+   Refund   -> Processing / Refunded tabs, or Cancelled while still
+               Processing (separate page)
 
    returns-new.html      -> New      -> Approved | Cancelled  (THIS PAGE)
    returns-approved.html -> Approved -> Refund | Exchange | Cancelled
-   returns-refund.html   -> Refund   -> Processing / Refunded tabs (separate page)
+   returns-refund.html   -> Refund   -> Processing/Refunded tabs, or Cancelled
    returns-exchange.html -> Exchange -> Exchanged | Cancelled
+
+ List order: sorted newest-first by timestamp in applyFilters(), so a
+ new request always lands at the top instead of the bottom.
 ============================================================= -->
 
 <div id="gate">
@@ -334,6 +338,8 @@ function applyFilters(){
   const hay = [o.returnId,o.orderId,o.name,o.phone,o.email,o.reason,o.details].join(" ").toLowerCase();
   return hay.includes(q);
  });
+ // Newest requests first.
+ filtered.sort((a,b) => new Date(b.timestamp||0) - new Date(a.timestamp||0));
  if(activeId && !filtered.some(o=>o.returnId===activeId)) activeId = null;
  renderList();
  renderDetail();
