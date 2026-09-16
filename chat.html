@@ -156,6 +156,7 @@ main{flex:1;min-height:0;display:flex}
  <div class="nav">
   <div class="brand"><img class="mark" src="https://raw.githubusercontent.com/ShopSlipper/ShopSlipper/main/shop_slipper_transparent.png" alt="Shop Slipper logo"><div>Shop Slipper<small>Chat</small></div></div>
   <div class="headActions">
+   <button class="btn headerBtn sm" id="botToggleBtn" onclick="toggleBot()">🤖 Bot: …</button>
    <button class="btn headerBtn sm" id="refreshBtn" onclick="loadChatSessions()"><span id="refreshIcon">↻</span> Refresh</button>
    <button class="btn headerBtn sm" onclick="logout()">Log out</button>
   </div>
@@ -216,6 +217,45 @@ let activeChatSessionId = null;
 let currentTypingSessions = []; // last result of action=typingStatus
 let prevTotalUnread = null; // null = "haven't rendered yet" so the first render never dings
 
+/* ================== AI Bot on/off toggle ==================
+   Reads/writes the "botActive" key in the Settings sheet via the
+   existing action=settings (read) and action=updateBotStatus
+   (write, added in Code.gs) endpoints. Purely a header button —
+   no new page needed.
+========================================================================= */
+let botActive = false;
+
+async function loadBotStatus(){
+ try{
+  const res = await fetch(`${SCRIPT_URL}?action=settings`);
+  const data = await res.json();
+  botActive = String((data.settings||{}).botActive) === "true";
+  renderBotToggle();
+ }catch(err){}
+}
+function renderBotToggle(){
+ const btn = document.querySelector("#botToggleBtn");
+ btn.textContent = botActive ? "🤖 Bot: ON" : "🤖 Bot: OFF";
+ btn.style.background = botActive ? "#22c55e" : "rgba(255,255,255,.15)";
+}
+async function toggleBot(){
+ const next = !botActive;
+ const btn = document.querySelector("#botToggleBtn");
+ btn.disabled = true;
+ try{
+  const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"updateBotStatus",key:ADMIN_KEY,active:next})});
+  const data = await res.json();
+  if(!data.success) throw new Error(data.error||"failed");
+  botActive = next;
+  renderBotToggle();
+  toast(botActive ? "Bot turned ON — auto-replying to new messages" : "Bot turned OFF");
+ }catch(err){
+  toast("Couldn't update bot status — check your connection.");
+ }finally{
+  btn.disabled = false;
+ }
+}
+
 function tryLogin(){
  const val = document.querySelector("#gatePass").value;
  if(val === ADMIN_KEY){
@@ -223,6 +263,7 @@ function tryLogin(){
   document.querySelector("#gate").style.display="none";
   document.querySelector("#app").style.display="flex";
   loadChatSessions();
+  loadBotStatus();
   loadTypingStatus();
  }else{
   document.querySelector("#gateErr").style.display="block";
@@ -236,6 +277,7 @@ if(sessionStorage.getItem("ss-chat-ok")==="1"){
  document.querySelector("#gate").style.display="none";
  document.querySelector("#app").style.display="flex";
  loadChatSessions();
+ loadBotStatus();
  loadTypingStatus();
 }
 
