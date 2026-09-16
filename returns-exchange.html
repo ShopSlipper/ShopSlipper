@@ -79,7 +79,7 @@ header{background:var(--brand);color:#fff;flex:0 0 auto}
 .orderItem .skuTag{font-family:monospace;font-size:10.5px;background:var(--soft);padding:2px 6px;border-radius:5px;color:var(--brand)}
 .miniStatus{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--soft);color:var(--brand)}
 .miniStatus[data-s="Cancelled"]{background:var(--danger-soft);color:var(--danger)}
-.miniStatus[data-s="Closed"]{background:#e5f2ea;color:#1f7a44}
+.miniStatus[data-s="Exchanged"]{background:#e5f2ea;color:#1f7a44}
 .miniStatus[data-s="Refund"]{background:#eaf1fb;color:#2a5ca8}
 .miniStatus[data-s="Approved"]{background:#fdf3e0;color:#a3730c}
 .miniStatus[data-s="Exchange"]{background:#f3e8fb;color:#7a3fa0}
@@ -101,7 +101,7 @@ header{background:var(--brand);color:#fff;flex:0 0 auto}
 
 select.statusSelect{border:1px solid var(--line);border-radius:999px;padding:7px 28px 7px 12px;font-size:12px;font-weight:700;background:var(--soft);color:var(--brand);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23127a3e'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center}
 select.statusSelect[data-status="Cancelled"]{background-color:var(--danger-soft);color:var(--danger)}
-select.statusSelect[data-status="Closed"]{background-color:#e5f2ea;color:#1f7a44}
+select.statusSelect[data-status="Exchanged"]{background-color:#e5f2ea;color:#1f7a44}
 select.statusSelect[data-status="Refund"]{background-color:#eaf1fb;color:#2a5ca8}
 select.statusSelect[data-status="Approved"]{background-color:#fdf3e0;color:#a3730c}
 select.statusSelect[data-status="Exchange"]{background-color:#f3e8fb;color:#7a3fa0}
@@ -279,7 +279,7 @@ const ADMIN_KEY  = "shopslipper2026";
 const STATUSES_WITH_CONTROL = ["Exchange"];
 // Statuses this page can set. Must match ALLOWED_TRANSITIONS["Exchange"]
 // in returns-mastersheet-sync.gs. Closed doesn't require a reason.
-const EDITABLE_STATUSES = ["Closed"];
+const EDITABLE_STATUSES = ["Exchanged", "Cancelled"];
 
 let orders = [];
 let filtered = [];
