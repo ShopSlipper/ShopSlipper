@@ -383,7 +383,7 @@ footer .logo span{color:#c8f0d6}
       <a href="#shop" onclick="closeDealPage()">Shop</a>
       <a href="#new" onclick="closeDealPage()">New arrivals</a>
       <a href="#about" onclick="closeDealPage()">Why us</a>
-      <a href="#" onclick="closeDealPage();openReturns();return false;">Returns</a>
+      <a href="#returnPolicy" onclick="closeDealPage()">Returns</a>
     </nav>
     <div class="actions">
       <button class="iconbtn" id="searchIconBtn" aria-label="Search" onclick="closeDealPage();document.querySelector('#search').focus();document.querySelector('#shop').scrollIntoView({behavior:'smooth'})">⌕</button>
@@ -400,7 +400,7 @@ footer .logo span{color:#c8f0d6}
     <a href="#shop" onclick="closeMobileNav();closeDealPage()">Shop</a>
     <a href="#new" onclick="closeMobileNav();closeDealPage()">New arrivals</a>
     <a href="#about" onclick="closeMobileNav();closeDealPage()">Why us</a>
-    <a href="#" onclick="closeMobileNav();closeDealPage();openReturns();return false;">Returns</a>
+    <a href="#returnPolicy" onclick="closeMobileNav();closeDealPage()">Returns</a>
   </nav>
 </div>
 
@@ -465,7 +465,7 @@ footer .logo span{color:#c8f0d6}
    <div class="feature"><b>✓ Quality first</b><span>Comfort-focused products selected for you.</span></div>
    <div class="feature"><b>💬 Friendly support</b><span>We are here when you need us.</span></div>
   </div>
-  <div class="returnPolicy">
+  <div class="returnPolicy" id="returnPolicy">
    <div class="eyebrow">Our policy</div>
    <h2>Easy 3-day returns</h2>
    <p>Not the right fit? Return any unused item in its original packaging within 3 days of delivery for a full refund or exchange — no questions asked.</p>
