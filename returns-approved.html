@@ -157,20 +157,28 @@ select.statusSelect[data-status="Exchange"]{background-color:#f3e8fb;color:#7a3f
 
  STATUS PIPELINE:
    New      -> Approved | Cancelled   (Cancelled needs a reason)
-   Approved -> Refund   | Exchange
-   Exchange -> Closed
+   Approved -> Refund   | Exchange | Cancelled
+   Exchange -> Exchanged | Cancelled
+   Refund   -> Processing / Refunded tabs, or Cancelled while still
+               Processing (separate page: returns-refund.html)
 
  THIS PAGE only acts on returns currently "Approved". Choosing
  "Refund" sends it off to the SEPARATE returns-refund.html page
- (its own Pending/Refunded tabs) — it will disappear from this
+ (its own Processing/Refunded tabs) — it will disappear from this
  page immediately. Choosing "Exchange" keeps it in this same
- New -> Approved -> Exchange -> Closed chain, handled next by
+ New -> Approved -> Exchange -> Exchanged chain, handled next by
  returns-exchange.html.
 
+ The "Cancelled" filter chip below is a GLOBAL view, not scoped to
+ this page's own stage — it shows every return that's been
+ cancelled from any page (New, Approved, Exchange, or Refund), each
+ read-only with its cancellation reason. That's why loadReturns()
+ fetches the full unfiltered list rather than just Approved ones.
+
    returns-new.html      -> New      -> Approved | Cancelled
-   returns-approved.html -> Approved -> Refund    | Exchange   (THIS PAGE)
-   returns-refund.html   -> Refund   -> Pending / Refunded tabs (separate page)
-   returns-exchange.html -> Exchange -> Closed
+   returns-approved.html -> Approved -> Refund    | Exchange | Cancelled  (THIS PAGE)
+   returns-refund.html   -> Refund   -> Processing/Refunded tabs, or Cancelled
+   returns-exchange.html -> Exchange -> Exchanged | Cancelled
 ============================================================= -->
 
 <div id="gate">
@@ -215,6 +223,7 @@ select.statusSelect[data-status="Exchange"]{background-color:#f3e8fb;color:#7a3f
    </div>
    <div class="filterRow" id="filterRow">
     <button class="chip active" data-s="Approved">Approved</button>
+    <button class="chip" data-s="Cancelled">Cancelled</button>
     <button class="chip" data-s="">All</button>
    </div>
    <div class="orderList" id="orderList"></div>
@@ -323,6 +332,8 @@ async function loadReturns(){
   const res = await fetch(`${SCRIPT_URL}?action=returns&key=${encodeURIComponent(ADMIN_KEY)}`);
   const data = await res.json();
   if(data.error) throw new Error(data.error);
+  // Unfiltered — this page also powers the global "Cancelled" tab,
+  // which needs to see cancelled returns from every stage.
   orders = (data.returns || []);
   document.querySelector("#sourceNote").innerHTML = `Connected — <b>${orders.length}</b> returns.`;
   applyFilters();
@@ -497,8 +508,7 @@ async function submitStatusChange(returnId, newStatus, sel, reason){
   const o = orders.find(x=>x.returnId===returnId);
   if(o){ o.status = newStatus; o.cancelReason = reason; }
   toast(`Status updated to "${newStatus}"`);
-  renderList();
-  renderDetail();
+  applyFilters();
  }catch(err){
   sel.setAttribute("data-status", prevStatus);
   sel.value = prevStatus;
