@@ -80,6 +80,9 @@ tr:last-child td{border-bottom:0}
 .iconBtn:hover{background:var(--line)}
 .oldp{text-decoration:line-through;color:#a9a49a;font-size:11.5px}
 .emptyMsg{text-align:center;color:var(--muted);padding:40px 10px;font-size:13.5px}
+.searchInput{border:1px solid var(--line);border-radius:999px;padding:9px 16px 9px 34px;outline:none;font-size:13px;background:#fff url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%236f8582" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>') no-repeat 12px center;background-size:14px;min-width:220px}
+.searchInput:focus{border-color:var(--text)}
+.panelHead .headActions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .statusTag{padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700;background:var(--soft)}
 .unreadTag{padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700;background:var(--danger);color:#fff}
 .newTag{padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700;background:var(--sage);color:#fff}
@@ -126,6 +129,33 @@ tr:last-child td{border-bottom:0}
 .chatReplyRow input{flex:1;border:1px solid var(--line);border-radius:999px;padding:11px 15px;outline:none;font-size:13.5px}
 .chatReplyRow input:focus{border-color:var(--text)}
 .chatSendBtn{width:42px;height:42px;border-radius:50%;background:var(--gold);color:#fff;font-size:16px;flex-shrink:0}
+
+/* ---- Returns tab ---- */
+.returnRow{cursor:pointer}
+.returnRow:hover td{background:var(--soft)}
+.returnStatus{padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700;white-space:nowrap;display:inline-block}
+.returnStatus.status-New{background:var(--sage);color:#fff}
+.returnStatus.status-Approved{background:var(--soft);color:var(--gold)}
+.returnStatus.status-Refund{background:#fff6e0;color:#8a5d00}
+.returnStatus.status-Exchange{background:#e6f2ee;color:var(--gold)}
+.returnStatus.status-Exchanged{background:var(--sage);color:#fff}
+.returnStatus.status-Cancelled{background:var(--danger);color:#fff}
+.returnStatus.refund-Processing{background:#fff6e0;color:#8a5d00}
+.returnStatus.refund-Refunded{background:var(--sage);color:#fff}
+.returnModalBox{width:min(540px,100%);padding:0;display:flex;flex-direction:column;max-height:88vh}
+.returnModalHead{padding:20px 22px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.returnModalHead h3{margin-bottom:2px}
+.returnModalHead small{color:var(--muted);font-size:12px;display:block}
+.returnModalBody{flex:1;overflow:auto;padding:18px 22px}
+.returnInfoGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;margin-bottom:16px}
+.returnInfoGrid .k{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.returnInfoGrid .v{font-size:13.5px;margin-top:2px}
+.returnDetailsBox{background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:13px;margin-bottom:16px;white-space:pre-wrap}
+.returnActionsRow{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.returnCancelBox{margin-top:12px;display:none;background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:12px}
+.returnCancelBox.open{display:block}
+.returnCancelBox input{width:100%;border:1px solid var(--line);border-radius:9px;padding:9px 10px;font-size:13px;margin-bottom:8px}
+.returnClosedNote{font-size:12.5px;color:var(--muted);margin-top:10px}
 
 /* ---- Color variants editor ---- */
 .variantList{display:flex;flex-direction:column;gap:10px;margin-bottom:10px}
@@ -200,6 +230,7 @@ tr:last-child td{border-bottom:0}
   <nav class="sideNav">
    <button class="sideLink active" id="tab-products" onclick="switchTab('products')"><span class="dot"></span>Products</button>
    <button class="sideLink" id="tab-orders" onclick="switchTab('orders')"><span class="dot"></span>Orders</button>
+   <button class="sideLink" id="tab-returns" onclick="switchTab('returns')"><span class="dot"></span>Returns<span class="tabDot" id="returnsTabDot">0</span></button>
    <button class="sideLink" id="tab-chat" onclick="switchTab('chat')"><span class="dot"></span>Chat<span class="tabDot" id="chatTabDot">0</span></button>
    <button class="sideLink" id="tab-banner" onclick="switchTab('banner')"><span class="dot"></span>Banner</button>
    <button class="sideLink" id="tab-delivery" onclick="switchTab('delivery')"><span class="dot"></span>Delivery</button>
@@ -234,7 +265,10 @@ tr:last-child td{border-bottom:0}
     <div class="panel" id="panel-products">
      <div class="panelHead">
       <h2>Products <span style="color:var(--muted);font-weight:400" id="countLabel"></span></h2>
-      <button class="btn" onclick="openForm(null)">+ Add product</button>
+      <div class="headActions">
+       <input type="search" class="searchInput" id="pr_search" placeholder="Search products…" oninput="render()">
+       <button class="btn" onclick="openForm(null)">+ Add product</button>
+      </div>
      </div>
      <div style="overflow:auto">
      <table>
@@ -246,7 +280,10 @@ tr:last-child td{border-bottom:0}
     </div>
 
     <div class="panel" id="panel-orders" style="display:none">
-     <div class="panelHead"><h2>Orders <span style="color:var(--muted);font-weight:400" id="orderCountLabel"></span></h2></div>
+     <div class="panelHead">
+      <h2>Orders <span style="color:var(--muted);font-weight:400" id="orderCountLabel"></span></h2>
+      <input type="search" class="searchInput" id="or_search" placeholder="Search orders…" oninput="renderOrders()">
+     </div>
      <div style="overflow:auto">
      <table>
       <thead><tr><th>When</th><th>Order</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th></tr></thead>
@@ -256,8 +293,26 @@ tr:last-child td{border-bottom:0}
      <div class="emptyMsg" id="emptyOrders" style="display:none">No orders yet.</div>
     </div>
 
+    <div class="panel" id="panel-returns" style="display:none">
+     <div class="panelHead">
+      <h2>Return orders <span style="color:var(--muted);font-weight:400" id="returnCountLabel"></span></h2>
+      <input type="search" class="searchInput" id="rt_search" placeholder="Search returns…" oninput="renderReturns()">
+     </div>
+     <div class="note">Customer return requests, synced from your Returns sheet. Click a row to review it and move it through Approved → Refund/Exchange → Refunded/Exchanged, or cancel it.</div>
+     <div style="overflow:auto">
+     <table>
+      <thead><tr><th>When</th><th>Order</th><th>Customer</th><th>Reason</th><th>Status</th><th>Refund</th></tr></thead>
+      <tbody id="returnRows"></tbody>
+     </table>
+     </div>
+     <div class="emptyMsg" id="emptyReturns" style="display:none">No return requests yet.</div>
+    </div>
+
     <div class="panel" id="panel-chat" style="display:none">
-     <div class="panelHead"><h2>Chat <span style="color:var(--muted);font-weight:400" id="chatCountLabel"></span></h2></div>
+     <div class="panelHead">
+      <h2>Chat <span style="color:var(--muted);font-weight:400" id="chatCountLabel"></span></h2>
+      <input type="search" class="searchInput" id="ch_search" placeholder="Search conversations…" oninput="renderChatSessions()">
+     </div>
      <div class="note">Customers message you from the chat bubble on your site. Click a conversation below to reply — replies appear for the customer within a few seconds.</div>
      <div style="overflow:auto">
      <table>
@@ -374,7 +429,10 @@ tr:last-child td{border-bottom:0}
       <button class="btn" id="dl_saveBtn" onclick="saveDeal()">Save deal</button>
      </div>
 
-     <div class="panelHead" style="margin-top:28px"><h2>Deal products <span class="dealSelectedCount" id="dl_productCount"></span></h2></div>
+     <div class="panelHead" style="margin-top:28px">
+      <h2>Deal products <span class="dealSelectedCount" id="dl_productCount"></span></h2>
+      <input type="search" class="searchInput" id="dl_search" placeholder="Search deal products…" oninput="renderDealProductsList()">
+     </div>
      <div class="note">Products you add here show <b>only</b> on the Exclusive Deal page — sizes, stock, and add-to-cart all work exactly like a normal product. They're never mixed into the main store, and never appear in "Suggested for you".</div>
      <div class="dealProductsList" id="dealProductsList"></div>
      <button type="button" class="btn light sm" style="width:fit-content" onclick="openDealProductForm(null)">+ Add deal product</button>
@@ -513,6 +571,41 @@ tr:last-child td{border-bottom:0}
  </div>
 </div>
 
+<!-- Return detail / status modal -->
+<div class="modalBg" id="returnModal" onclick="if(event.target===this)closeReturnDetail()">
+ <div class="modalBox returnModalBox">
+  <div class="returnModalHead">
+   <div>
+    <h3 id="rt_name">Customer</h3>
+    <small id="rt_meta"></small>
+   </div>
+   <button class="iconBtn" onclick="closeReturnDetail()">×</button>
+  </div>
+  <div class="returnModalBody">
+   <div class="returnInfoGrid">
+    <div><div class="k">Order</div><div class="v" id="rt_orderId">—</div></div>
+    <div><div class="k">Return ID</div><div class="v" id="rt_returnId">—</div></div>
+    <div><div class="k">Phone</div><div class="v" id="rt_phone">—</div></div>
+    <div><div class="k">Email</div><div class="v" id="rt_email">—</div></div>
+    <div><div class="k">Reason</div><div class="v" id="rt_reason">—</div></div>
+    <div><div class="k">Status</div><div class="v" id="rt_statusBadges">—</div></div>
+   </div>
+   <div class="returnDetailsBox" id="rt_details"></div>
+   <div id="rt_cancelReasonNote"></div>
+   <div class="returnActionsRow" id="rt_actions"></div>
+   <div class="returnCancelBox" id="rt_cancelBox">
+    <label style="font-size:12px;font-weight:700">Reason for cancelling</label>
+    <input id="rt_cancelReasonInput" placeholder="e.g. Customer changed their mind">
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+     <button class="btn light sm" type="button" onclick="hideCancelBox()">Back</button>
+     <button class="btn danger sm" type="button" id="rt_cancelConfirmBtn" onclick="confirmCancelReturn()">Confirm cancel</button>
+    </div>
+   </div>
+   <div class="returnClosedNote" id="rt_closedNote"></div>
+  </div>
+ </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -530,10 +623,12 @@ const DEFAULT_LOW_STOCK = 2; // used for the badge shown in the product list
 
 let products = [];
 let orders = [];
+let returnsList = []; // return requests, from the Returns sheet (separate from Orders)
 let chatSessions = [];
 let dealProducts = []; // deal-only products — separate sheet/list, never mixed with `products`
 let editingId = null;
 let activeChatSessionId = null;
+let activeReturnId = null;
 let formVariants = [];
 let f_colorTouched = false;
 let currentStock = {}; // {colorLabel: {size: qty}} for the product currently open in the modal
@@ -542,9 +637,31 @@ let formMode = "catalog"; // "catalog" (main Products sheet) | "deal" (DealProdu
 const TAB_META = {
  products:{title:"Products", sub:"Add, edit, and manage your product catalog."},
  orders:{title:"Orders", sub:"See what customers have ordered and their status."},
+ returns:{title:"Returns", sub:"Review and process customer return requests."},
  chat:{title:"Chat", sub:"Reply to customers messaging you from the storefront."},
  banner:{title:"Banner", sub:"Manage the hero banner, in-grid banner, and deal of the week."},
  delivery:{title:"Delivery", sub:"Set your free-delivery threshold and flat delivery charge."}
+};
+
+/* Mirrors ALLOWED_TRANSITIONS in Code.gs — kept in sync manually.
+   New: Approved / Cancelled
+   Approved: Refund / Exchange / Cancelled
+   Exchange: Exchanged / Cancelled
+   Refund: Cancelled (only while refundStatus is still "Processing" — Code.gs
+           blocks this server-side once it's "Refunded", and the button below
+           is hidden once we know that too) */
+const RETURN_TRANSITIONS = {
+ "New": ["Approved", "Cancelled"],
+ "Approved": ["Refund", "Exchange", "Cancelled"],
+ "Exchange": ["Exchanged", "Cancelled"],
+ "Refund": ["Cancelled"]
+};
+const RETURN_ACTION_LABELS = {
+ "Approved": "Approve",
+ "Refund": "Start refund",
+ "Exchange": "Start exchange",
+ "Exchanged": "Mark exchanged",
+ "Cancelled": "Cancel return"
 };
 
 function tryLogin(){
@@ -574,11 +691,13 @@ if(sessionStorage.getItem("ss-admin-ok")==="1"){
 function switchTab(t){
  document.querySelector("#panel-products").style.display = t==="products" ? "block":"none";
  document.querySelector("#panel-orders").style.display = t==="orders" ? "block":"none";
+ document.querySelector("#panel-returns").style.display = t==="returns" ? "block":"none";
  document.querySelector("#panel-chat").style.display = t==="chat" ? "block":"none";
  document.querySelector("#panel-banner").style.display = t==="banner" ? "block":"none";
  document.querySelector("#panel-delivery").style.display = t==="delivery" ? "block":"none";
  document.querySelector("#tab-products").classList.toggle("active", t==="products");
  document.querySelector("#tab-orders").classList.toggle("active", t==="orders");
+ document.querySelector("#tab-returns").classList.toggle("active", t==="returns");
  document.querySelector("#tab-chat").classList.toggle("active", t==="chat");
  document.querySelector("#tab-banner").classList.toggle("active", t==="banner");
  document.querySelector("#tab-delivery").classList.toggle("active", t==="delivery");
@@ -600,26 +719,30 @@ async function loadAll(){
  if(refreshBtn) refreshBtn.disabled = true;
  document.querySelector("#sourceNote").textContent = "Loading products and orders from your Google Sheet…";
  try{
-  const [pRes, oRes, cRes, sRes, dRes] = await Promise.all([
+  const [pRes, oRes, rRes, cRes, sRes, dRes] = await Promise.all([
    fetch(`${SCRIPT_URL}?action=products`),
    fetch(`${SCRIPT_URL}?action=orders&key=${encodeURIComponent(ADMIN_KEY)}`),
+   fetch(`${SCRIPT_URL}?action=returns&key=${encodeURIComponent(ADMIN_KEY)}`),
    fetch(`${SCRIPT_URL}?action=chatSessions&key=${encodeURIComponent(ADMIN_KEY)}`),
    fetch(`${SCRIPT_URL}?action=settings`),
    fetch(`${SCRIPT_URL}?action=dealProducts`)
   ]);
   const pData = await pRes.json();
   const oData = await oRes.json();
+  const rData = await rRes.json();
   const cData = await cRes.json();
   const sData = await sRes.json();
   const dData = await dRes.json();
   if(pData.error || oData.error || cData.error) throw new Error(pData.error || oData.error || cData.error);
   products = pData.products || [];
   orders = (oData.orders || []).reverse();
+  returnsList = (rData.returns || []).reverse();
   chatSessions = cData.sessions || [];
   dealProducts = dData.dealProducts || [];
   document.querySelector("#sourceNote").innerHTML = `Connected to your Google Sheet — <b>${products.length}</b> products, <b>${orders.length}</b> orders. Changes here save straight to the Sheet.`;
   render();
   renderOrders();
+  renderReturns();
   renderChatSessions();
   renderDealProductsList();
   loadBannerIntoForm(sData.settings || {});
@@ -643,6 +766,13 @@ async function refreshChatSessions(){
 
 function money(n){return "Rs. "+Number(n).toLocaleString("en-IN")}
 function escapeHtml(s){ const d=document.createElement("div"); d.textContent=s||""; return d.innerHTML; }
+function matchesSearch(val, q){ return String(val==null?"":val).toLowerCase().includes(q); }
+function searchValue(id){ const el=document.querySelector(id); return el ? el.value.trim().toLowerCase() : ""; }
+function setEmptyState(el, totalLen, shownLen, emptyMsg, noMatchMsg){
+ if(!totalLen){ el.style.display="block"; el.textContent=emptyMsg; }
+ else if(!shownLen){ el.style.display="block"; el.textContent=noMatchMsg; }
+ else{ el.style.display="none"; }
+}
 
 /* ================== Color name → swatch matching ==================
    Lets the browser resolve a typed color name (e.g. "Navy",
@@ -687,10 +817,15 @@ function stockSummary(stock){
 }
 
 function render(){
+ const q = searchValue("#pr_search");
+ const list = q ? products.filter(p=>
+  matchesSearch(p.name,q) || matchesSearch(p.sku,q) || matchesSearch(p.category,q)
+ ) : products;
  const rows = document.querySelector("#rows");
- document.querySelector("#countLabel").textContent = `(${products.length})`;
- document.querySelector("#emptyMsg").style.display = products.length ? "none" : "block";
- rows.innerHTML = products.map(p=>`
+ document.querySelector("#countLabel").textContent = q ? `(${list.length} of ${products.length})` : `(${products.length})`;
+ setEmptyState(document.querySelector("#emptyMsg"), products.length, list.length,
+  'No products yet — click "Add product" to create your first one.', "No products match your search.");
+ rows.innerHTML = list.map(p=>`
   <tr>
    <td><img class="thumb" src="${escapeHtml(p.image||'')}" alt=""></td>
    <td><b>${escapeHtml(p.name)}</b>${(p.variants&&p.variants.length)?` <span class="statusTag">${p.variants.length+1} colors</span>`:""}</td>
@@ -718,15 +853,21 @@ function render(){
    Products list or the storefront's main grid/suggestions.
 ======================================================================= */
 function renderDealProductsList(){
+ const q = searchValue("#dl_search");
+ const list = q ? dealProducts.filter(p=> matchesSearch(p.name,q) || matchesSearch(p.sku,q)) : dealProducts;
  const wrap = document.querySelector("#dealProductsList");
  const countEl = document.querySelector("#dl_productCount");
- if(countEl) countEl.textContent = dealProducts.length ? `— ${dealProducts.length}` : "";
+ if(countEl) countEl.textContent = dealProducts.length ? (q ? `— ${list.length} of ${dealProducts.length}` : `— ${dealProducts.length}`) : "";
  if(!wrap) return;
  if(!dealProducts.length){
   wrap.innerHTML = `<div class="dealProductsEmpty">No deal products yet — click "+ Add deal product" below.</div>`;
   return;
  }
- wrap.innerHTML = dealProducts.map(p=>`
+ if(!list.length){
+  wrap.innerHTML = `<div class="dealProductsEmpty">No deal products match your search.</div>`;
+  return;
+ }
+ wrap.innerHTML = list.map(p=>`
   <div class="dealProductRow">
    <img class="thumb" src="${escapeHtml(p.image||'')}" alt="">
    <div class="info">
@@ -742,10 +883,16 @@ function renderDealProductsList(){
 }
 
 function renderOrders(){
+ const q = searchValue("#or_search");
+ const list = q ? orders.filter(o=>{
+  let items=[]; try{items=JSON.parse(o.items||"[]")}catch(e){}
+  const itemNames = items.map(i=>i.name).join(" ");
+  return matchesSearch(o.orderId,q) || matchesSearch(o.name,q) || matchesSearch(o.phone,q) || matchesSearch(o.status,q) || matchesSearch(itemNames,q);
+ }) : orders;
  const rows = document.querySelector("#orderRows");
- document.querySelector("#orderCountLabel").textContent = `(${orders.length})`;
- document.querySelector("#emptyOrders").style.display = orders.length ? "none" : "block";
- rows.innerHTML = orders.map(o=>{
+ document.querySelector("#orderCountLabel").textContent = q ? `(${list.length} of ${orders.length})` : `(${orders.length})`;
+ setEmptyState(document.querySelector("#emptyOrders"), orders.length, list.length, "No orders yet.", "No orders match your search.");
+ rows.innerHTML = list.map(o=>{
   let items=[]; try{items=JSON.parse(o.items||"[]")}catch(e){}
   const when = o.timestamp ? new Date(o.timestamp).toLocaleString() : "";
   return `<tr>
@@ -759,16 +906,194 @@ function renderOrders(){
  }).join("");
 }
 
+/* ================== Returns ==================
+   Rendered from `returnsList` — synced from the merchant's own
+   Returns sheet by the Apps Script backend (syncReturns). Rows are
+   clickable and open a detail modal (openReturnDetail) with the
+   full reason/details plus the valid next-status actions, mirroring
+   ALLOWED_TRANSITIONS in Code.gs (see RETURN_TRANSITIONS above).
+=================================================== */
+function returnBadges(r){
+ const status = r.status || "New";
+ let out = `<span class="returnStatus status-${escapeHtml(status)}">${escapeHtml(status)}</span>`;
+ if(status === "Refund" && r.refundStatus){
+  out += ` <span class="returnStatus refund-${escapeHtml(r.refundStatus)}">${escapeHtml(r.refundStatus)}</span>`;
+ }
+ return out;
+}
+function renderReturns(){
+ const q = searchValue("#rt_search");
+ const list = q ? returnsList.filter(r=>
+  matchesSearch(r.returnId,q) || matchesSearch(r.orderId,q) || matchesSearch(r.name,q) ||
+  matchesSearch(r.phone,q) || matchesSearch(r.email,q) || matchesSearch(r.reason,q) || matchesSearch(r.status,q)
+ ) : returnsList;
+ const rows = document.querySelector("#returnRows");
+ document.querySelector("#returnCountLabel").textContent = q ? `(${list.length} of ${returnsList.length})` : `(${returnsList.length})`;
+ setEmptyState(document.querySelector("#emptyReturns"), returnsList.length, list.length, "No return requests yet.", "No returns match your search.");
+ // Badge always reflects the full list, not the filtered view.
+ const newCount = returnsList.filter(r=>(r.status||"New")==="New").length;
+ const dot = document.querySelector("#returnsTabDot");
+ if(newCount>0){ dot.style.display="grid"; dot.textContent = newCount>9?"9+":newCount; }
+ else dot.style.display="none";
+
+ rows.innerHTML = list.map(r=>{
+  const when = r.timestamp ? new Date(r.timestamp).toLocaleString() : "";
+  return `<tr class="returnRow" onclick="openReturnDetail('${String(r.returnId).replace(/'/g,"\\'")}')">
+   <td>${when}</td>
+   <td><span class="skuTag">${escapeHtml(r.orderId||"")}</span></td>
+   <td>${escapeHtml(r.name||"")}<br><small style="color:var(--muted)">${escapeHtml(r.phone||"")}</small></td>
+   <td>${escapeHtml(r.reason||"")}</td>
+   <td>${returnBadges(r)}</td>
+   <td>${r.status==="Refund" ? escapeHtml(r.refundStatus||"Processing") : ""}</td>
+  </tr>`;
+ }).join("");
+}
+
+function openReturnDetail(returnId){
+ activeReturnId = returnId;
+ const r = returnsList.find(x=>String(x.returnId)===String(returnId));
+ if(!r){ toast("Couldn't find that return"); return; }
+ document.querySelector("#rt_name").textContent = r.name || "Customer";
+ document.querySelector("#rt_meta").textContent = r.timestamp ? new Date(r.timestamp).toLocaleString() : "";
+ document.querySelector("#rt_orderId").textContent = r.orderId || "—";
+ document.querySelector("#rt_returnId").textContent = r.returnId || "—";
+ document.querySelector("#rt_phone").textContent = r.phone || "—";
+ document.querySelector("#rt_email").textContent = r.email || "—";
+ document.querySelector("#rt_reason").textContent = r.reason || "—";
+ document.querySelector("#rt_statusBadges").innerHTML = returnBadges(r);
+ document.querySelector("#rt_details").textContent = r.details || "No further details given.";
+ document.querySelector("#rt_cancelReasonNote").innerHTML = (r.status==="Cancelled" && r.cancelReason)
+  ? `<div class="returnClosedNote"><b>Cancel reason:</b> ${escapeHtml(r.cancelReason)}</div>` : "";
+ hideCancelBox();
+ renderReturnActions(r);
+ document.querySelector("#returnModal").classList.add("open");
+}
+function closeReturnDetail(){
+ document.querySelector("#returnModal").classList.remove("open");
+ activeReturnId = null;
+}
+function renderReturnActions(r){
+ const status = r.status || "New";
+ const wrap = document.querySelector("#rt_actions");
+ const closedNote = document.querySelector("#rt_closedNote");
+ let html = "";
+ let note = "";
+
+ let allowed = RETURN_TRANSITIONS[status] || [];
+ // A Refund-stage return can only be cancelled while still Processing —
+ // Code.gs enforces this server-side too, this just avoids offering a
+ // button that would immediately fail.
+ if(status === "Refund" && (r.refundStatus||"Processing") === "Refunded"){
+  allowed = allowed.filter(s=>s!=="Cancelled");
+ }
+ allowed.forEach(next=>{
+  const label = RETURN_ACTION_LABELS[next] || next;
+  const cls = next==="Cancelled" ? "btn danger sm" : "btn sm";
+  if(next==="Cancelled"){
+   html += `<button class="${cls}" type="button" onclick="showCancelBox()">${label}</button>`;
+  }else{
+   html += `<button class="${cls}" type="button" onclick="handleReturnStatusChange('${next}')">${label}</button>`;
+  }
+ });
+ if(status === "Refund" && (r.refundStatus||"Processing") === "Processing"){
+  html += `<button class="btn sm" type="button" onclick="handleMarkRefunded()">Mark refunded</button>`;
+ }
+ if(status === "Refund" && r.refundStatus === "Refunded"){
+  note = "This refund has been paid out and can no longer be changed.";
+ }
+ if(status === "Exchanged" || status === "Cancelled"){
+  note = `This return is closed as ${status}.`;
+ }
+ wrap.innerHTML = html;
+ closedNote.textContent = note;
+}
+function showCancelBox(){
+ document.querySelector("#rt_cancelBox").classList.add("open");
+ document.querySelector("#rt_cancelReasonInput").value = "";
+ document.querySelector("#rt_cancelReasonInput").focus();
+}
+function hideCancelBox(){
+ document.querySelector("#rt_cancelBox").classList.remove("open");
+}
+async function handleReturnStatusChange(newStatus){
+ if(!activeReturnId) return;
+ const btns = document.querySelectorAll("#rt_actions button");
+ btns.forEach(b=>b.disabled=true);
+ try{
+  const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"updateStatus",key:ADMIN_KEY,returnId:activeReturnId,status:newStatus})});
+  const data = await res.json();
+  if(!data.success) throw new Error(data.error||"failed");
+  const r = returnsList.find(x=>String(x.returnId)===String(activeReturnId));
+  if(r){
+   r.status = newStatus;
+   if(newStatus==="Refund") r.refundStatus = "Processing";
+  }
+  renderReturns();
+  openReturnDetail(activeReturnId);
+  toast("Return updated to " + newStatus);
+ }catch(err){
+  toast(err.message || "Couldn't update — check your connection and try again.");
+  btns.forEach(b=>b.disabled=false);
+ }
+}
+async function confirmCancelReturn(){
+ if(!activeReturnId) return;
+ const reason = document.querySelector("#rt_cancelReasonInput").value.trim();
+ if(!reason){
+  toast("A reason is required to cancel a return");
+  return;
+ }
+ const btn = document.querySelector("#rt_cancelConfirmBtn");
+ btn.disabled = true; btn.textContent = "Cancelling…";
+ try{
+  const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"updateStatus",key:ADMIN_KEY,returnId:activeReturnId,status:"Cancelled",reason})});
+  const data = await res.json();
+  if(!data.success) throw new Error(data.error||"failed");
+  const r = returnsList.find(x=>String(x.returnId)===String(activeReturnId));
+  if(r){ r.status = "Cancelled"; r.cancelReason = reason; }
+  renderReturns();
+  openReturnDetail(activeReturnId);
+  toast("Return cancelled");
+ }catch(err){
+  toast(err.message || "Couldn't cancel — check your connection and try again.");
+ }finally{
+  btn.disabled = false; btn.textContent = "Confirm cancel";
+ }
+}
+async function handleMarkRefunded(){
+ if(!activeReturnId) return;
+ const btns = document.querySelectorAll("#rt_actions button");
+ btns.forEach(b=>b.disabled=true);
+ try{
+  const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"updateRefundStatus",key:ADMIN_KEY,returnId:activeReturnId,refundStatus:"Refunded"})});
+  const data = await res.json();
+  if(!data.success) throw new Error(data.error||"failed");
+  const r = returnsList.find(x=>String(x.returnId)===String(activeReturnId));
+  if(r) r.refundStatus = "Refunded";
+  renderReturns();
+  openReturnDetail(activeReturnId);
+  toast("Marked as refunded");
+ }catch(err){
+  toast(err.message || "Couldn't update — check your connection and try again.");
+  btns.forEach(b=>b.disabled=false);
+ }
+}
+
 function renderChatSessions(){
+ const q = searchValue("#ch_search");
+ const list = q ? chatSessions.filter(c=>
+  matchesSearch(c.name,q) || matchesSearch(c.phone,q) || matchesSearch(c.lastText,q)
+ ) : chatSessions;
  const rows = document.querySelector("#chatRows");
- document.querySelector("#chatCountLabel").textContent = `(${chatSessions.length})`;
- document.querySelector("#emptyChat").style.display = chatSessions.length ? "none" : "block";
+ document.querySelector("#chatCountLabel").textContent = q ? `(${list.length} of ${chatSessions.length})` : `(${chatSessions.length})`;
+ setEmptyState(document.querySelector("#emptyChat"), chatSessions.length, list.length, "No conversations yet.", "No conversations match your search.");
+ // Badge always reflects the full list, not the filtered view.
  const totalUnread = chatSessions.reduce((s,c)=>s+(c.unread||0),0);
  const dot = document.querySelector("#chatTabDot");
  if(totalUnread>0){ dot.style.display="grid"; dot.textContent = totalUnread>9?"9+":totalUnread; }
  else dot.style.display="none";
 
- rows.innerHTML = chatSessions.map(c=>`
+ rows.innerHTML = list.map(c=>`
   <tr class="chatSessionRow" onclick="openChatThread('${c.sessionId}')">
    <td><b>${escapeHtml(c.name)||"Anonymous visitor"}</b>${c.phone?`<br><small style="color:var(--muted)">${escapeHtml(c.phone)}</small>`:""}</td>
    <td style="max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(c.lastText)}</td>
