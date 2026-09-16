@@ -83,6 +83,10 @@ tr:last-child td{border-bottom:0}
 .searchInput{border:1px solid var(--line);border-radius:999px;padding:9px 16px 9px 34px;outline:none;font-size:13px;background:#fff url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%236f8582" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>') no-repeat 12px center;background-size:14px;min-width:220px}
 .searchInput:focus{border-color:var(--text)}
 .panelHead .headActions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.statusFilterRow{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.statusChip{padding:7px 14px;border-radius:999px;font-size:12.5px;font-weight:700;background:var(--soft);color:var(--muted);border:1px solid var(--line)}
+.statusChip:hover{opacity:.85}
+.statusChip.active{background:var(--gold);color:#fff;border-color:var(--gold)}
 .statusTag{padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700;background:var(--soft)}
 .unreadTag{padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700;background:var(--danger);color:#fff}
 .newTag{padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700;background:var(--sage);color:#fff}
@@ -299,6 +303,7 @@ tr:last-child td{border-bottom:0}
       <input type="search" class="searchInput" id="rt_search" placeholder="Search returns…" oninput="renderReturns()">
      </div>
      <div class="note">Customer return requests, synced from your Returns sheet. Click a row to review it and move it through Approved → Refund/Exchange → Refunded/Exchanged, or cancel it.</div>
+     <div class="statusFilterRow" id="returnsFilterRow"></div>
      <div style="overflow:auto">
      <table>
       <thead><tr><th>When</th><th>Order</th><th>Customer</th><th>Reason</th><th>Status</th><th>Refund</th></tr></thead>
@@ -322,6 +327,7 @@ tr:last-child td{border-bottom:0}
      </div>
      <div class="emptyMsg" id="emptyChat" style="display:none">No conversations yet.</div>
     </div>
+
 
     <div class="panel" id="panel-banner" style="display:none">
      <div class="panelHead"><h2>Hero banner</h2></div>
@@ -629,6 +635,7 @@ let dealProducts = []; // deal-only products — separate sheet/list, never mixe
 let editingId = null;
 let activeChatSessionId = null;
 let activeReturnId = null;
+let returnsStatusFilter = "All";
 let formVariants = [];
 let f_colorTouched = false;
 let currentStock = {}; // {colorLabel: {size: qty}} for the product currently open in the modal
@@ -663,6 +670,35 @@ const RETURN_ACTION_LABELS = {
  "Exchanged": "Mark exchanged",
  "Cancelled": "Cancel return"
 };
+// Chip order for the Returns filter row. "Refund" here means still
+// processing; "Refunded" is the same underlying status ("Refund") but with
+// refundStatus "Refunded" — split into two chips since that's the
+// distinction that matters day to day.
+const RETURN_STATUS_FILTERS = ["All","New","Approved","Exchange","Exchanged","Refund","Refunded","Cancelled"];
+const RETURN_STATUS_FILTER_LABELS = {
+ "All":"All", "New":"New", "Approved":"Approved", "Exchange":"Exchange",
+ "Exchanged":"Exchanged", "Refund":"Refund (processing)", "Refunded":"Refunded", "Cancelled":"Cancelled"
+};
+function returnMatchesFilter(r, filter){
+ if(filter==="All") return true;
+ const status = r.status || "New";
+ if(filter==="Refund") return status==="Refund" && (r.refundStatus||"Processing")!=="Refunded";
+ if(filter==="Refunded") return status==="Refund" && r.refundStatus==="Refunded";
+ return status === filter;
+}
+function setReturnsFilter(f){
+ returnsStatusFilter = f;
+ renderReturns();
+}
+function renderReturnsFilterChips(){
+ const wrap = document.querySelector("#returnsFilterRow");
+ if(!wrap) return;
+ wrap.innerHTML = RETURN_STATUS_FILTERS.map(f=>{
+  const count = f==="All" ? returnsList.length : returnsList.filter(r=>returnMatchesFilter(r,f)).length;
+  const active = returnsStatusFilter===f ? " active" : "";
+  return `<button type="button" class="statusChip${active}" onclick="setReturnsFilter('${f}')">${escapeHtml(RETURN_STATUS_FILTER_LABELS[f])} (${count})</button>`;
+ }).join("");
+}
 
 function tryLogin(){
  const val = document.querySelector("#gatePass").value;
@@ -922,14 +958,18 @@ function returnBadges(r){
  return out;
 }
 function renderReturns(){
+ renderReturnsFilterChips();
  const q = searchValue("#rt_search");
- const list = q ? returnsList.filter(r=>
+ const byStatus = returnsList.filter(r=>returnMatchesFilter(r, returnsStatusFilter));
+ const list = q ? byStatus.filter(r=>
   matchesSearch(r.returnId,q) || matchesSearch(r.orderId,q) || matchesSearch(r.name,q) ||
   matchesSearch(r.phone,q) || matchesSearch(r.email,q) || matchesSearch(r.reason,q) || matchesSearch(r.status,q)
- ) : returnsList;
+ ) : byStatus;
  const rows = document.querySelector("#returnRows");
- document.querySelector("#returnCountLabel").textContent = q ? `(${list.length} of ${returnsList.length})` : `(${returnsList.length})`;
- setEmptyState(document.querySelector("#emptyReturns"), returnsList.length, list.length, "No return requests yet.", "No returns match your search.");
+ const filtered = q || returnsStatusFilter!=="All";
+ document.querySelector("#returnCountLabel").textContent = filtered ? `(${list.length} of ${returnsList.length})` : `(${returnsList.length})`;
+ setEmptyState(document.querySelector("#emptyReturns"), returnsList.length, list.length, "No return requests yet.",
+  returnsStatusFilter==="All" ? "No returns match your search." : `No returns in "${RETURN_STATUS_FILTER_LABELS[returnsStatusFilter]}" match your search.`);
  // Badge always reflects the full list, not the filtered view.
  const newCount = returnsList.filter(r=>(r.status||"New")==="New").length;
  const dot = document.querySelector("#returnsTabDot");
