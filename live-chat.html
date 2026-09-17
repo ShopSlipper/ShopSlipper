@@ -276,24 +276,23 @@ function retryFailedMessage(pendingId){
 async function fetchChatMessages(){
  if(!chatSessionId || sendInFlight) return;
  try{
-  const res = await fetch(`${SCRIPT_URL}?action=chatMessages&sessionId=${encodeURIComponent(chatSessionId)}`);
+  const res = await fetch(`${SCRIPT_URL}?action=chatMessages&sessionId=${encodeURIComponent(chatSessionId)}&_=${Date.now()}`, {cache:"no-store"});
   const data = await res.json();
   if(data && Array.isArray(data.messages)){
-   // Count staff messages before/after this fetch so we can tell a
-   // genuinely NEW staff reply arrived, rather than dinging on every
-   // poll or on the very first load of an existing conversation.
    const prevStaffCount = chatMessages.filter(m=>m.from==='staff').length;
-   chatMessages = data.messages;
+
+   const serverKeys = new Set(data.messages.map(m => `${m.from}|${m.text}|${m.time}`));
+   const stillPending = chatMessages.filter(m =>
+     m.pendingId && !m.failed && !serverKeys.has(`${m.from}|${m.text}|${m.time}`)
+   );
+   chatMessages = [...data.messages, ...stillPending];
+
    localStorage.setItem("shopslipper-chat-msgs", JSON.stringify(chatMessages));
    const newStaffCount = chatMessages.filter(m=>m.from==='staff').length;
    if(hasFetchedMessagesOnce && newStaffCount > prevStaffCount){
     playReceivedSound();
    }
    hasFetchedMessagesOnce = true;
-   // If we were holding the typing dots on because staff had just
-   // stopped typing, this fetch is what finally clears them — the
-   // dots stay up right through until the real reply lands, so
-   // there's no gap where it looks like nothing happened.
    if(awaitingStaffMessage){
     awaitingStaffMessage = false;
     isStaffTypingNow = false;
