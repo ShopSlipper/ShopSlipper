@@ -565,6 +565,7 @@ async function loadChatThread(sessionId){
   const res = await fetch(`${SCRIPT_URL}?action=chatMessages&sessionId=${encodeURIComponent(sessionId)}`);
   const data = await res.json();
   const el = document.querySelector("#chatThread");
+  const wasNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
   const msgs = data.messages || [];
   el.innerHTML = msgs.length
    ? msgs.map(m=>{
@@ -574,7 +575,7 @@ async function loadChatThread(sessionId){
       return `<div class="chatBubble ${m.from}${m.imageUrl?' hasImg':''}">${delBtn}${imgPart}${textPart}<small>${m.time||""}</small></div>`;
      }).join("")
    : `<div style="text-align:center;color:var(--muted);font-size:12.5px;padding:20px">No messages yet.</div>`;
-  el.scrollTop = el.scrollHeight;
+  if(wasNearBottom) el.scrollTop = el.scrollHeight;
  }catch(err){
   document.querySelector("#chatThread").innerHTML = `<div style="text-align:center;color:var(--muted);font-size:12.5px;padding:20px">Couldn't load messages.</div>`;
  }
