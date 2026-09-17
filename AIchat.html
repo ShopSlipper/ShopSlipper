@@ -46,7 +46,6 @@ header{background:var(--gold);color:#fff;box-shadow:0 2px 10px rgba(6,50,28,.15)
 
 main{max-width:900px;margin:0 auto;padding:28px 20px 80px}
 
-/* ---- Bot status card ---- */
 .statusCard{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:26px;margin-bottom:22px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
 .statusLeft h2{font-family:var(--serif);font-weight:600;font-size:19px;margin-bottom:6px}
 .statusLeft p{color:var(--muted);font-size:13px;max-width:480px}
@@ -95,14 +94,6 @@ tr:last-child td{border-bottom:0}
 </head>
 <body>
 
-<!-- ============================================================
- PASSWORD: this page accepts either ADMIN_KEY or CHAT_KEY (must
- match Code.gs) — same "close up shop" staff can flip the bot
- without needing the full admin password. Simple client-side gate,
- not real security — anyone reading this file's source can see the
- keys. Fine for casual visitors, not for anything truly sensitive.
-============================================================= -->
-
 <div id="gate">
  <div class="gateBox">
   <h1>AI Bot</h1>
@@ -129,7 +120,7 @@ tr:last-child td{border-bottom:0}
  <div class="statusCard">
   <div class="statusLeft">
    <h2>After-hours auto-reply</h2>
-   <p>When on, the bot answers new customer messages automatically — order status lookups, product stock/price, and anything covered by the knowledge base below. Anything it can't answer is still saved for you to see in the morning.</p>
+   <p>When on, the bot answers new customer messages automatically using the knowledge base below. Anything it can't answer is still saved for you to see and reply to manually.</p>
   </div>
   <div class="switchWrap">
    <span class="switchLabel" id="statusLabel">Loading…</span>
@@ -145,7 +136,7 @@ tr:last-child td{border-bottom:0}
    <button class="btn sm" onclick="openForm(null)">+ Add entry</button>
   </div>
   <div class="note">
-   Each entry has <b>keywords</b> (comma-separated) and an <b>answer</b>. If a customer's message contains any of an entry's keywords, that answer is sent — checked top to bottom, first match wins. Order ID lookups (e.g. <code>SS628902NP</code>) and product stock/price questions are answered automatically from live data and don't need an entry here.
+   Each entry has <b>keywords</b> (comma-separated) and an <b>answer</b>. If a customer's message contains any of an entry's keywords, that answer is sent — checked top to bottom, first match wins.
   </div>
   <div style="overflow:auto">
   <table>
@@ -159,7 +150,6 @@ tr:last-child td{border-bottom:0}
 </main>
 </div>
 
-<!-- Add / edit knowledge entry modal -->
 <div class="modalBg" id="formModal" onclick="if(event.target===this)closeForm()">
  <div class="modalBox">
   <h3 id="formTitle">Add entry</h3>
@@ -194,7 +184,7 @@ const CHAT_KEY   = "shopslipperchat2026";
 let knowledge = [];
 let botActive = false;
 let editingId = null;
-let authKey = null; // whichever of ADMIN_KEY/CHAT_KEY the person typed in
+let authKey = null;
 
 function tryLogin(){
  const val = document.querySelector("#gatePass").value;
@@ -238,11 +228,11 @@ async function loadAll(){
   renderStatus();
   renderKnowledge();
  }catch(err){
-  toast("Couldn't load — check your connection and try refreshing.");
+  toast("Couldn't load — " + (err.message || "check your connection and try refreshing."));
+  document.querySelector("#statusLabel").textContent = "Couldn't load";
  }
 }
 
-/* ---- bot status switch ---- */
 function renderStatus(){
  const sw = document.querySelector("#botSwitch");
  const label = document.querySelector("#statusLabel");
@@ -262,12 +252,11 @@ async function toggleBot(){
   renderStatus();
   toast(botActive ? "Bot turned ON — auto-replying to new messages" : "Bot turned OFF");
  }catch(err){
-  toast("Couldn't update — check your connection and try again.");
+  toast("Couldn't update — " + (err.message || "check your connection and try again."));
   sw.disabled = false;
  }
 }
 
-/* ---- knowledge table ---- */
 function renderKnowledge(){
  document.querySelector("#kbCount").textContent = knowledge.length ? `(${knowledge.length})` : "";
  document.querySelector("#kbEmpty").style.display = knowledge.length ? "none" : "block";
@@ -330,7 +319,7 @@ async function saveEntry(){
   renderKnowledge();
   toast(editingId ? "Entry updated" : "Entry added");
  }catch(err){
-  toast("Couldn't save — check your connection and try again.");
+  toast("Couldn't save — " + (err.message || "check your connection and try again."));
  }finally{
   btn.disabled = false; btn.textContent = "Save";
  }
@@ -346,7 +335,7 @@ async function deleteEntry(id){
   renderKnowledge();
   toast("Entry deleted");
  }catch(err){
-  toast("Couldn't delete — check your connection and try again.");
+  toast("Couldn't delete — " + (err.message || "check your connection and try again."));
  }
 }
 
