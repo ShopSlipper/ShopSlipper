@@ -119,17 +119,20 @@ const TYPING_POLL_MS = 2500;
 // below) — this is just a client-side sanity cap so a huge original
 // photo doesn't sit re-encoding forever; the backend enforces its own
 // hard size/type/rate limits regardless of what the client sends.
-// Photos are downscaled client-side before upload (see downscaleImage
-// below) — this is just a client-side sanity cap so a huge original
-// photo doesn't sit re-encoding forever; the backend enforces its own
-// hard size/type/rate limits regardless of what the client sends.
 const MAX_IMAGE_DIMENSION = 1280;
 const BOT_PREFIX = "ShopSlipper Bot: ";
 const BOT_ICON_URL = "https://raw.githubusercontent.com/ShopSlipper/ShopSlipper/main/shop_slipper_transparent.png";
 
-function escapeHtml(s){ const d=document.createElement("div"); d.textContent=s||""; return d.innerHTML; }
-
-function escapeHtml(s){ const d=document.createElement("div"); d.textContent=s||""; return d.innerHTML; }
+// FIX: quotes are now escaped too (not just & < >). escapeHtml's output
+// used to be dropped straight into inline onclick="...('${...}')"
+// attributes elsewhere in this file — an unescaped quote in that
+// position could break out of the JS string and inject script. This
+// was previously defined twice in this file (harmless duplication,
+// removed here) with the weaker (no-quote-escaping) version.
+function escapeHtml(s){
+ const d=document.createElement("div"); d.textContent=s||"";
+ return d.innerHTML.replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+}
 
 let chatSessionId = localStorage.getItem("shopslipper-chat-id");
 let chatInfo = JSON.parse(localStorage.getItem("shopslipper-chat-info")||"null");
@@ -145,7 +148,13 @@ let hasFetchedMessagesOnce = false; // guards the "received" sound from firing o
 
 function ensureChatSession(){
  if(!chatSessionId){
-  chatSessionId = "C"+Date.now().toString(36).toUpperCase()+Math.random().toString(36).slice(2,6).toUpperCase();
+  // FIX: previously "C"+Date.now().toString(36)+4 random chars — the
+  // timestamp portion isn't secret, so a session ID could realistically
+  // be brute-forced/guessed (chatMessages requires no auth beyond the
+  // ID). Now generated with 128 bits of real randomness via the Web
+  // Crypto API, making guessing computationally infeasible.
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  chatSessionId = "C" + Array.from(bytes, b => b.toString(16).padStart(2,"0")).join("");
   localStorage.setItem("shopslipper-chat-id", chatSessionId);
  }
 }
