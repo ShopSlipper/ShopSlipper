@@ -166,6 +166,7 @@ table.kbTable td{padding:10px 6px;border-bottom:1px solid var(--line);vertical-a
   <div class="brand"><img class="mark" src="https://raw.githubusercontent.com/ShopSlipper/ShopSlipper/main/shop_slipper_transparent.png" alt="Shop Slipper logo"><div>Shop Slipper<small>Chat</small></div></div>
   <div class="headActions">
    <button class="btn headerBtn sm" id="botToggleBtn" onclick="toggleBot()" disabled>🤖 AI: …</button>
+   <button class="btn headerBtn sm" id="orderLookupToggleBtn" onclick="toggleOrderLookup()" disabled>📦 Order lookup: …</button> 
    <button class="btn headerBtn sm" onclick="openKbModal()">📚 Knowledge Base</button>
    <button class="btn headerBtn sm" id="refreshBtn" onclick="loadChatSessions()"><span id="refreshIcon">↻</span> Refresh</button>
    <button class="btn headerBtn sm" onclick="logout()">Log out</button>
@@ -262,6 +263,7 @@ let activeChatSessionId = null;
 let currentTypingSessions = [];
 let prevTotalUnread = null;
 let botActive = false;
+let orderLookupActive = false;  
 let knowledge = [];
 let editingKbId = null;
 
@@ -302,6 +304,8 @@ async function loadBotStatus(){
   const data = await res.json();
   botActive = String((data.settings||{}).botActive) === "true";
   renderBotToggle();
+  orderLookupActive = String((data.settings||{}).botOrderStatusEnabled) === "true";
+  renderOrderLookupToggle();
  }catch(err){
   document.querySelector("#botToggleBtn").textContent = "🤖 AI: ?";
  }
@@ -326,6 +330,28 @@ async function toggleBot(){
  }catch(err){
   toast("Couldn't update — " + (err.message || "check your connection and try again."));
   btn.disabled = false;
+ }
+}
+
+function renderOrderLookupToggle(){
+ const btn = document.querySelector("#orderLookupToggleBtn");
+ btn.disabled = false;
+ btn.textContent = orderLookupActive ? "📦 Order lookup: ON" : "📦 Order lookup: OFF";
+ btn.classList.toggle("botOn", orderLookupActive);
+}
+async function toggleOrderLookup(){
+ const next = !orderLookupActive;
+ const btn = document.querySelector("#orderLookupToggleBtn");
+ btn.disabled = true;
+ try{
+  const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"updateSettings",key:ADMIN_KEY,settings:{botOrderStatusEnabled:next}})});
+  const data = await res.json();
+  if(!data.success) throw new Error(data.error||"failed");
+  orderLookupActive = next;
+  renderOrderLookupToggle();
+  toast(orderLookupActive ? "Order lookup turned ON" : "Order lookup turned OFF");
+ }catch(err){
+  toast("Couldn't update"); btn.disabled = false;
  }
 }
 
