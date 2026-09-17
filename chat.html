@@ -229,7 +229,7 @@ async function loadBotStatus(){
  try{
   const res = await fetch(`${SCRIPT_URL}?action=settings`);
   const data = await res.json();
-  botActive = String((data.settings||{}).botActive) === "true";
+  botActive = String((data.settings||{}).aiOverride) === "on";
   renderBotToggle();
  }catch(err){}
 }
@@ -243,7 +243,11 @@ async function toggleBot(){
  const btn = document.querySelector("#botToggleBtn");
  btn.disabled = true;
  try{
-  const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"updateBotStatus",key:ADMIN_KEY,active:next})});
+  const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({
+    action:"setManualAiOverride",
+    key:ADMIN_KEY,
+    mode: next ? "on" : "off"
+  })});
   const data = await res.json();
   if(!data.success) throw new Error(data.error||"failed");
   botActive = next;
