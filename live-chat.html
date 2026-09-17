@@ -255,7 +255,9 @@ async function postChatMessage_(text, imageUrl){
   const data = await res.json();
   if(data.error) throw new Error(data.error);
   sendInFlight = false;
-  fetchChatMessages(); // safe now — the server has it, so sync right away
+  const confirmedMsg = chatMessages.find(x=>x.pendingId===pendingId);
+  if(confirmedMsg) confirmedMsg.confirmed = true;
+  fetchChatMessages(); // safe now — the server has it, so sync right away // safe now — the server has it, so sync right away
  }catch(err){
   // The server never actually got this message, so resyncing now would just
   // erase it from view. Mark it failed instead so it can be retried — this
@@ -283,10 +285,7 @@ async function fetchChatMessages(){
   if(data && Array.isArray(data.messages)){
    const prevStaffCount = chatMessages.filter(m=>m.from==='staff').length;
 
-   const serverKeys = new Set(data.messages.map(m => `${m.from}|${m.text}|${m.time}`));
-   const stillPending = chatMessages.filter(m =>
-     m.pendingId && !m.failed && !serverKeys.has(`${m.from}|${m.text}|${m.time}`)
-   );
+   const stillPending = chatMessages.filter(m => m.pendingId && !m.failed && !m.confirmed);
    chatMessages = [...data.messages, ...stillPending];
 
    localStorage.setItem("shopslipper-chat-msgs", JSON.stringify(chatMessages));
