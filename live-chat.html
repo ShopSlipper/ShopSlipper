@@ -181,6 +181,7 @@ function startChatWithInfo(e){
 }
 function renderChatMessages(){
  const el = document.querySelector("#chatMessages");
+ const wasNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
  if(!chatMessages.length && !isStaffTypingNow){
   el.innerHTML = `<div class="chatEmpty">Say hello! Our team will reply here shortly.</div>`;
  }else{
@@ -197,7 +198,7 @@ function renderChatMessages(){
   }
   el.innerHTML = html;
  }
- el.scrollTop = el.scrollHeight;
+ if(wasNearBottom) el.scrollTop = el.scrollHeight;
 }
 function showChatError(msg){
  const el = document.querySelector("#chatErrMsg");
@@ -257,7 +258,8 @@ async function postChatMessage_(text, imageUrl){
   sendInFlight = false;
   const confirmedMsg = chatMessages.find(x=>x.pendingId===pendingId);
   if(confirmedMsg) confirmedMsg.confirmed = true;
-  fetchChatMessages(); // safe now — the server has it, so sync right away // safe now — the server has it, so sync right away
+  fetchChatMessages(); // safe now — the server has it, so sync right away
+  pollStaffTyping(); // check immediately instead of waiting up to 2.5s for the next scheduled poll // safe now — the server has it, so sync right away // safe now — the server has it, so sync right away
  }catch(err){
   // The server never actually got this message, so resyncing now would just
   // erase it from view. Mark it failed instead so it can be retried — this
