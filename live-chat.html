@@ -37,6 +37,9 @@ main{flex:1;display:flex;flex-direction:column;max-width:640px;width:100%;margin
 .chatThreadWrap{display:flex;flex-direction:column;flex:1;min-height:0}
 .chatMessages{flex:1;overflow:auto;padding:18px;display:flex;flex-direction:column;gap:10px;background:var(--bg)}
 .chatEmpty{color:var(--muted);font-size:13px;text-align:center;padding:40px 10px}
+.msgRow{display:flex;flex-direction:column;max-width:100%}
+.msgRow.me{align-items:flex-end}
+.msgRow.staff{align-items:flex-start}
 .chatBubble{max-width:78%;padding:11px 14px;border-radius:16px;font-size:14px;line-height:1.45}
 .chatBubble.me{align-self:flex-end;background:var(--gold);color:#fff;border-bottom-right-radius:4px}
 .chatBubble.staff{align-self:flex-start;background:#fff;border:1px solid var(--line);border-bottom-left-radius:4px}
@@ -44,6 +47,7 @@ main{flex:1;display:flex;flex-direction:column;max-width:640px;width:100%;margin
 .chatBubble.hasImg{padding:6px}
 .chatBubble.failed{opacity:.75;border:1px solid #b5493e!important;cursor:pointer}
 .chatBubble.failed .retryHint{color:#b5493e;opacity:1}
+.chatBubble.manageable{cursor:pointer}
 .chatImg{display:block;max-width:220px;max-height:220px;width:100%;object-fit:cover;border-radius:12px;cursor:zoom-in;margin-bottom:4px}
 /* Typing animation: shown as a staff-style bubble with three bouncing
    dots instead of text, while the backend says staff is typing. */
@@ -52,6 +56,15 @@ main{flex:1;display:flex;flex-direction:column;max-width:640px;width:100%;margin
 .chatBubble.typingDots span:nth-child(2){animation-delay:.15s}
 .chatBubble.typingDots span:nth-child(3){animation-delay:.3s}
 @keyframes typingBounce{0%,60%,100%{transform:translateY(0);opacity:.5}30%{transform:translateY(-4px);opacity:1}}
+/* Edit/Delete action row shown under a tapped customer bubble */
+.msgActions{display:flex;gap:6px;margin-top:5px}
+.msgActions button{background:var(--soft);border-radius:999px;padding:5px 12px;font-size:11.5px;font-weight:700;color:var(--gold)}
+.msgActions button.danger{color:#b5493e}
+.msgActions button:hover{background:var(--line)}
+/* Inline edit row replaces bubble text while editing */
+.editRow{display:flex;gap:6px;align-items:center;width:100%;min-width:180px}
+.editRow input{flex:1;border-radius:10px;border:1px solid rgba(255,255,255,.7);padding:7px 10px;font-size:13.5px;color:var(--text);background:#fff}
+.editRow button{font-size:11px;font-weight:700;padding:7px 11px;border-radius:999px;background:rgba(255,255,255,.28);color:#fff;flex-shrink:0}
 .imagePreviewBar{display:flex;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid var(--line);background:#fff;flex-shrink:0}
 .imagePreviewBar img{width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid var(--line)}
 .imagePreviewBar span{flex:1;font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -60,6 +73,10 @@ main{flex:1;display:flex;flex-direction:column;max-width:640px;width:100%;margin
 .imgLightbox img{max-width:100%;max-height:100%;border-radius:10px}
 .chatErrMsg{padding:8px 14px;font-size:12px;color:#b5493e;background:#fdeeec;border-top:1px solid var(--line);flex-shrink:0;display:none}
 .chatErrMsg.show{display:block}
+.chatMessagesWrap{position:relative;flex:1;min-height:0;display:flex;flex-direction:column}
+.scrollBottomBtn{position:absolute;right:14px;bottom:14px;width:42px;height:42px;border-radius:50%;background:var(--gold);color:#fff;font-size:18px;display:none;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(6,50,28,.3);z-index:5}
+.scrollBottomBtn:hover{filter:brightness(1.08)}
+.scrollBottomBadge{position:absolute;top:-4px;right:-4px;background:#b5493e;color:#fff;font-size:10px;font-weight:700;border-radius:999px;min-width:17px;height:17px;padding:0 4px;display:none;align-items:center;justify-content:center;line-height:1;border:2px solid var(--bg)}
 .chatInputRow{display:flex;gap:8px;padding:14px;border-top:1px solid var(--line);background:#fff;flex-shrink:0;align-items:center}
 .chatInputRow input{flex:1;border:1px solid var(--line);border-radius:999px;padding:12px 16px;outline:none;font-size:14px}
 .chatInputRow input:focus{border-color:var(--text)}
@@ -89,7 +106,13 @@ main{flex:1;display:flex;flex-direction:column;max-width:640px;width:100%;margin
    <button class="btn">Start chat</button>
   </form>
   <div class="chatThreadWrap" id="chatThreadWrap" style="display:none">
-   <div class="chatMessages" id="chatMessages"></div>
+   <div class="chatMessagesWrap">
+    <div class="chatMessages" id="chatMessages"></div>
+    <button type="button" id="scrollBottomBtn" class="scrollBottomBtn" aria-label="Scroll to latest messages">
+     ↓
+     <span id="scrollBottomBadge" class="scrollBottomBadge"></span>
+    </button>
+   </div>
    <div class="chatErrMsg" id="chatErrMsg"></div>
    <div class="imagePreviewBar" id="imagePreviewBar" style="display:none">
     <img id="imagePreviewThumb" alt="">
@@ -141,6 +164,38 @@ let awaitingTimeout = null;
 let pendingImage = null;
 let sendInFlight = false;  // {base64, mimeType, filename, dataUrl} staged but not yet sent
 let hasFetchedMessagesOnce = false; // guards the "received" sound from firing on the very first load
+let activeMenuId = null; // key of the customer message whose Edit/Delete row is open, or null
+let editingId = null;    // key of the customer message currently being edited inline, or null
+let unseenCount = 0;     // messages that arrived while the customer was scrolled up
+
+// Shared "close enough to the bottom to auto-scroll" check, used both to
+// decide whether to snap to the newest message on render and to decide
+// whether the "jump to latest" button should be showing.
+function isNearBottom(el){
+ return el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+}
+// Shows/hides the floating scroll-to-bottom button and its unread badge
+// based on the current scroll position. Called after every render and
+// on manual scrolling.
+function updateScrollButton(){
+ const el = document.querySelector("#chatMessages");
+ const btn = document.querySelector("#scrollBottomBtn");
+ const badge = document.querySelector("#scrollBottomBadge");
+ if(!el || !btn || !badge) return;
+ if(isNearBottom(el)){
+  btn.style.display = "none";
+  badge.style.display = "none";
+  unseenCount = 0;
+ }else{
+  btn.style.display = "flex";
+  if(unseenCount > 0){
+   badge.textContent = unseenCount > 9 ? "9+" : String(unseenCount);
+   badge.style.display = "flex";
+  }else{
+   badge.style.display = "none";
+  }
+ }
+}
 
 function ensureChatSession(){
  if(!chatSessionId){
@@ -179,27 +234,157 @@ function startChatWithInfo(e){
  localStorage.setItem("shopslipper-chat-info", JSON.stringify(chatInfo));
  showThread();
 }
+// Stable key for a message: prefer the server-assigned id (once the
+// backend sends one back in chatMessages), fall back to the client-side
+// pendingId for messages that haven't round-tripped yet.
+function msgKey(m){ return m.id || m.pendingId || null; }
+
 function renderChatMessages(){
  const el = document.querySelector("#chatMessages");
- const wasNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+ const wasNearBottom = isNearBottom(el);
  if(!chatMessages.length && !isStaffTypingNow){
   el.innerHTML = `<div class="chatEmpty">Say hello! Our team will reply here shortly.</div>`;
  }else{
-    let html = chatMessages.map(m=>{
+  let html = chatMessages.map(m=>{
    const cls = m.from==='staff' ? 'staff' : 'me';
-   const imgPart = m.imageUrl ? `<img class="chatImg" src="${escapeHtml(m.imageUrl)}" onclick="openImageLightbox('${escapeHtml(m.imageUrl)}')" alt="photo">` : ``;
+   const key = msgKey(m);
+   // Only the customer's own, successfully-sent text/image messages can
+   // be edited or deleted — not staff messages, and not ones still
+   // pending/failed (those are retried instead, see retryFailedMessage).
+   const canManage = cls==='me' && !m.failed && !!key;
+
+   if(canManage && editingId===key){
+    const safeKey = escapeHtml(key);
+    return `<div class="msgRow me">
+      <div class="chatBubble me${m.imageUrl?' hasImg':''}">
+       ${m.imageUrl?`<img class="chatImg" src="${escapeHtml(m.imageUrl)}" alt="photo">`:``}
+       <div class="editRow">
+        <input id="editInput_${safeKey}" value="${escapeHtml(m.text||"")}">
+        <button type="button" onclick="saveEditedMessage('${safeKey}')">Save</button>
+        <button type="button" onclick="cancelEditMessage()">Cancel</button>
+       </div>
+      </div>
+     </div>`;
+   }
+
+   const imgPart = m.imageUrl ? `<img class="chatImg" src="${escapeHtml(m.imageUrl)}" onclick="openImageLightbox(event,'${escapeHtml(m.imageUrl)}')" alt="photo">` : ``;
    const textPart = m.text ? `<span>${escapeHtml(m.text)}</span>` : ``;
-   const smallPart = m.failed ? `<small class="retryHint">Not sent — tap to retry</small>` : `<small>${m.time||""}</small>`;
-   const clickAttr = m.failed && m.pendingId ? ` onclick="retryFailedMessage('${m.pendingId}')"` : ``;
-   return `<div class="chatBubble ${cls}${m.imageUrl?' hasImg':''}${m.failed?' failed':''}"${clickAttr}>${imgPart}${textPart}${smallPart}</div>`;
+   const smallPart = m.failed ? `<small class="retryHint">Not sent — tap to retry</small>` : `<small>${m.time||""}${m.edited?" · edited":""}</small>`;
+   let clickAttr = ``;
+   if(m.failed && m.pendingId) clickAttr = ` onclick="retryFailedMessage('${escapeHtml(m.pendingId)}')"`;
+   else if(canManage) clickAttr = ` onclick="toggleMessageActions(event,'${escapeHtml(key)}')"`;
+   const bubble = `<div class="chatBubble ${cls}${m.imageUrl?' hasImg':''}${m.failed?' failed':''}${canManage?' manageable':''}"${clickAttr}>${imgPart}${textPart}${smallPart}</div>`;
+   const actions = (canManage && activeMenuId===key) ? `<div class="msgActions" onclick="event.stopPropagation()">
+      <button type="button" onclick="startEditMessage('${escapeHtml(key)}')">Edit</button>
+      <button type="button" class="danger" onclick="confirmDeleteMessage('${escapeHtml(key)}')">Delete</button>
+     </div>` : ``;
+   return `<div class="msgRow ${cls}">${bubble}${actions}</div>`;
   }).join("");
   if(isStaffTypingNow){
-   html += `<div class="chatBubble staff typingDots"><span></span><span></span><span></span></div>`;
+   html += `<div class="msgRow staff"><div class="chatBubble staff typingDots"><span></span><span></span><span></span></div></div>`;
   }
   el.innerHTML = html;
  }
  if(wasNearBottom) el.scrollTop = el.scrollHeight;
+ updateScrollButton();
 }
+
+// Manual scrolling (or reaching the bottom via the scroll button) should
+// re-check whether the "jump to latest" button needs to show.
+document.querySelector("#chatMessages").addEventListener("scroll", updateScrollButton);
+document.querySelector("#scrollBottomBtn").addEventListener("click", ()=>{
+ const el = document.querySelector("#chatMessages");
+ el.scrollTo({top: el.scrollHeight, behavior: "smooth"});
+ unseenCount = 0;
+ updateScrollButton();
+});
+
+// Tapping anywhere else closes an open action row.
+document.addEventListener("click", ()=>{
+ if(activeMenuId){ activeMenuId = null; renderChatMessages(); }
+});
+
+function toggleMessageActions(e, key){
+ e.stopPropagation();
+ activeMenuId = (activeMenuId === key) ? null : key;
+ renderChatMessages();
+}
+
+function startEditMessage(key){
+ activeMenuId = null;
+ editingId = key;
+ renderChatMessages();
+ setTimeout(()=>{
+  const inp = document.getElementById("editInput_"+key);
+  if(inp){ inp.focus(); inp.selectionStart = inp.selectionEnd = inp.value.length; }
+ }, 0);
+}
+function cancelEditMessage(){
+ editingId = null;
+ renderChatMessages();
+}
+
+// Saves an edit optimistically, then confirms with the backend. Requires
+// the backend (Apps Script) to support an "editChatMessage" action that
+// accepts {sessionId, messageId, pendingId, text} and updates the stored
+// message — add that endpoint alongside sendChatMessage. If the request
+// fails, the edit is rolled back locally.
+async function saveEditedMessage(key){
+ const inp = document.getElementById("editInput_"+key);
+ const newText = inp ? inp.value.trim() : "";
+ if(!newText){ showChatError("Message can't be empty."); return; }
+ const m = chatMessages.find(x => msgKey(x) === key);
+ if(!m){ editingId = null; renderChatMessages(); return; }
+ const oldText = m.text, wasEdited = !!m.edited;
+ m.text = newText; m.edited = true;
+ editingId = null;
+ localStorage.setItem("shopslipper-chat-msgs", JSON.stringify(chatMessages));
+ renderChatMessages();
+ try{
+  const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({
+   action:"editChatMessage", sessionId:chatSessionId,
+   messageId: m.id||null, pendingId: m.pendingId||null, text:newText
+  })});
+  const data = await res.json();
+  if(data.error) throw new Error(data.error);
+ }catch(err){
+  m.text = oldText; m.edited = wasEdited;
+  localStorage.setItem("shopslipper-chat-msgs", JSON.stringify(chatMessages));
+  renderChatMessages();
+  showChatError("Couldn't save your edit — please try again.");
+ }
+}
+
+// Deletes optimistically, then confirms with the backend. Requires a
+// "deleteChatMessage" action accepting {sessionId, messageId, pendingId}.
+// Restores the message locally if the backend call fails.
+function confirmDeleteMessage(key){
+ activeMenuId = null;
+ renderChatMessages();
+ if(!confirm("Delete this message?")) return;
+ deleteMessage(key);
+}
+async function deleteMessage(key){
+ const idx = chatMessages.findIndex(x => msgKey(x) === key);
+ if(idx===-1) return;
+ const [removed] = chatMessages.splice(idx,1);
+ localStorage.setItem("shopslipper-chat-msgs", JSON.stringify(chatMessages));
+ renderChatMessages();
+ try{
+  const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({
+   action:"deleteChatMessage", sessionId:chatSessionId,
+   messageId: removed.id||null, pendingId: removed.pendingId||null
+  })});
+  const data = await res.json();
+  if(data.error) throw new Error(data.error);
+ }catch(err){
+  chatMessages.splice(idx,0,removed);
+  localStorage.setItem("shopslipper-chat-msgs", JSON.stringify(chatMessages));
+  renderChatMessages();
+  showChatError("Couldn't delete that message — please try again.");
+ }
+}
+
 function showChatError(msg){
  const el = document.querySelector("#chatErrMsg");
  el.textContent = msg;
@@ -257,9 +442,15 @@ async function postChatMessage_(text, imageUrl){
   if(data.error) throw new Error(data.error);
   sendInFlight = false;
   const confirmedMsg = chatMessages.find(x=>x.pendingId===pendingId);
-  if(confirmedMsg) confirmedMsg.confirmed = true;
+  if(confirmedMsg){
+   confirmedMsg.confirmed = true;
+   // If the backend returned the new message's id (e.g. a row id), keep
+   // it so this message can be targeted for edit/delete even before the
+   // next fetchChatMessages() poll.
+   if(data.id) confirmedMsg.id = data.id;
+  }
   fetchChatMessages(); // safe now — the server has it, so sync right away
-  pollStaffTyping(); // check immediately instead of waiting up to 2.5s for the next scheduled poll // safe now — the server has it, so sync right away // safe now — the server has it, so sync right away
+  pollStaffTyping(); // check immediately instead of waiting up to 2.5s for the next scheduled poll
  }catch(err){
   // The server never actually got this message, so resyncing now would just
   // erase it from view. Mark it failed instead so it can be retried — this
@@ -286,9 +477,19 @@ async function fetchChatMessages(){
   const data = await res.json();
   if(data && Array.isArray(data.messages)){
    const prevStaffCount = chatMessages.filter(m=>m.from==='staff').length;
+   const prevTotalCount = chatMessages.length;
 
    const stillPending = chatMessages.filter(m => m.pendingId && !m.failed && !m.confirmed);
    chatMessages = [...data.messages, ...stillPending];
+
+   // If the customer is scrolled up reading older messages, don't yank
+   // them down — just tally what arrived so the scroll-to-bottom button
+   // can show an unread count instead.
+   const msgsEl = document.querySelector("#chatMessages");
+   if(msgsEl && !isNearBottom(msgsEl)){
+    const added = chatMessages.length - prevTotalCount;
+    if(added > 0) unseenCount += added;
+   }
 
    localStorage.setItem("shopslipper-chat-msgs", JSON.stringify(chatMessages));
    const newStaffCount = chatMessages.filter(m=>m.from==='staff').length;
@@ -301,6 +502,11 @@ async function fetchChatMessages(){
     isStaffTypingNow = false;
     clearTimeout(awaitingTimeout);
    }
+   // A poll can land mid-edit or mid-menu; only clear these if the
+   // message they refer to no longer exists, so an in-progress edit
+   // isn't yanked out from under the customer by a background refresh.
+   if(activeMenuId && !chatMessages.some(m=>msgKey(m)===activeMenuId)) activeMenuId = null;
+   if(editingId && !chatMessages.some(m=>msgKey(m)===editingId)) editingId = null;
    renderChatMessages();
   }
  }catch(err){ /* backend unreachable — ignore, retry next poll */ }
@@ -371,7 +577,8 @@ function downscaleImage(file){
   reader.readAsDataURL(file);
  });
 }
-function openImageLightbox(url){
+function openImageLightbox(e, url){
+ if(e) e.stopPropagation();
  const overlay = document.createElement("div");
  overlay.className = "imgLightbox";
  overlay.onclick = ()=> overlay.remove();
