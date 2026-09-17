@@ -264,7 +264,7 @@ tr:last-child td{border-bottom:0}
    </div>
 
    <div id="appPanels">
-    <div class="note" id="sourceNote">Loading products and orders from your Google Sheet…</div>
+    <div class="note" id="sourceNote">Loading products and orders…</div>
 
     <div class="panel" id="panel-products">
      <div class="panelHead">
@@ -756,7 +756,7 @@ async function loadAll(){
   refreshIcon.classList.add("spinning");
  }
  if(refreshBtn) refreshBtn.disabled = true;
- document.querySelector("#sourceNote").textContent = "Loading products and orders from your Google Sheet…";
+ document.querySelector("#sourceNote").textContent = "Loading products and orders…";
  try{
   const [pRes, oRes, rRes, cRes, sRes, dRes] = await Promise.all([
    fetch(`${SCRIPT_URL}?action=products`),
