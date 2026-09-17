@@ -166,7 +166,8 @@ table.kbTable td{padding:10px 6px;border-bottom:1px solid var(--line);vertical-a
   <div class="brand"><img class="mark" src="https://raw.githubusercontent.com/ShopSlipper/ShopSlipper/main/shop_slipper_transparent.png" alt="Shop Slipper logo"><div>Shop Slipper<small>Chat</small></div></div>
   <div class="headActions">
    <button class="btn headerBtn sm" id="botToggleBtn" onclick="toggleBot()" disabled>🤖 AI: …</button>
-   <button class="btn headerBtn sm" id="orderLookupToggleBtn" onclick="toggleOrderLookup()" disabled>📦 Order lookup: …</button> 
+   <button class="btn headerBtn sm" id="orderLookupToggleBtn" onclick="toggleOrderLookup()" disabled>📦 Order lookup: …</button>
+   <button class="btn headerBtn sm" id="returnLookupToggleBtn" onclick="toggleReturnLookup()" disabled>↩️ Return lookup: …</button> 
    <button class="btn headerBtn sm" onclick="openKbModal()">📚 Knowledge Base</button>
    <button class="btn headerBtn sm" id="refreshBtn" onclick="loadChatSessions()"><span id="refreshIcon">↻</span> Refresh</button>
    <button class="btn headerBtn sm" onclick="logout()">Log out</button>
@@ -263,7 +264,8 @@ let activeChatSessionId = null;
 let currentTypingSessions = [];
 let prevTotalUnread = null;
 let botActive = false;
-let orderLookupActive = false;  
+let orderLookupActive = false;
+let returnLookupActive = false;  
 let knowledge = [];
 let editingKbId = null;
 
@@ -306,10 +308,13 @@ async function loadBotStatus(){
   renderBotToggle();
   orderLookupActive = String((data.settings||{}).botOrderStatusEnabled) === "true";
   renderOrderLookupToggle();
+  returnLookupActive = String((data.settings||{}).botReturnStatusEnabled) === "true";
+  renderReturnLookupToggle();
  }catch(err){
   document.querySelector("#botToggleBtn").textContent = "🤖 AI: ?";
  }
 }
+  
 function renderBotToggle(){
  const btn = document.querySelector("#botToggleBtn");
  btn.disabled = false;
@@ -354,6 +359,28 @@ async function toggleOrderLookup(){
   toast("Couldn't update"); btn.disabled = false;
  }
 }
+
+function renderReturnLookupToggle(){
+ const btn = document.querySelector("#returnLookupToggleBtn");
+ btn.disabled = false;
+ btn.textContent = returnLookupActive ? "↩️ Return lookup: ON" : "↩️ Return lookup: OFF";
+ btn.classList.toggle("botOn", returnLookupActive);
+}
+async function toggleReturnLookup(){
+ const next = !returnLookupActive;
+ const btn = document.querySelector("#returnLookupToggleBtn");
+ btn.disabled = true;
+ try{
+  const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"updateSettings",key:ADMIN_KEY,settings:{botReturnStatusEnabled:next}})});
+  const data = await res.json();
+  if(!data.success) throw new Error(data.error||"failed");
+  returnLookupActive = next;
+  renderReturnLookupToggle();
+  toast(returnLookupActive ? "Return lookup turned ON" : "Return lookup turned OFF");
+ }catch(err){
+  toast("Couldn't update"); btn.disabled = false;
+ }
+}  
 
 async function openKbModal(){
  document.querySelector("#kbModal").classList.add("open");
