@@ -42,8 +42,6 @@ main{flex:1;display:flex;flex-direction:column;max-width:640px;width:100%;margin
 .chatBubble.staff{align-self:flex-start;background:#fff;border:1px solid var(--line);border-bottom-left-radius:4px}
 .chatBubble small{display:block;margin-top:4px;font-size:10.5px;opacity:.65}
 .chatBubble.hasImg{padding:6px}
-.chatBubble.botMsg{display:flex;align-items:flex-start;gap:6px;flex-wrap:wrap}
-.chatBubble .botIcon{width:18px;height:18px;border-radius:50%;object-fit:cover;flex-shrink:0;margin-top:1px}
 .chatBubble.failed{opacity:.75;border:1px solid #b5493e!important;cursor:pointer}
 .chatBubble.failed .retryHint{color:#b5493e;opacity:1}
 .chatImg{display:block;max-width:220px;max-height:220px;width:100%;object-fit:cover;border-radius:12px;cursor:zoom-in;margin-bottom:4px}
@@ -120,8 +118,6 @@ const TYPING_POLL_MS = 2500;
 // photo doesn't sit re-encoding forever; the backend enforces its own
 // hard size/type/rate limits regardless of what the client sends.
 const MAX_IMAGE_DIMENSION = 1280;
-const BOT_PREFIX = "ShopSlipper Bot: ";
-const BOT_ICON_URL = "https://raw.githubusercontent.com/ShopSlipper/ShopSlipper/main/shop_slipper_transparent.png";
 
 // FIX: quotes are now escaped too (not just & < >). escapeHtml's output
 // used to be dropped straight into inline onclick="...('${...}')"
@@ -190,14 +186,11 @@ function renderChatMessages(){
  }else{
     let html = chatMessages.map(m=>{
    const cls = m.from==='staff' ? 'staff' : 'me';
-   const isBot = m.from==='staff' && typeof m.text==='string' && m.text.indexOf(BOT_PREFIX)===0;
-   const displayText = isBot ? m.text.slice(BOT_PREFIX.length) : m.text;
-   const botIcon = isBot ? `<img class="botIcon" src="${BOT_ICON_URL}" alt="ShopSlipper Bot">` : ``;
    const imgPart = m.imageUrl ? `<img class="chatImg" src="${escapeHtml(m.imageUrl)}" onclick="openImageLightbox('${escapeHtml(m.imageUrl)}')" alt="photo">` : ``;
-   const textPart = displayText ? `<span>${escapeHtml(displayText)}</span>` : ``;
+   const textPart = m.text ? `<span>${escapeHtml(m.text)}</span>` : ``;
    const smallPart = m.failed ? `<small class="retryHint">Not sent — tap to retry</small>` : `<small>${m.time||""}</small>`;
    const clickAttr = m.failed && m.pendingId ? ` onclick="retryFailedMessage('${m.pendingId}')"` : ``;
-   return `<div class="chatBubble ${cls}${m.imageUrl?' hasImg':''}${isBot?' botMsg':''}${m.failed?' failed':''}"${clickAttr}>${botIcon}${imgPart}${textPart}${smallPart}</div>`;
+   return `<div class="chatBubble ${cls}${m.imageUrl?' hasImg':''}${m.failed?' failed':''}"${clickAttr}>${imgPart}${textPart}${smallPart}</div>`;
   }).join("");
   if(isStaffTypingNow){
    html += `<div class="chatBubble staff typingDots"><span></span><span></span><span></span></div>`;
