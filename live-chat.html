@@ -44,6 +44,8 @@ main{flex:1;display:flex;flex-direction:column;max-width:640px;width:100%;margin
 .chatBubble.hasImg{padding:6px}
 .chatBubble.botMsg{display:flex;align-items:flex-start;gap:6px;flex-wrap:wrap}
 .chatBubble .botIcon{width:18px;height:18px;border-radius:50%;object-fit:cover;flex-shrink:0;margin-top:1px}
+.chatBubble.failed{opacity:.75;border:1px solid #b5493e!important;cursor:pointer}
+.chatBubble.failed .retryHint{color:#b5493e;opacity:1}
 .chatImg{display:block;max-width:220px;max-height:220px;width:100%;object-fit:cover;border-radius:12px;cursor:zoom-in;margin-bottom:4px}
 /* Typing animation: shown as a staff-style bubble with three bouncing
    dots instead of text, while the backend says staff is typing. */
@@ -177,14 +179,16 @@ function renderChatMessages(){
  if(!chatMessages.length && !isStaffTypingNow){
   el.innerHTML = `<div class="chatEmpty">Say hello! Our team will reply here shortly.</div>`;
  }else{
-  let html = chatMessages.map(m=>{
+    let html = chatMessages.map(m=>{
    const cls = m.from==='staff' ? 'staff' : 'me';
    const isBot = m.from==='staff' && typeof m.text==='string' && m.text.indexOf(BOT_PREFIX)===0;
    const displayText = isBot ? m.text.slice(BOT_PREFIX.length) : m.text;
    const botIcon = isBot ? `<img class="botIcon" src="${BOT_ICON_URL}" alt="ShopSlipper Bot">` : ``;
    const imgPart = m.imageUrl ? `<img class="chatImg" src="${escapeHtml(m.imageUrl)}" onclick="openImageLightbox('${escapeHtml(m.imageUrl)}')" alt="photo">` : ``;
    const textPart = displayText ? `<span>${escapeHtml(displayText)}</span>` : ``;
-   return `<div class="chatBubble ${cls}${m.imageUrl?' hasImg':''}${isBot?' botMsg':''}">${botIcon}${imgPart}${textPart}<small>${m.time||""}</small></div>`;
+   const smallPart = m.failed ? `<small class="retryHint">Not sent — tap to retry</small>` : `<small>${m.time||""}</small>`;
+   const clickAttr = m.failed && m.pendingId ? ` onclick="retryFailedMessage('${m.pendingId}')"` : ``;
+   return `<div class="chatBubble ${cls}${m.imageUrl?' hasImg':''}${isBot?' botMsg':''}${m.failed?' failed':''}"${clickAttr}>${botIcon}${imgPart}${textPart}${smallPart}</div>`;
   }).join("");
   if(isStaffTypingNow){
    html += `<div class="chatBubble staff typingDots"><span></span><span></span><span></span></div>`;
@@ -232,18 +236,42 @@ async function sendChatMessage(e){
   sendBtn.disabled = false;
  }
 
+ await postChatMessage_(text, imageUrl);
+}
+
+// Sends (or re-sends) a text+image pair. Split out from sendChatMessage so a
+// failed send can be retried without re-uploading the photo.
+async function postChatMessage_(text, imageUrl){
+ const pendingId = "P" + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
  sendInFlight = true;
- chatMessages.push({from:"customer", text, imageUrl, time:new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})});
+ chatMessages.push({from:"customer", text, imageUrl, time:new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}), pendingId, failed:false});
  localStorage.setItem("shopslipper-chat-msgs", JSON.stringify(chatMessages));
  renderChatMessages();
  playSentSound();
  try{
-  await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"sendChatMessage",sessionId:chatSessionId,name:chatInfo?.name||"",phone:chatInfo?.phone||"",message:text,imageUrl})});
- }catch(err){ /* stays visible locally; will sync on next poll */ }
- finally{
+  const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"sendChatMessage",sessionId:chatSessionId,name:chatInfo?.name||"",phone:chatInfo?.phone||"",message:text,imageUrl})});
+  const data = await res.json();
+  if(data.error) throw new Error(data.error);
   sendInFlight = false;
-  fetchChatMessages(); // sync right away instead of waiting for the next scheduled poll
+  fetchChatMessages(); // safe now — the server has it, so sync right away
+ }catch(err){
+  // The server never actually got this message, so resyncing now would just
+  // erase it from view. Mark it failed instead so it can be retried — this
+  // is the fix: previously this always re-fetched regardless of outcome,
+  // which wiped the message on any network hiccup.
+  sendInFlight = false;
+  const m = chatMessages.find(x=>x.pendingId===pendingId);
+  if(m){ m.failed = true; localStorage.setItem("shopslipper-chat-msgs", JSON.stringify(chatMessages)); }
+  renderChatMessages();
  }
+}
+function retryFailedMessage(pendingId){
+ const idx = chatMessages.findIndex(m=>m.pendingId===pendingId);
+ if(idx===-1) return;
+ const m = chatMessages[idx];
+ chatMessages.splice(idx,1);
+ localStorage.setItem("shopslipper-chat-msgs", JSON.stringify(chatMessages));
+ postChatMessage_(m.text, m.imageUrl);
 }
 async function fetchChatMessages(){
  if(!chatSessionId || sendInFlight) return;
