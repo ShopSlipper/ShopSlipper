@@ -139,6 +139,14 @@ main{flex:1;min-height:0;display:flex}
  not real security: anyone who reads this file's source can see
  it. Fine for keeping casual visitors out, not for anything
  truly sensitive.
+
+ NOTE: this is still true after this patch. The escapeHtml fix
+ below closes an XSS hole, but ADMIN_KEY is still shipped in this
+ file's source and used directly as the API auth token — a
+ separate, bigger fix (server-verified login + short-lived
+ session tokens) is needed to actually close that gap, and is
+ intentionally NOT applied here since it touches Code.gs and this
+ file together and should be tested carefully before going live.
 ============================================================= -->
 
 <div id="gate">
@@ -285,7 +293,17 @@ if(sessionStorage.getItem("ss-chat-ok")==="1"){
  loadTypingStatus();
 }
 
-function escapeHtml(s){ const d=document.createElement("div"); d.textContent=s||""; return d.innerHTML; }
+// FIX: quotes are now escaped too (not just & < >). This value is used
+// inside inline onclick="...('${...}')" attributes elsewhere in this
+// file (e.g. openImageLightbox, deleteMessage) — an unescaped quote in
+// that position could break out of the JS string and inject script
+// into the staff console itself. This alone doesn't close every gap
+// (see the note above the login gate), but it removes the easiest
+// injection vector.
+function escapeHtml(s){
+ const d=document.createElement("div"); d.textContent=s||"";
+ return d.innerHTML.replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+}
 
 async function loadChatSessions(){
  const refreshIcon = document.querySelector("#refreshIcon");
