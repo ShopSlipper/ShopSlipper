@@ -127,7 +127,8 @@ let typingPollTimer = null;
 let isStaffTypingNow = false;
 let awaitingStaffMessage = false; // true = staff just stopped typing; keep dots on until the real message actually arrives
 let awaitingTimeout = null;
-let pendingImage = null; // {base64, mimeType, filename, dataUrl} staged but not yet sent
+let pendingImage = null;
+let sendInFlight = false;  // {base64, mimeType, filename, dataUrl} staged but not yet sent
 let hasFetchedMessagesOnce = false; // guards the "received" sound from firing on the very first load
 
 function ensureChatSession(){
@@ -218,6 +219,7 @@ async function sendChatMessage(e){
   sendBtn.disabled = false;
  }
 
+ sendInFlight = true;
  chatMessages.push({from:"customer", text, imageUrl, time:new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})});
  localStorage.setItem("shopslipper-chat-msgs", JSON.stringify(chatMessages));
  renderChatMessages();
@@ -225,9 +227,13 @@ async function sendChatMessage(e){
  try{
   await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"sendChatMessage",sessionId:chatSessionId,name:chatInfo?.name||"",phone:chatInfo?.phone||"",message:text,imageUrl})});
  }catch(err){ /* stays visible locally; will sync on next poll */ }
+ finally{
+  sendInFlight = false;
+  fetchChatMessages(); // sync right away instead of waiting for the next scheduled poll
+ }
 }
 async function fetchChatMessages(){
- if(!chatSessionId) return;
+ if(!chatSessionId || sendInFlight) return;
  try{
   const res = await fetch(`${SCRIPT_URL}?action=chatMessages&sessionId=${encodeURIComponent(chatSessionId)}`);
   const data = await res.json();
