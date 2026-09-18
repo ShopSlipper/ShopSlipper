@@ -25,15 +25,14 @@ header img{width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px 
 header .backLink{margin-left:auto;font-size:13px;font-weight:600;background:rgba(255,255,255,.15);padding:8px 14px;border-radius:999px}
 header .titleBlock b{display:block;font-size:15px}
 header .titleBlock small{opacity:.75;font-size:11.5px}
-/* Small badge shown next to the title while the AI bot is active — the
-   brand logo sits inside a soft pulsing glow ring, the same visual
-   language ChatGPT/Claude use to show their mark "thinking" — rather
-   than a generic bot emoji. */
+/* Small badge shown next to the title while the AI bot is turned ON
+   (global store setting). Just a static label now — no pulsing ring —
+   the actual "AI is working" animation has moved to the typing dots
+   themselves (see .chatBubble.typingDots.aiTyping below), where it
+   only appears during the real window the bot is composing a reply. */
 .aiBadge{display:none;align-items:center;gap:6px;margin-left:4px;background:rgba(255,255,255,.18);padding:3px 10px 3px 3px;border-radius:999px;font-size:11px;font-weight:600;vertical-align:middle}
 .aiLogoWrap{position:relative;width:20px;height:20px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
-.aiLogoWrap::before{content:"";position:absolute;inset:-4px;border-radius:50%;background:radial-gradient(circle,#8ff5b0 0%,rgba(143,245,176,0) 72%);animation:aiGlow 1.8s infinite ease-in-out;z-index:1}
-.aiLogoWrap img{position:relative;z-index:2;width:18px;height:18px;border-radius:50%;object-fit:cover;background:#fff}
-@keyframes aiGlow{0%,100%{transform:scale(.7);opacity:.4}50%{transform:scale(1.3);opacity:1}}
+.aiLogoWrap img{width:18px;height:18px;border-radius:50%;object-fit:cover;background:#fff}
 main{flex:1;display:flex;flex-direction:column;max-width:640px;width:100%;margin:0 auto;padding:16px;min-height:0}
 .chatCard{flex:1;background:var(--card);border:1px solid var(--line);border-radius:20px;display:flex;flex-direction:column;overflow:hidden;min-height:0}
 .chatStartForm{padding:26px 22px}
@@ -60,12 +59,31 @@ main{flex:1;display:flex;flex-direction:column;max-width:640px;width:100%;margin
 .chatBubble.manageable{cursor:pointer}
 .chatImg{display:block;max-width:220px;max-height:220px;width:100%;object-fit:cover;border-radius:12px;cursor:zoom-in;margin-bottom:4px}
 /* Typing animation: shown as a staff-style bubble with three bouncing
-   dots instead of text, while the backend says staff is typing. */
-.chatBubble.typingDots{display:flex;align-items:center;gap:5px;padding:14px 16px}
+   dots instead of text, while the backend says someone (staff or bot)
+   is typing back. */
+.chatBubble.typingDots{position:relative;display:flex;align-items:center;gap:5px;padding:14px 16px}
 .chatBubble.typingDots span{width:6px;height:6px;border-radius:50%;background:var(--gold);opacity:.5;animation:typingBounce 1s infinite ease-in-out}
 .chatBubble.typingDots span:nth-child(2){animation-delay:.15s}
 .chatBubble.typingDots span:nth-child(3){animation-delay:.3s}
 @keyframes typingBounce{0%,60%,100%{transform:translateY(0);opacity:.5}30%{transform:translateY(-4px);opacity:1}}
+/* AI-specific look: only added while the bot itself is composing a
+   reply (source==="bot" from staffTypingForSession), i.e. from the
+   moment the customer's message lands until the bot's answer is ready.
+   A real human agent typing gets the plain dots above, no shimmer. */
+.chatBubble.typingDots.aiTyping{
+  border-color:#8ff5b0;
+  background:linear-gradient(90deg,#fff,#e6f9ee,#fff);
+  background-size:200% 100%;
+  animation:aiTypingShimmer 1.6s linear infinite;
+}
+.chatBubble.typingDots.aiTyping::before{
+  content:"";position:absolute;inset:-6px;border-radius:20px;z-index:-1;
+  background:radial-gradient(circle,rgba(143,245,176,.45) 0%,rgba(143,245,176,0) 70%);
+  animation:aiGlow 1.8s infinite ease-in-out;
+}
+.chatBubble.typingDots.aiTyping span{background:var(--gold)}
+@keyframes aiTypingShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+@keyframes aiGlow{0%,100%{transform:scale(.85);opacity:.4}50%{transform:scale(1.05);opacity:1}}
 /* Edit/Delete action row shown under a tapped customer bubble */
 .msgActions{display:flex;gap:6px;margin-top:5px}
 .msgActions button{background:var(--soft);border-radius:999px;padding:5px 12px;font-size:11.5px;font-weight:700;color:var(--gold)}
@@ -200,6 +218,11 @@ let pollTimer = null;
 let typingPollTimer = null;
 let aiBadgePollTimer = null;
 let isStaffTypingNow = false;
+// Which side the current typing dots represent: "bot" while the auto-
+// reply engine is composing a reply, "staff" while a human agent is
+// typing, or null when nobody is. Drives the .aiTyping shimmer class —
+// see pollStaffTyping() and renderChatMessages() below.
+let typingSource = null;
 let awaitingStaffMessage = false; // true = staff just stopped typing; keep dots on until the real message actually arrives
 let awaitingTimeout = null;
 let pendingImage = null;
@@ -209,10 +232,13 @@ let activeMenuId = null; // key of the customer message whose Edit/Delete row is
 let editingId = null;    // key of the customer message currently being edited inline, or null
 let unseenCount = 0;     // messages that arrived while the customer was scrolled up
 
-// Shows the pulsing "AI Assistant" badge in the header while the bot is
-// turned on. Uses the same public ?action=settings endpoint the staff
+// Shows the "AI Assistant" badge in the header while the bot is turned
+// on globally. Uses the same public ?action=settings endpoint the staff
 // panel already reads (no admin key needed for this GET), so nothing in
-// Code.gs needs to change for this.
+// Code.gs needs to change for this. Note: this only reflects the global
+// on/off toggle — it is NOT what drives the typing-dots shimmer (that's
+// tied to the actual per-message "is the bot composing right now" signal
+// from staffTypingForSession, see pollStaffTyping()).
 async function refreshAiBadge(){
  try{
   const res = await fetch(`${SCRIPT_URL}?action=settings`);
@@ -337,7 +363,10 @@ function renderChatMessages(){
    return `<div class="msgRow ${cls}">${bubble}${actions}</div>`;
   }).join("");
   if(isStaffTypingNow){
-   html += `<div class="msgRow staff"><div class="chatBubble staff typingDots"><span></span><span></span><span></span></div></div>`;
+   // Only the bot's own typing window gets the shimmer/glow treatment —
+   // a real human agent typing gets the plain bouncing-dots look.
+   const aiClass = typingSource === "bot" ? " aiTyping" : "";
+   html += `<div class="msgRow staff"><div class="chatBubble staff typingDots${aiClass}"><span></span><span></span><span></span></div></div>`;
   }
   el.innerHTML = html;
  }
@@ -506,7 +535,7 @@ async function postChatMessage_(text, imageUrl){
    if(data.id) confirmedMsg.id = data.id;
   }
   fetchChatMessages(); // safe now — the server has it, so sync right away
-  pollStaffTyping(); // check immediately instead of waiting up to 2.5s for the next scheduled poll
+  pollStaffTyping(); // check immediately instead of waiting up to 2.5s for the next scheduled poll — this is what shows the AI shimmer the instant the bot starts composing
  }catch(err){
   // The server never actually got this message, so resyncing now would just
   // erase it from view. Mark it failed instead so it can be retried — this
@@ -556,6 +585,7 @@ async function fetchChatMessages(){
    if(awaitingStaffMessage){
     awaitingStaffMessage = false;
     isStaffTypingNow = false;
+    typingSource = null;
     clearTimeout(awaitingTimeout);
    }
    // A poll can land mid-edit or mid-menu; only clear these if the
@@ -647,8 +677,12 @@ function openImageLightbox(e, url){
 
 /* ================== Typing indicator (both directions) ==================
    Outgoing: let staff know THIS customer is typing (existing behavior).
-   Incoming: poll whether STAFF is typing back, and show animated dots
-   for it — this is the actual "typing…" animation the customer sees.
+   Incoming: poll whether STAFF or the BOT is typing back, and show
+   animated dots for it. The backend now tags which one it is (see
+   getStaffTypingInfo_ in code.gs) — "bot" while the auto-reply engine
+   is composing (from the moment the customer's message lands until the
+   reply is ready), "staff" while a real human agent is typing. Only the
+   "bot" case gets the shimmer/glow look (see renderChatMessages()).
 ========================================================================= */
 let typingLastPing = 0;
 function pingTyping(){
@@ -666,16 +700,21 @@ async function pollStaffTyping(){
   const res = await fetch(`${SCRIPT_URL}?action=staffTypingForSession&sessionId=${encodeURIComponent(chatSessionId)}`);
   const data = await res.json();
   const nowTyping = !!(data && data.typing);
+  const nowSource = (data && data.source) || null; // "bot" | "staff" | null
   if(nowTyping){
-   // Staff is actively typing — show dots right away.
+   // Someone is actively typing — show dots right away, tagged with
+   // which side it is so the render step can decide on the shimmer.
    awaitingStaffMessage = false;
    clearTimeout(awaitingTimeout);
-   if(!isStaffTypingNow){ isStaffTypingNow = true; renderChatMessages(); }
+   const sourceChanged = typingSource !== nowSource;
+   typingSource = nowSource;
+   if(!isStaffTypingNow || sourceChanged){ isStaffTypingNow = true; renderChatMessages(); }
   }else if(isStaffTypingNow && !awaitingStaffMessage){
-   // Staff just stopped typing (their reply is on its way). Keep the
-   // dots showing and fetch immediately instead of waiting up to
-   // POLL_MS for the next scheduled poll — fetchChatMessages() is what
-   // actually turns the dots off, right when the real message shows up.
+   // Typing just stopped (a reply is on its way). Keep the dots showing
+   // — with whatever source they currently have — and fetch immediately
+   // instead of waiting up to POLL_MS for the next scheduled poll;
+   // fetchChatMessages() is what actually turns the dots off, right when
+   // the real message shows up.
    awaitingStaffMessage = true;
    fetchChatMessages();
    // Safety net: if the message never arrives (send failed, etc.),
@@ -685,6 +724,7 @@ async function pollStaffTyping(){
     if(awaitingStaffMessage){
      awaitingStaffMessage = false;
      isStaffTypingNow = false;
+     typingSource = null;
      renderChatMessages();
     }
    }, 8000);
