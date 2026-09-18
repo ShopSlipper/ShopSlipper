@@ -214,6 +214,20 @@ function linkifyText(s){
 let chatSessionId = localStorage.getItem("shopslipper-chat-id");
 let chatInfo = JSON.parse(localStorage.getItem("shopslipper-chat-info")||"null");
 let chatMessages = JSON.parse(localStorage.getItem("shopslipper-chat-msgs")||"[]");
+// Permanent local record of everything this customer has deleted, keyed
+// by whatever identifier the message had (server id and/or pendingId).
+// This is the source of truth for "never show this again" — it's
+// checked on every render AND every server fetch, so a deleted message
+// can't resurface after a refresh even if the backend's own delete
+// endpoint is missing, slow, or silently fails to filter it out of
+// future chatMessages responses.
+let deletedKeys = new Set(JSON.parse(localStorage.getItem("shopslipper-chat-deleted")||"[]"));
+function persistDeletedKeys(){
+ localStorage.setItem("shopslipper-chat-deleted", JSON.stringify([...deletedKeys]));
+}
+function isDeletedMsg(m){
+ return (m.id && deletedKeys.has(m.id)) || (m.pendingId && deletedKeys.has(m.pendingId));
+}
 let pollTimer = null;
 let typingPollTimer = null;
 let aiBadgePollTimer = null;
@@ -240,6 +254,10 @@ let hasFetchedMessagesOnce = false; // guards the "received" sound from firing o
 let activeMenuId = null; // key of the customer message whose Edit/Delete row is open, or null
 let editingId = null;    // key of the customer message currently being edited inline, or null
 let unseenCount = 0;     // messages that arrived while the customer was scrolled up
+
+// Drop anything already marked deleted from whatever was cached locally,
+// in case the tab was closed mid-delete last time.
+chatMessages = chatMessages.filter(m => !isDeletedMsg(m));
 
 // Shows the "AI Assistant" badge in the header while the bot is turned
 // on globally. Uses the same public ?action=settings endpoint the staff
@@ -449,19 +467,32 @@ async function saveEditedMessage(key){
  }
 }
 
-// Deletes optimistically, then confirms with the backend. Requires a
-// "deleteChatMessage" action accepting {sessionId, messageId, pendingId}.
-// Restores the message locally if the backend call fails.
+// Deletes a message PERMANENTLY. This is optimistic + locally durable:
+// the moment the customer confirms, the message's key(s) go into
+// deletedKeys and are written to localStorage right away — so even if
+// this tab closes before the backend call finishes, or the backend
+// never actually purges the row (its chatMessages query could still
+// return it), the next render and every future fetchChatMessages() will
+// still filter it out. The backend call is still made so the message is
+// (ideally) also removed server-side / for staff, but the customer-side
+// "gone forever" guarantee no longer depends on that succeeding.
 function confirmDeleteMessage(key){
  activeMenuId = null;
  renderChatMessages();
- if(!confirm("Delete this message?")) return;
+ if(!confirm("Delete this message? This can't be undone.")) return;
  deleteMessage(key);
 }
 async function deleteMessage(key){
  const idx = chatMessages.findIndex(x => msgKey(x) === key);
  if(idx===-1) return;
  const [removed] = chatMessages.splice(idx,1);
+
+ // Remember it as deleted, forever, before anything else — this is what
+ // keeps it from reappearing after a refresh.
+ if(removed.id) deletedKeys.add(removed.id);
+ if(removed.pendingId) deletedKeys.add(removed.pendingId);
+ persistDeletedKeys();
+
  localStorage.setItem("shopslipper-chat-msgs", JSON.stringify(chatMessages));
  renderChatMessages();
  try{
@@ -472,10 +503,11 @@ async function deleteMessage(key){
   const data = await res.json();
   if(data.error) throw new Error(data.error);
  }catch(err){
-  chatMessages.splice(idx,0,removed);
-  localStorage.setItem("shopslipper-chat-msgs", JSON.stringify(chatMessages));
-  renderChatMessages();
-  showChatError("Couldn't delete that message — please try again.");
+  // Backend call failed — the message stays hidden for this customer
+  // regardless (deletedKeys already has it, matching "forever" from
+  // their point of view), so just let them know the server-side copy
+  // may not have been cleaned up. Nothing to roll back visually.
+  showChatError("Deleted here, but couldn't confirm with the server.");
  }
 }
 
@@ -595,7 +627,11 @@ async function fetchChatMessages(){
    const prevTotalCount = chatMessages.length;
 
    const stillPending = chatMessages.filter(m => m.pendingId && !m.failed && !m.confirmed);
-   chatMessages = [...data.messages, ...stillPending];
+   // Always filter server-returned (and still-pending) messages against
+   // deletedKeys — this is the actual guarantee that a deleted message
+   // never comes back, independent of whether the backend's own store
+   // has really dropped it yet.
+   chatMessages = [...data.messages, ...stillPending].filter(m => !isDeletedMsg(m));
 
    // If the customer is scrolled up reading older messages, don't yank
    // them down — just tally what arrived so the scroll-to-bottom button
