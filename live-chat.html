@@ -25,6 +25,11 @@ header img{width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px 
 header .backLink{margin-left:auto;font-size:13px;font-weight:600;background:rgba(255,255,255,.15);padding:8px 14px;border-radius:999px}
 header .titleBlock b{display:block;font-size:15px}
 header .titleBlock small{opacity:.75;font-size:11.5px}
+/* Small pulsing badge shown next to the title while the AI bot is
+   active, so customers know they may be chatting with the assistant. */
+.aiBadge{display:none;align-items:center;gap:5px;margin-left:4px;background:rgba(255,255,255,.18);padding:4px 9px;border-radius:999px;font-size:11px;font-weight:600;vertical-align:middle}
+.aiBadge .aiDot{width:7px;height:7px;border-radius:50%;background:#8ff5b0;flex-shrink:0;animation:aiPulse 1.4s infinite ease-in-out}
+@keyframes aiPulse{0%,100%{transform:scale(.7);opacity:.5}50%{transform:scale(1.15);opacity:1}}
 main{flex:1;display:flex;flex-direction:column;max-width:640px;width:100%;margin:0 auto;padding:16px;min-height:0}
 .chatCard{flex:1;background:var(--card);border:1px solid var(--line);border-radius:20px;display:flex;flex-direction:column;overflow:hidden;min-height:0}
 .chatStartForm{padding:26px 22px}
@@ -104,6 +109,7 @@ main{padding:0}
  <a class="brand" href="index.html">
   <img src="https://raw.githubusercontent.com/ShopSlipper/ShopSlipper/main/shop_slipper_transparent.png" alt="ShopSlipper logo">
   <span class="titleBlock"><b>Chat with us</b><small>Step into your comfort.</small></span>
+  <span class="aiBadge" id="aiBadge"><span class="aiDot"></span>AI Assistant</span>
  </a>
  <a class="backLink" href="index.html">← Back to shop</a>
 
@@ -148,6 +154,7 @@ main{padding:0}
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwxKtGFQmHlwZmbfe-TKMDlzuI5KBFau8PDBkC5MYSyMA_ISe1SpC3lbBLfptHw-4l1/exec";
 const POLL_MS = 5000;
 const TYPING_POLL_MS = 2500;
+const AI_BADGE_POLL_MS = 15000; // AI on/off doesn't need to be checked as often as messages/typing
 // Photos are downscaled client-side before upload (see downscaleImage
 // below) — this is just a client-side sanity cap so a huge original
 // photo doesn't sit re-encoding forever; the backend enforces its own
@@ -184,6 +191,7 @@ let chatInfo = JSON.parse(localStorage.getItem("shopslipper-chat-info")||"null")
 let chatMessages = JSON.parse(localStorage.getItem("shopslipper-chat-msgs")||"[]");
 let pollTimer = null;
 let typingPollTimer = null;
+let aiBadgePollTimer = null;
 let isStaffTypingNow = false;
 let awaitingStaffMessage = false; // true = staff just stopped typing; keep dots on until the real message actually arrives
 let awaitingTimeout = null;
@@ -193,6 +201,19 @@ let hasFetchedMessagesOnce = false; // guards the "received" sound from firing o
 let activeMenuId = null; // key of the customer message whose Edit/Delete row is open, or null
 let editingId = null;    // key of the customer message currently being edited inline, or null
 let unseenCount = 0;     // messages that arrived while the customer was scrolled up
+
+// Shows the pulsing "AI Assistant" badge in the header while the bot is
+// turned on. Uses the same public ?action=settings endpoint the staff
+// panel already reads (no admin key needed for this GET), so nothing in
+// Code.gs needs to change for this.
+async function refreshAiBadge(){
+ try{
+  const res = await fetch(`${SCRIPT_URL}?action=settings`);
+  const data = await res.json();
+  const botActive = String((data.settings||{}).botActive) === "true";
+  document.querySelector("#aiBadge").style.display = botActive ? "inline-flex" : "none";
+ }catch(err){ /* leave badge as-is if the check fails */ }
+}
 
 // Shared "close enough to the bottom to auto-scroll" check, used both to
 // decide whether to snap to the newest message on render and to decide
@@ -240,8 +261,10 @@ function showThread(){
  document.querySelector("#chatThreadWrap").style.display = "flex";
  renderChatMessages();
  fetchChatMessages();
+ refreshAiBadge();
  if(!pollTimer) pollTimer = setInterval(fetchChatMessages, POLL_MS);
  if(!typingPollTimer) typingPollTimer = setInterval(pollStaffTyping, TYPING_POLL_MS);
+ if(!aiBadgePollTimer) aiBadgePollTimer = setInterval(refreshAiBadge, AI_BADGE_POLL_MS);
  document.querySelector("#chatInput").focus();
 }
 function init(){
