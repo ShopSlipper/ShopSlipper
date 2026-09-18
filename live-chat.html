@@ -223,6 +223,15 @@ let isStaffTypingNow = false;
 // typing, or null when nobody is. Drives the .aiTyping shimmer class —
 // see pollStaffTyping() and renderChatMessages() below.
 let typingSource = null;
+// Whether the bot is globally turned ON (from the store settings). Apps
+// Script's doPost runs the bot's ENTIRE reply — set typing, look up the
+// answer, sleep, clear typing, save the message — synchronously, before
+// the response is even sent back. So there's no live window for polling
+// to catch; the bot's own "typing" cache entry is already gone by the
+// time the browser hears back. Instead, postChatMessage_() shows the AI
+// dots optimistically for exactly the duration of that request whenever
+// this is true — see there.
+let aiActive = false;
 let awaitingStaffMessage = false; // true = staff just stopped typing; keep dots on until the real message actually arrives
 let awaitingTimeout = null;
 let pendingImage = null;
@@ -243,9 +252,9 @@ async function refreshAiBadge(){
  try{
   const res = await fetch(`${SCRIPT_URL}?action=settings`);
   const data = await res.json();
-  const botActive = String((data.settings||{}).botActive) === "true";
-  document.querySelector("#aiBadge").style.display = botActive ? "inline-flex" : "none";
- }catch(err){ /* leave badge as-is if the check fails */ }
+  aiActive = String((data.settings||{}).botActive) === "true";
+  document.querySelector("#aiBadge").style.display = aiActive ? "inline-flex" : "none";
+ }catch(err){ /* leave badge/aiActive as-is if the check fails */ }
 }
 
 // Shared "close enough to the bottom to auto-scroll" check, used both to
@@ -521,6 +530,25 @@ async function postChatMessage_(text, imageUrl){
  localStorage.setItem("shopslipper-chat-msgs", JSON.stringify(chatMessages));
  renderChatMessages();
  playSentSound();
+
+ // If the bot is on, it composes its entire reply INSIDE this one
+ // request — Apps Script's doPost doesn't return until maybeSendBotReply_
+ // has fully finished (looked up the answer, slept, cleared its own
+ // typing entry, saved the message). That means the "bot is typing"
+ // window only exists server-side, during this fetch — there's nothing
+ // left to poll for once we get a response back. So show the AI dots
+ // optimistically for exactly as long as this request takes, and hide
+ // them the instant it resolves. (If the bot has nothing to say — e.g.
+ // it's paused for this session, or the message was just "ok" — the
+ // request returns fast and the dots just flash briefly with no reply
+ // following, which matches what actually happened.)
+ const showBotTyping = aiActive;
+ if(showBotTyping){
+  isStaffTypingNow = true;
+  typingSource = "bot";
+  renderChatMessages();
+ }
+
  try{
   const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"sendChatMessage",sessionId:chatSessionId,name:chatInfo?.name||"",phone:chatInfo?.phone||"",message:text,imageUrl})});
   const data = await res.json();
@@ -534,14 +562,16 @@ async function postChatMessage_(text, imageUrl){
    // next fetchChatMessages() poll.
    if(data.id) confirmedMsg.id = data.id;
   }
-  fetchChatMessages(); // safe now — the server has it, so sync right away
-  pollStaffTyping(); // check immediately instead of waiting up to 2.5s for the next scheduled poll — this is what shows the AI shimmer the instant the bot starts composing
+  if(showBotTyping){ isStaffTypingNow = false; typingSource = null; }
+  fetchChatMessages(); // safe now — the server has it, so sync right away; this is what swaps the dots for the real reply
+  pollStaffTyping(); // still useful in case a real human agent is now live-typing a follow-up
  }catch(err){
   // The server never actually got this message, so resyncing now would just
   // erase it from view. Mark it failed instead so it can be retried — this
   // is the fix: previously this always re-fetched regardless of outcome,
   // which wiped the message on any network hiccup.
   sendInFlight = false;
+  if(showBotTyping){ isStaffTypingNow = false; typingSource = null; }
   const m = chatMessages.find(x=>x.pendingId===pendingId);
   if(m){ m.failed = true; localStorage.setItem("shopslipper-chat-msgs", JSON.stringify(chatMessages)); }
   renderChatMessages();
