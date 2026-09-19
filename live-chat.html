@@ -273,9 +273,23 @@ chatMessages = chatMessages.filter(m => !isDeletedMsg(m));
 // from staffTypingForSession, see pollStaffTyping()).
 async function refreshAiBadge(){
  try{
-  const res = await fetch(`${SCRIPT_URL}?action=settings`);
-  const data = await res.json();
-  aiActive = String((data.settings||{}).botActive) === "true";
+  // Per-chat check: staff can turn the AI on/off for ONE chat, so ask the
+  // backend whether the AI is active for THIS customer's session. Falls
+  // back to the global setting if the backend doesn't know "botStatus" yet.
+  let active = null;
+  if(chatSessionId){
+   try{
+    const r = await fetch(`${SCRIPT_URL}?action=botStatus&sessionId=${encodeURIComponent(chatSessionId)}&_=${Date.now()}`, {cache:"no-store"});
+    const d = await r.json();
+    if(typeof d.active === "boolean") active = d.active;
+   }catch(e){}
+  }
+  if(active === null){
+   const res = await fetch(`${SCRIPT_URL}?action=settings`);
+   const data = await res.json();
+   active = String((data.settings||{}).botActive) === "true";
+  }
+  aiActive = active;
   document.querySelector("#aiBadge").style.display = aiActive ? "inline-flex" : "none";
  }catch(err){ /* leave badge/aiActive as-is if the check fails */ }
 }
