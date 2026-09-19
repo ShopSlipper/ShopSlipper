@@ -319,6 +319,21 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwxKtGFQmHlwZmbfe-TK
 const ADMIN_KEY  = "shopslipper2026";
 const LOGO_URL   = "https://raw.githubusercontent.com/ShopSlipper/ShopSlipper/main/shop_slipper_transparent.png";
 
+// Defined this early on purpose: toast() gets called from error handlers
+// all over this file, including from the auto-load block just below (a
+// few lines down) that runs the moment the staff key is already in
+// sessionStorage. It used to sit at the very bottom of the script —
+// which meant toastTimer wasn't initialized yet if anything called
+// toast() before the whole script finished running, throwing "Cannot
+// access 'toastTimer' before initialization" instead of the real error.
+let toastTimer;
+function toast(t){
+ const e = document.querySelector("#toast");
+ e.textContent = t; e.classList.add("show");
+ clearTimeout(toastTimer);
+ toastTimer = setTimeout(()=>e.classList.remove("show"), 2200);
+}
+
 let chatSessions = [];
 let activeChatSessionId = null;
 let currentTypingSessions = [];
@@ -1116,14 +1131,6 @@ function playTone(freqs, stepMs, gainVal){
 }
 function playSentSound(){ playTone([680], 90, 0.10); }
 function playReceivedSound(){ playTone([520, 780], 110, 0.13); }
-
-let toastTimer;
-function toast(t){
- const e = document.querySelector("#toast");
- e.textContent = t; e.classList.add("show");
- clearTimeout(toastTimer);
- toastTimer = setTimeout(()=>e.classList.remove("show"), 2200);
-}
 </script>
 </body>
 </html>
