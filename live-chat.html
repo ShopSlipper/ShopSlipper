@@ -58,12 +58,13 @@ main{flex:1;display:flex;flex-direction:column;max-width:640px;width:100%;margin
 .chatBubble.failed .retryHint{color:#b5493e;opacity:1}
 .chatBubble.manageable{cursor:pointer}
 .chatImg{display:block;max-width:220px;max-height:220px;width:100%;object-fit:cover;border-radius:12px;cursor:zoom-in;margin-bottom:4px}
-/* Small ShopSlipper logo shown next to a bot-authored reply, so a
-   customer can tell an auto-reply apart from a real person typing.
-   Only added when sentBy==="ai" (see renderChatMessages) — a genuine
-   staff reply gets no avatar, same as before. */
-.msgLine{display:flex;align-items:flex-end;gap:6px;max-width:100%}
-.msgAvatar{width:22px;height:22px;border-radius:50%;object-fit:cover;background:#fff;border:1px solid var(--line);flex-shrink:0;margin-bottom:2px}
+/* Sender tag shown above a staff-side bubble's content, so a customer
+   can tell an auto-reply (AI) apart from a real person (Staff) — mirrors
+   the same tag used in the staff admin panel. */
+.senderTag{display:flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;margin-bottom:5px}
+.senderTag img{width:18px;height:18px;border-radius:50%;object-fit:cover;background:#fff;border:1px solid var(--line);flex-shrink:0}
+.senderTag.aiTagRow{color:var(--gold)}
+.senderTag.staffTag{color:var(--muted)}
 /* Typing animation: shown as a staff-style bubble with three bouncing
    dots instead of text, while the backend says someone (staff or bot)
    is typing back. */
@@ -383,6 +384,13 @@ function renderChatMessages(){
   let html = chatMessages.map(m=>{
    const cls = m.from==='staff' ? 'staff' : 'me';
    const isAiReply = m.from==='staff' && m.sentBy==='ai';
+   const isStaffReply = m.from==='staff' && m.sentBy!=='ai';
+   // Sender tag shown above a staff-side bubble's content — lets the
+   // customer tell an auto-reply (AI) apart from a real person (Staff),
+   // mirroring the tag shown in the staff admin panel.
+   const tagPart = isAiReply
+    ? `<div class="senderTag aiTagRow"><img src="${LOGO_URL}" alt="AI"><span>AI</span></div>`
+    : (isStaffReply ? `<div class="senderTag staffTag"><span>👤 Staff</span></div>` : ``);
    const key = msgKey(m);
    // Only the customer's own, successfully-sent text/image messages can
    // be edited or deleted — not staff messages, and not ones still
@@ -409,15 +417,12 @@ function renderChatMessages(){
    let clickAttr = ``;
    if(m.failed && m.pendingId) clickAttr = ` onclick="retryFailedMessage('${escapeHtml(m.pendingId)}')"`;
    else if(canManage) clickAttr = ` onclick="toggleMessageActions(event,'${escapeHtml(key)}')"`;
-   const bubble = `<div class="chatBubble ${cls}${m.imageUrl?' hasImg':''}${m.failed?' failed':''}${canManage?' manageable':''}"${clickAttr}>${imgPart}${textPart}${smallPart}</div>`;
+   const bubble = `<div class="chatBubble ${cls}${m.imageUrl?' hasImg':''}${m.failed?' failed':''}${canManage?' manageable':''}"${clickAttr}>${tagPart}${imgPart}${textPart}${smallPart}</div>`;
    const actions = (canManage && activeMenuId===key) ? `<div class="msgActions" onclick="event.stopPropagation()">
       <button type="button" onclick="startEditMessage('${escapeHtml(key)}')">Edit</button>
       <button type="button" class="danger" onclick="confirmDeleteMessage('${escapeHtml(key)}')">Delete</button>
      </div>` : ``;
-   const bubbleLine = isAiReply
-    ? `<div class="msgLine"><img class="msgAvatar" src="${LOGO_URL}" alt="ShopSlipper AI">${bubble}</div>`
-    : bubble;
-   return `<div class="msgRow ${cls}">${bubbleLine}${actions}</div>`;
+   return `<div class="msgRow ${cls}">${bubble}${actions}</div>`;
   }).join("");
   if(isStaffTypingNow){
    // Only the bot's own typing window gets the shimmer/glow treatment —
