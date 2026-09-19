@@ -89,6 +89,11 @@ main{flex:1;min-height:0;display:flex}
 .chatBubble.staff{align-self:flex-end;background:var(--gold);color:#fff;border-bottom-right-radius:4px}
 .chatBubble small{display:block;margin-top:4px;font-size:10px;opacity:.6}
 .chatBubble.sending{opacity:.55}
+.chatBubble.staff.aiMsg{background:#f1f8f4;color:var(--text);border:1px solid var(--line)}
+.senderTag{display:flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;margin-bottom:5px;opacity:.9}
+.senderTag img{width:20px;height:20px;border-radius:50%;object-fit:cover;background:#fff;border:1px solid var(--line);flex-shrink:0}
+.senderTag.staffTag{color:rgba(255,255,255,.85)}
+.senderTag.aiTagRow{color:var(--gold)}
 .chatBubble.failed{opacity:.75;border:1px solid var(--danger)!important}
 .chatBubble.failed small{color:var(--danger);opacity:1}  
 .chatBubble.hasImg{padding:6px}
@@ -128,20 +133,45 @@ main{flex:1;min-height:0;display:flex}
 .modalBg.open{display:grid}
 .modalBox{background:#fff;border-radius:22px;width:min(640px,100%);max-height:88vh;overflow:auto;padding:26px}
 .modalBox h3{font-family:var(--serif);font-weight:600;font-size:19px;margin-bottom:6px}
-.kbTopRow{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px}
+.kbTopRow{position:sticky;top:-26px;z-index:2;background:#fff;display:flex;justify-content:space-between;align-items:center;margin:-26px 0 14px;padding:26px 0 12px;flex-wrap:wrap;gap:10px;border-bottom:1px solid var(--line)}
 table.kbTable{width:100%;border-collapse:collapse;font-size:13.5px;margin-bottom:16px}
 table.kbTable th{text-align:left;padding:8px 6px;color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;border-bottom:1px solid var(--line)}
 table.kbTable td{padding:10px 6px;border-bottom:1px solid var(--line);vertical-align:top}
 .kwTag{display:inline-block;background:var(--soft);color:var(--gold);padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;margin:0 4px 4px 0}
 .answerCell{color:var(--muted);font-size:12.5px;max-width:260px}
 .rowActions{display:flex;gap:6px;white-space:nowrap}
-.formGrid{display:flex;flex-direction:column;gap:12px;border-top:1px solid var(--line);padding-top:16px}
+.formGrid{display:flex;flex-direction:column;gap:12px;background:var(--soft);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:16px}
 .field label{display:block;font-size:12px;font-weight:700;margin-bottom:6px}
 .field input,.field textarea{border:1px solid var(--line);border-radius:11px;padding:11px;outline:none;width:100%;font-family:inherit}
 .field textarea{min-height:70px;resize:vertical}
 .formFoot{display:flex;justify-content:flex-end;gap:10px}
 
+.btn.chatAiBtn{background:#fff;color:var(--gold);border:1px solid var(--gold)}
+.btn.chatAiBtn.chatAiOn{background:var(--gold);color:#fff}
+.threadHeadActions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.aiTag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;font-size:10px;font-weight:700;vertical-align:middle}
+.aiTag.on{background:var(--gold);color:#fff}
+.aiTag.off{background:var(--line);color:var(--muted)}
+
+/* ---- Quick notes panel ---- */
+.notesPanel{display:none;width:290px;flex-shrink:0;background:var(--card);border-left:1px solid var(--line);flex-direction:column;min-height:0;padding:14px;gap:8px}
+.notesPanel.open{display:flex}
+.notesHead{display:flex;justify-content:space-between;align-items:center}
+.notesHead h3{font-family:var(--serif);font-weight:600;font-size:16px}
+.notesHint{color:var(--muted);font-size:11.5px;line-height:1.35}
+.notesPanel textarea{border:1px solid var(--line);border-radius:11px;padding:10px;outline:none;width:100%;min-height:72px;resize:vertical;font-size:13px}
+.notesPanel textarea:focus{border-color:var(--text)}
+.notesFoot{display:flex;justify-content:flex-end;gap:8px}
+.notesList{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:8px;padding-top:4px}
+.noteCard{background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:10px}
+.noteText{font-size:13px;white-space:pre-wrap;word-break:break-word;margin-bottom:8px}
+.noteActions{display:flex;gap:6px;flex-wrap:wrap}
+.noteActions button{font-size:11px;font-weight:700;padding:5px 10px;border-radius:999px;background:#fff;color:var(--gold);border:1px solid var(--line)}
+.noteActions button:hover{border-color:var(--gold)}
+.noteActions button.danger{color:var(--danger);margin-left:auto}
+
 @media(max-width:820px){
+ .notesPanel{width:100%;border-left:0;border-top:1px solid var(--line);max-height:40vh}
  .chatLayout{flex-direction:column}
  .sidebarPanel{width:100%;border-right:0;border-bottom:1px solid var(--line);max-height:40vh}
  .threadPanel{flex:1}
@@ -173,10 +203,11 @@ table.kbTable td{padding:10px 6px;border-bottom:1px solid var(--line);vertical-a
  <div class="nav">
   <div class="brand"><img class="mark" src="https://raw.githubusercontent.com/ShopSlipper/ShopSlipper/main/shop_slipper_transparent.png" alt="Shop Slipper logo"><div>Shop Slipper<small>Chat</small></div></div>
   <div class="headActions">
-   <button class="btn headerBtn sm" id="botToggleBtn" onclick="toggleBot()" disabled>🤖 AI: …</button>
+   <button class="btn headerBtn sm" id="botToggleBtn" onclick="toggleBot()" title="Turns AI on/off for ALL chats" disabled>🤖 AI: …</button>
    <button class="btn headerBtn sm" id="orderLookupToggleBtn" onclick="toggleOrderLookup()" disabled>📦 Order lookup: …</button>
    <button class="btn headerBtn sm" id="returnLookupToggleBtn" onclick="toggleReturnLookup()" disabled>↩️ Return lookup: …</button> 
    <button class="btn headerBtn sm" onclick="openKbModal()">📚 Knowledge Base</button>
+   <button class="btn headerBtn sm" id="notesToggleBtn" onclick="toggleNotes()">📝 Notes</button>
    <button class="btn headerBtn sm" id="refreshBtn" onclick="loadChatSessions()"><span id="refreshIcon">↻</span> Refresh</button>
    <button class="btn headerBtn sm" onclick="logout()">Log out</button>
   </div>
@@ -198,7 +229,10 @@ table.kbTable td{padding:10px 6px;border-bottom:1px solid var(--line);vertical-a
    <div class="threadActive" id="threadActive">
     <div class="threadHead">
      <div><h3 id="chatModalName">Customer</h3><small id="chatModalPhone"></small></div>
-     <button class="iconBtn" onclick="closeChatThread()" title="Close">×</button>
+     <div class="threadHeadActions">
+      <button class="btn sm chatAiBtn" id="chatAiBtn" onclick="toggleChatAi()" title="Turn AI on/off for this chat only" disabled>🤖 AI for this chat: …</button>
+      <button class="iconBtn" onclick="closeChatThread()" title="Close">×</button>
+     </div>
     </div>
     <div class="chatThreadWrap">
      <div class="chatThread" id="chatThread"></div>
@@ -225,6 +259,17 @@ table.kbTable td{padding:10px 6px;border-bottom:1px solid var(--line);vertical-a
    </div>
   </div>
 
+  <aside class="notesPanel" id="notesPanel">
+   <div class="notesHead"><h3>📝 Quick notes</h3><button class="iconBtn" onclick="toggleNotes()" title="Close notes">×</button></div>
+   <div class="notesHint">Write messages you use often. Tap <b>Copy</b> or <b>Insert</b> to put one in the chat reply box.</div>
+   <textarea id="noteInput" placeholder="Write a note or message…"></textarea>
+   <div class="notesFoot">
+    <button class="btn light sm" id="noteCancelBtn" style="display:none" onclick="cancelNoteEdit()">Cancel</button>
+    <button class="btn sm" id="noteSaveBtn" onclick="saveNote()">Add note</button>
+   </div>
+   <div class="notesList" id="notesList"></div>
+  </aside>
+
  </div>
 </main>
 </div>
@@ -236,12 +281,6 @@ table.kbTable td{padding:10px 6px;border-bottom:1px solid var(--line);vertical-a
    <div><h3>AI Knowledge Base</h3><small style="color:var(--muted)">Auto-replies are sent only while the AI toggle in the header is ON.</small></div>
    <button class="btn sm" onclick="openKbForm(null)">+ Add entry</button>
   </div>
-  <table class="kbTable">
-   <thead><tr><th style="width:35%">Keywords</th><th>Answer</th><th></th></tr></thead>
-   <tbody id="kbRows"></tbody>
-  </table>
-  <div class="emptyMsg" id="kbEmpty" style="display:none">No knowledge entries yet.</div>
-
   <div class="formGrid" id="kbFormGrid" style="display:none">
    <h3 id="kbFormTitle" style="font-size:15px">Add entry</h3>
    <div class="field">
@@ -258,6 +297,12 @@ table.kbTable td{padding:10px 6px;border-bottom:1px solid var(--line);vertical-a
    </div>
   </div>
 
+  <table class="kbTable">
+   <thead><tr><th style="width:35%">Keywords</th><th>Answer</th><th></th></tr></thead>
+   <tbody id="kbRows"></tbody>
+  </table>
+  <div class="emptyMsg" id="kbEmpty" style="display:none">No knowledge entries yet.</div>
+
   <div class="formFoot" style="margin-top:14px">
    <button class="btn light" onclick="closeKbModal()">Close</button>
   </div>
@@ -272,6 +317,7 @@ table.kbTable td{padding:10px 6px;border-bottom:1px solid var(--line);vertical-a
 =============================================== */
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwxKtGFQmHlwZmbfe-TKMDlzuI5KBFau8PDBkC5MYSyMA_ISe1SpC3lbBLfptHw-4l1/exec";
 const ADMIN_KEY  = "shopslipper2026";
+const LOGO_URL   = "https://raw.githubusercontent.com/ShopSlipper/ShopSlipper/main/shop_slipper_transparent.png";
 
 let chatSessions = [];
 let activeChatSessionId = null;
@@ -282,6 +328,7 @@ let orderLookupActive = false;
 let returnLookupActive = false;  
 let knowledge = [];
 let editingKbId = null;
+let botOverrides = {};   // per-chat AI overrides: { sessionId: "on" | "off" }
 
 // ----- Message thread state (used by renderChatThreadMessages, edit,
 // delete, and the scroll-to-bottom button) -----
@@ -298,6 +345,7 @@ function tryLogin(){
   loadChatSessions();
   loadTypingStatus();
   loadBotStatus();
+  loadBotOverrides();
  }else{
   document.querySelector("#gateErr").style.display="block";
  }
@@ -312,6 +360,8 @@ if(sessionStorage.getItem("ss-chat-ok")==="1"){
  loadChatSessions();
  loadTypingStatus();
  loadBotStatus();
+ loadBotOverrides();
+ renderNotes();
 }
 
 function escapeHtml(s){
@@ -349,6 +399,8 @@ function renderBotToggle(){
  btn.disabled = false;
  btn.textContent = botActive ? "🤖 AI: ON" : "🤖 AI: OFF";
  btn.classList.toggle("botOn", botActive);
+ renderChatAiBtn();
+ renderChatSessions();
 }
 async function toggleBot(){
  const next = !botActive;
@@ -446,6 +498,7 @@ function renderKb(){
 function openKbForm(id){
  editingKbId = id;
  document.querySelector("#kbFormGrid").style.display = "flex";
+ document.querySelector("#kbModal .modalBox").scrollTop = 0;
  document.querySelector("#kbFormTitle").textContent = id ? "Edit entry" : "Add entry";
  if(id){
   const k = knowledge.find(x=>x.id===id);
@@ -456,6 +509,7 @@ function openKbForm(id){
   document.querySelector("#f_keywords").value = "";
   document.querySelector("#f_answer").value = "";
  }
+ setTimeout(()=>document.querySelector("#f_keywords").focus(), 0);
 }
 function closeKbForm(){
  editingKbId = null;
@@ -504,6 +558,142 @@ async function deleteKbEntry(id){
  }
 }
 
+/* ================== Per-chat AI override ==================
+ Global "AI" button = default for every chat. This lets staff flip the
+ AI for ONE chat only (e.g. AI OFF globally, but ON for chats nobody is
+ covering while staff is at lunch). Stored on the backend, so every
+ staff computer sees the same thing. */
+async function loadBotOverrides(){
+ try{
+  const res = await fetch(`${SCRIPT_URL}?action=botOverrides&key=${encodeURIComponent(ADMIN_KEY)}`);
+  const data = await res.json();
+  if(data.error) return;
+  botOverrides = data.overrides || {};
+  renderChatAiBtn();
+  renderChatSessions();
+ }catch(err){}
+}
+function chatAiEffective(sessionId){
+ const o = botOverrides[sessionId];
+ if(o === "on") return true;
+ if(o === "off") return false;
+ return botActive;
+}
+function renderChatAiBtn(){
+ const btn = document.querySelector("#chatAiBtn");
+ if(!btn) return;
+ if(!activeChatSessionId){ btn.disabled = true; return; }
+ const on = chatAiEffective(activeChatSessionId);
+ btn.textContent = on ? "🤖 AI for this chat: ON" : "🤖 AI for this chat: OFF";
+ btn.classList.toggle("chatAiOn", on);
+ btn.disabled = false;
+}
+async function toggleChatAi(){
+ const sid = activeChatSessionId;
+ if(!sid) return;
+ const want = !chatAiEffective(sid);
+ // If the wanted state already matches the global setting, just drop the override.
+ const mode = (want === botActive) ? "auto" : (want ? "on" : "off");
+ const btn = document.querySelector("#chatAiBtn");
+ btn.disabled = true;
+ try{
+  const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"setChatBot",key:ADMIN_KEY,sessionId:sid,mode})});
+  const data = await res.json();
+  if(!data.success) throw new Error(data.error||"failed");
+  if(mode === "auto") delete botOverrides[sid]; else botOverrides[sid] = mode;
+  renderChatAiBtn();
+  renderChatSessions();
+  toast(want ? "AI is ON for this chat" : "AI is OFF for this chat");
+ }catch(err){
+  toast("Couldn't update — " + (err.message || "check your connection and try again."));
+  btn.disabled = false;
+ }
+}
+
+/* ================== Quick notes (staff scratchpad) ==================
+ Saved in this browser (localStorage). Works whether AI is on or off. */
+const NOTES_KEY = "ss-chat-notes";
+let notes = [];
+let editingNoteId = null;
+try{ notes = JSON.parse(localStorage.getItem(NOTES_KEY) || "[]") || []; }catch(e){ notes = []; }
+function persistNotes(){ try{ localStorage.setItem(NOTES_KEY, JSON.stringify(notes)); }catch(e){ toast("Couldn't save notes in this browser"); } }
+function toggleNotes(){
+ const panel = document.querySelector("#notesPanel");
+ panel.classList.toggle("open");
+ document.querySelector("#notesToggleBtn").classList.toggle("botOn", panel.classList.contains("open"));
+ if(panel.classList.contains("open")){ renderNotes(); document.querySelector("#noteInput").focus(); }
+}
+function renderNotes(){
+ const list = document.querySelector("#notesList");
+ if(!list) return;
+ list.innerHTML = notes.length ? notes.map(n=>`
+  <div class="noteCard">
+   <div class="noteText">${escapeHtml(n.text)}</div>
+   <div class="noteActions">
+    <button type="button" onclick="copyNote('${n.id}')">Copy</button>
+    <button type="button" onclick="insertNote('${n.id}')">Insert</button>
+    <button type="button" onclick="editNote('${n.id}')">Edit</button>
+    <button type="button" class="danger" onclick="deleteNote('${n.id}')">Delete</button>
+   </div>
+  </div>`).join("") : `<div class="emptyMsg" style="padding:20px 6px">No notes yet.</div>`;
+}
+function saveNote(){
+ const inp = document.querySelector("#noteInput");
+ const text = inp.value.trim();
+ if(!text){ toast("Write something first"); return; }
+ if(editingNoteId){
+  const n = notes.find(x=>x.id===editingNoteId);
+  if(n) n.text = text;
+ }else{
+  notes.unshift({id:"n"+Date.now().toString(36)+Math.random().toString(36).slice(2,6), text});
+ }
+ persistNotes();
+ cancelNoteEdit();
+ renderNotes();
+}
+function editNote(id){
+ const n = notes.find(x=>x.id===id); if(!n) return;
+ editingNoteId = id;
+ const inp = document.querySelector("#noteInput");
+ inp.value = n.text; inp.focus();
+ document.querySelector("#noteSaveBtn").textContent = "Save changes";
+ document.querySelector("#noteCancelBtn").style.display = "";
+}
+function cancelNoteEdit(){
+ editingNoteId = null;
+ document.querySelector("#noteInput").value = "";
+ document.querySelector("#noteSaveBtn").textContent = "Add note";
+ document.querySelector("#noteCancelBtn").style.display = "none";
+}
+function deleteNote(id){
+ if(!confirm("Delete this note?")) return;
+ notes = notes.filter(x=>x.id!==id);
+ if(editingNoteId===id) cancelNoteEdit();
+ persistNotes(); renderNotes();
+}
+async function copyNote(id){
+ const n = notes.find(x=>x.id===id); if(!n) return;
+ try{
+  await navigator.clipboard.writeText(n.text);
+ }catch(e){
+  const ta = document.createElement("textarea");
+  ta.value = n.text; document.body.appendChild(ta); ta.select();
+  try{ document.execCommand("copy"); }catch(_){}
+  ta.remove();
+ }
+ toast("Copied — paste it in the chat");
+}
+// The reply box is a single-line field, so line breaks become spaces.
+function insertNote(id){
+ const n = notes.find(x=>x.id===id); if(!n) return;
+ if(!activeChatSessionId){ toast("Open a chat first"); return; }
+ const input = document.querySelector("#chatReplyInput");
+ const text = n.text.replace(/\s*\n+\s*/g, " ");
+ input.value = input.value ? (input.value.replace(/\s+$/,"") + " " + text) : text;
+ input.dispatchEvent(new Event("input",{bubbles:true}));
+ input.focus();
+}
+
 /* ================== Chat sessions ================== */
 async function loadChatSessions(){
  const refreshIcon = document.querySelector("#refreshIcon");
@@ -527,7 +717,8 @@ async function loadChatSessions(){
   if(refreshBtn) refreshBtn.disabled = false;
  }
 }
-setInterval(()=>{ if(sessionStorage.getItem("ss-chat-ok")==="1"){ loadChatSessions(); loadTypingStatus(); if(activeChatSessionId) loadChatThread(activeChatSessionId); } }, 5000);
+let pollTick = 0;
+setInterval(()=>{ if(sessionStorage.getItem("ss-chat-ok")==="1"){ if(++pollTick % 3 === 0){ loadBotOverrides(); loadBotStatus(); } loadChatSessions(); loadTypingStatus(); if(activeChatSessionId) loadChatThread(activeChatSessionId); } }, 5000);
 
 async function loadTypingStatus(){
  try{
@@ -568,7 +759,7 @@ function renderChatSessions(){
   return `
   <div class="convRow${c.sessionId===activeChatSessionId?' active':''}" onclick="openChatThread('${c.sessionId}')">
    <div>
-    <div class="name">${escapeHtml(c.name)||"Anonymous visitor"}</div>
+    <div class="name">${escapeHtml(c.name)||"Anonymous visitor"}${botOverrides[c.sessionId]==="on"?`<span class="aiTag on" title="AI is ON for this chat only">🤖 AI</span>`:(botOverrides[c.sessionId]==="off"?`<span class="aiTag off" title="AI is OFF for this chat only">🤖 off</span>`:``)}</div>
     ${typingNow ? `<div class="typingLabel">Typing…</div>` : (c.phone ? `<div class="phone">${escapeHtml(c.phone)}</div>` : ``)}
    </div>
    ${c.unread>0 ? `<span class="unreadTag">${c.unread}</span>` : ``}
@@ -589,6 +780,7 @@ async function openChatThread(sessionId){
  document.querySelector("#threadActive").classList.add("open");
  document.querySelector("#chatThread").innerHTML = `<div style="text-align:center;color:var(--muted);font-size:12.5px;padding:20px">Loading…</div>`;
  updateThreadScrollButton();
+ renderChatAiBtn();
  renderChatSessions();
  await loadChatThread(sessionId);
  loadTypingStatus();
@@ -676,7 +868,11 @@ function renderChatThreadMessages(){
      const textPart = m.text ? `<span>${formatMsgText_(m.text)}</span>` : ``;
      const delBtn = m.messageId ? `<button type="button" class="msgDelBtn" title="Hide this message" onclick="deleteMessage('${m.messageId}')">✕</button>` : ``;
      const editBtn = canEdit ? `<button type="button" class="msgEditBtn" title="Edit" onclick="startEditStaffMessage('${escapeHtml(m.messageId)}')">✎</button>` : ``;
-     return `<div class="chatBubble ${m.from}${m.imageUrl?' hasImg':''}">${delBtn}${editBtn}${imgPart}${textPart}<small>${m.time||""}${m.edited?" · edited":""}</small></div>`;
+     const isAi = m.from === 'staff' && m.sentBy === 'ai';
+     const tag = isAi
+      ? `<div class="senderTag aiTagRow"><img src="${LOGO_URL}" alt="ShopSlipper AI"><span>AI</span></div>`
+      : (m.from === 'staff' && m.sentBy === 'staff' ? `<div class="senderTag staffTag">👤 Staff</div>` : ``);
+     return `<div class="chatBubble ${m.from}${isAi?' aiMsg':''}${m.imageUrl?' hasImg':''}">${delBtn}${editBtn}${tag}${imgPart}${textPart}<small>${m.time||""}${m.edited?" · edited":""}</small></div>`;
     }).join("")
   : `<div style="text-align:center;color:var(--muted);font-size:12.5px;padding:20px">No messages yet.</div>`;
  if(wasNearBottom) el.scrollTop = el.scrollHeight;
@@ -729,6 +925,7 @@ function closeChatThread(){
  document.querySelector("#threadActive").classList.remove("open");
  document.querySelector("#threadEmpty").style.display = "grid";
  document.querySelector("#typingBar").classList.remove("show");
+ renderChatAiBtn();
  renderChatSessions();
  loadChatSessions();
 }
@@ -749,7 +946,7 @@ async function sendStaffReply(e){
  const bubble = document.createElement("div");
  bubble.className = "chatBubble staff sending";
  bubble.id = tempId;
- bubble.innerHTML = `${previewDataUrl ? `<img class="chatImg" src="${previewDataUrl}" alt="photo">` : ""}${text ? `<span>${escapeHtml(text)}</span>` : ""}<small>Sending…</small>`;
+ bubble.innerHTML = `<div class="senderTag staffTag">👤 Staff</div>${previewDataUrl ? `<img class="chatImg" src="${previewDataUrl}" alt="photo">` : ""}${text ? `<span>${escapeHtml(text)}</span>` : ""}<small>Sending…</small>`;
  thread.appendChild(bubble);
  thread.scrollTop = thread.scrollHeight;
  updateThreadScrollButton();
