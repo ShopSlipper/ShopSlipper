@@ -1286,7 +1286,12 @@ function goToPage(n, fromHistory){
  if(!fromHistory){
   const url = new URL(location.href);
   if(n>1) url.searchParams.set("page", n); else url.searchParams.delete("page");
-  history.pushState({page:n}, "", url.pathname + url.search + location.hash);
+  // replaceState (not pushState): flipping through product pages 1→2→3…
+  // must not stack a history entry per click, or the Back button has to
+  // walk through every page number before it leaves the product list.
+  // The URL still updates (?page=N) so refresh / Back-from-another-page
+  // returns to the page you were on.
+  history.replaceState({page:n}, "", url.pathname + url.search + location.hash);
  }
 }
 function colorDistance(hexA,hexB){
@@ -1739,7 +1744,7 @@ function escapeHtml(s){ const d=document.createElement("div"); d.textContent=s||
    colors and add-to-cart all behave exactly as they do on the main grid.
 ================================================================= */
 let dealPageTimerHandle = null;
-let dealPageOpen = false;
+let dealPageOpen = false, dealPagePushed = false;
 
 function dealPageOfferProducts(){
  return dealProducts.slice();
@@ -2034,7 +2039,7 @@ function openDealPage(){
  document.querySelector("#dealPage").style.display = "block";
  dealPageOpen = true;
  window.scrollTo({top:0, behavior:"instant" in window ? "instant" : "auto"});
- if(location.hash !== "#deal") history.pushState({dealPage:true}, "", "#deal");
+ if(location.hash !== "#deal"){ history.pushState({dealPage:true}, "", "#deal"); dealPagePushed = true; }
 
  tickDealPageTimer();
  clearInterval(dealPageTimerHandle);
@@ -2051,7 +2056,15 @@ function closeDealPage(){
  dealPageOpen = false;
  clearInterval(dealPageTimerHandle);
  dealPageTimerHandle = null;
- if(location.hash === "#deal") history.back();
+ // Only step back if this page pushed the "#deal" entry itself. If the
+ // visitor arrived on ".../#deal" (shared link / reload), history.back()
+ // would throw them out to whatever page they were on before the site.
+ const pushed = dealPagePushed;
+ dealPagePushed = false;
+ if(location.hash === "#deal"){
+  if(pushed) history.back();
+  else history.replaceState(null, "", location.pathname + location.search);
+ }
 }
 // Browser Back button while on the deal page closes it instead of
 // leaving the site, since it was opened via a pushState hash.
@@ -2180,6 +2193,34 @@ function closeSiteNotice(){
 }
 document.addEventListener("keydown", e=>{
  if(e.key==="Escape" && document.querySelector("#noticeModal")?.classList.contains("open")) closeSiteNotice();
+});
+
+/* ================== In-page links without history spam ==================
+   Links like #shop / #new / #about / #returnPolicy / the logo used to be
+   normal hash links, so every click added a browser-history entry and
+   the Back button had to walk back through all of them (looking like a
+   loop on the same page). Now they just scroll — no history entry.
+   Runs after each link's own onclick (e.g. closeDealPage()).
+======================================================================== */
+document.addEventListener("click", e=>{
+ if(e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+ const a = e.target.closest && e.target.closest('a[href^="#"]');
+ if(!a || a.target === "_blank") return;
+ const h = a.getAttribute("href");
+ if(h === "#deal") return;
+ let target = null;
+ if(h !== "#"){
+  try{ target = document.querySelector(h); }catch(err){ return; }
+  if(!target) return;
+ }
+ e.preventDefault();
+ if(target){
+  target.scrollIntoView({behavior:"smooth", block:"start"});
+  if(!target.hasAttribute("tabindex")) target.setAttribute("tabindex","-1"); // keep keyboard/skip-link focus moving
+  target.focus({preventScroll:true});
+ }else{
+  window.scrollTo({top:0, behavior:"smooth"});
+ }
 });
 
 let siteSettings = {}; // last-loaded ?action=settings payload — read by midBannerHTML()
