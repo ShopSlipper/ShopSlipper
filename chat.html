@@ -318,6 +318,15 @@ function escapeHtml(s){
  const d=document.createElement("div"); d.textContent=s||"";
  return d.innerHTML.replace(/"/g,"&quot;").replace(/'/g,"&#39;");
 }
+// Escapes message text and turns literal newlines into <br>. Needed
+// because the backend's auto-reply bot now sends multi-line, numbered
+// step-by-step answers (e.g. "how does delivery/return work") — and
+// those bot replies are stored and shown here as ordinary "staff"
+// messages, same as a real agent's. Without this they'd render as one
+// run-on line instead of a readable numbered list.
+function formatMsgText_(s){
+ return escapeHtml(s).replace(/\n/g, "<br>");
+}
 
 /* ================== AI Bot toggle + Knowledge Base ================== */
 async function loadBotStatus(){
@@ -664,7 +673,7 @@ function renderChatThreadMessages(){
        </div>`;
      }
      const imgPart = m.imageUrl ? `<img class="chatImg" src="${escapeHtml(m.imageUrl)}" onclick="openImageLightbox('${escapeHtml(m.imageUrl)}')" alt="photo">` : ``;
-     const textPart = m.text ? `<span>${escapeHtml(m.text)}</span>` : ``;
+     const textPart = m.text ? `<span>${formatMsgText_(m.text)}</span>` : ``;
      const delBtn = m.messageId ? `<button type="button" class="msgDelBtn" title="Hide this message" onclick="deleteMessage('${m.messageId}')">✕</button>` : ``;
      const editBtn = canEdit ? `<button type="button" class="msgEditBtn" title="Edit" onclick="startEditStaffMessage('${escapeHtml(m.messageId)}')">✎</button>` : ``;
      return `<div class="chatBubble ${m.from}${m.imageUrl?' hasImg':''}">${delBtn}${editBtn}${imgPart}${textPart}<small>${m.time||""}${m.edited?" · edited":""}</small></div>`;
