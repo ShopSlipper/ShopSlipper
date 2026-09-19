@@ -196,12 +196,16 @@ function escapeHtml(s){
  const d=document.createElement("div"); d.textContent=s||"";
  return d.innerHTML.replace(/"/g,"&quot;").replace(/'/g,"&#39;");
 }
-// Escapes message text (so it stays inert/safe) and then turns any
-// http(s) URL inside it into a real clickable <a> — this is what makes
-// links in chat messages tappable instead of just inert text.
+// Escapes message text (so it stays inert/safe), turns any http(s) URL
+// inside it into a real clickable <a>, and turns literal newlines into
+// <br> tags. The newline handling matters because the backend's auto-
+// reply bot now sends multi-line, numbered step-by-step answers (e.g.
+// "how does delivery/return work") — without this, those would render
+// as one run-on line since a plain <span> collapses "\n" like any other
+// whitespace.
 function linkifyText(s){
  const escaped = escapeHtml(s);
- return escaped.replace(/(https?:\/\/[^\s<]+)/g, (match)=>{
+ const linked = escaped.replace(/(https?:\/\/[^\s<]+)/g, (match)=>{
   let url = match, trailing = "";
   while(url.length && /[.,!?;:)\]'"]/.test(url[url.length-1])){
    trailing = url[url.length-1] + trailing;
@@ -209,6 +213,7 @@ function linkifyText(s){
   }
   return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>${trailing}`;
  });
+ return linked.replace(/\n/g, "<br>");
 }
 
 let chatSessionId = localStorage.getItem("shopslipper-chat-id");
