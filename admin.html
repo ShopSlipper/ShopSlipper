@@ -213,6 +213,16 @@ tr:last-child td{border-bottom:0}
 /* ---- Refresh icon spin ---- */
 .spinning{display:inline-block;animation:spin360 .7s linear}
 @keyframes spin360{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+
+/* ---- Notice tab ---- */
+.field textarea{border:1px solid var(--line);border-radius:11px;padding:12px;outline:none;width:100%;min-height:110px;resize:vertical}
+.field textarea:focus{border-color:var(--text)}
+.ntPrev{border:1px dashed var(--line);border-radius:16px;padding:18px;background:#fff;text-align:center;max-width:380px;border-top:6px solid var(--gold);margin-top:6px}
+.ntPrev.sale{border-top-color:var(--amber)}.ntPrev.warning{border-top-color:var(--danger)}
+.ntPrev .pi{font-size:26px}.ntPrev .pt{font-weight:800;font-size:16px;margin:4px 0}
+.ntPrev .pm{font-size:13px;color:var(--muted);white-space:pre-line;overflow-wrap:anywhere}
+.ntPrev .pb{display:inline-block;margin-top:12px;padding:8px 16px;border-radius:999px;background:var(--gold);color:#fff;font-size:12px;font-weight:700}
+.ntPrev.sale .pb{background:var(--amber)}.ntPrev.warning .pb{background:var(--danger)}
 </style>
 </head>
 <body>
@@ -238,6 +248,7 @@ tr:last-child td{border-bottom:0}
    <button class="sideLink" id="tab-chat" onclick="switchTab('chat')"><span class="dot"></span>Chat<span class="tabDot" id="chatTabDot">0</span></button>
    <button class="sideLink" id="tab-banner" onclick="switchTab('banner')"><span class="dot"></span>Banner</button>
    <button class="sideLink" id="tab-delivery" onclick="switchTab('delivery')"><span class="dot"></span>Delivery</button>
+   <button class="sideLink" id="tab-notice" onclick="switchTab('notice')"><span class="dot"></span>Notice</button>
   </nav>
   <a class="backLink" href="index.html">← Back to store</a>
  </aside>
@@ -463,6 +474,54 @@ tr:last-child td{border-bottom:0}
      </div>
     </div>
 
+    <div class="panel" id="panel-notice" style="display:none">
+     <div class="panelHead"><h2>Website notice</h2></div>
+     <div class="note">Show a popup message to customers when they open your website — sale news, holiday delivery delays, shop closed, etc. Every time you press <b>Save notice</b>, people who already closed the old one will see it again.</div>
+     <div class="formGrid">
+      <div class="field full">
+       <div class="checkRow"><input type="checkbox" id="nt_enabled" onchange="updateNoticePreview()"><label for="nt_enabled"><b>Show this notice on the website</b></label></div>
+      </div>
+      <div class="field">
+       <label>Style</label>
+       <select id="nt_type" onchange="updateNoticePreview()">
+        <option value="info">📢 Information (green)</option>
+        <option value="sale">🎉 Sale / offer (orange)</option>
+        <option value="warning">⚠️ Important warning (red)</option>
+       </select>
+      </div>
+      <div class="field">
+       <label>How often to show it</label>
+       <select id="nt_freq">
+        <option value="once">Once per customer (until I save a new notice)</option>
+        <option value="session">Once every visit (browser session)</option>
+        <option value="every">Every time the page loads</option>
+       </select>
+      </div>
+      <div class="field full">
+       <label>Title</label>
+       <input id="nt_title" maxlength="80" placeholder="e.g. Eid holiday delivery update" oninput="updateNoticePreview()">
+      </div>
+      <div class="field full">
+       <label>Message</label>
+       <textarea id="nt_message" maxlength="600" placeholder="Write the notice customers will read…" oninput="updateNoticePreview()"></textarea>
+      </div>
+      <div class="field">
+       <label>Button text (optional)</label>
+       <input id="nt_btnText" maxlength="30" placeholder="e.g. Shop now" oninput="updateNoticePreview()">
+      </div>
+      <div class="field">
+       <label>Button link (optional)</label>
+       <input id="nt_link" placeholder="https://… or #shop" oninput="updateNoticePreview()">
+      </div>
+     </div>
+     <label style="font-size:12px;font-weight:700">Preview</label>
+     <div class="ntPrev" id="nt_preview"></div>
+     <div class="formFoot">
+      <button class="btn light" id="nt_offBtn" onclick="turnOffNotice()">Turn off notice</button>
+      <button class="btn" id="nt_saveBtn" onclick="saveNotice()">Save notice</button>
+     </div>
+    </div>
+
    </div>
   </div>
  </div>
@@ -650,7 +709,8 @@ const TAB_META = {
  returns:{title:"Returns", sub:"Review and process customer return requests."},
  chat:{title:"Chat", sub:"Reply to customers messaging you from the storefront."},
  banner:{title:"Banner", sub:"Manage the hero banner, in-grid banner, and deal of the week."},
- delivery:{title:"Delivery", sub:"Set your free-delivery threshold and flat delivery charge."}
+ delivery:{title:"Delivery", sub:"Set your free-delivery threshold and flat delivery charge."},
+ notice:{title:"Notice", sub:"Show a popup message to customers when they visit your website."}
 };
 
 /* Mirrors ALLOWED_TRANSITIONS in Code.gs — kept in sync manually.
@@ -734,12 +794,14 @@ function switchTab(t){
  document.querySelector("#panel-chat").style.display = t==="chat" ? "block":"none";
  document.querySelector("#panel-banner").style.display = t==="banner" ? "block":"none";
  document.querySelector("#panel-delivery").style.display = t==="delivery" ? "block":"none";
+ document.querySelector("#panel-notice").style.display = t==="notice" ? "block":"none";
  document.querySelector("#tab-products").classList.toggle("active", t==="products");
  document.querySelector("#tab-orders").classList.toggle("active", t==="orders");
  document.querySelector("#tab-returns").classList.toggle("active", t==="returns");
  document.querySelector("#tab-chat").classList.toggle("active", t==="chat");
  document.querySelector("#tab-banner").classList.toggle("active", t==="banner");
  document.querySelector("#tab-delivery").classList.toggle("active", t==="delivery");
+ document.querySelector("#tab-notice").classList.toggle("active", t==="notice");
  const meta = TAB_META[t];
  if(meta){
   document.querySelector("#pageTitle").textContent = meta.title;
@@ -788,6 +850,7 @@ async function loadAll(){
   loadMidBannerIntoForm(sData.settings || {});
   loadDealIntoForm(sData.settings || {});
   loadDeliveryIntoForm(sData.settings || {});
+  loadNoticeIntoForm(sData.settings || {});
  }catch(err){
   document.querySelector("#sourceNote").innerHTML = `Couldn't reach the Sheet. Check <code>SCRIPT_URL</code> is set correctly in admin.html and that the Apps Script is deployed with "Anyone" access.`;
  }finally{
@@ -1834,6 +1897,86 @@ async function saveDelivery(){
  }finally{
   btn.disabled = false; btn.textContent = "Save delivery settings";
  }
+}
+
+
+/* ================== Website notice ==================
+   Stored in the same Settings sheet as the banner. Keys:
+   noticeEnabled ("yes"/"no"), noticeType, noticeTitle,
+   noticeMessage, noticeButtonText, noticeLink, noticeFrequency,
+   noticeId (a fresh timestamp on every save — this is what makes
+   the popup show again for customers who dismissed the old one).
+   index.html reads these in showSiteNotice().
+=========================================================== */
+function noticeIsOn(v){ return v===true || v===1 || ["true","1","yes","on"].includes(String(v).toLowerCase()); }
+function loadNoticeIntoForm(s){
+ document.querySelector("#nt_enabled").checked = noticeIsOn(s.noticeEnabled);
+ document.querySelector("#nt_type").value = ["info","sale","warning"].includes(s.noticeType) ? s.noticeType : "info";
+ document.querySelector("#nt_freq").value = ["every","session","once"].includes(s.noticeFrequency) ? s.noticeFrequency : "once";
+ document.querySelector("#nt_title").value = s.noticeTitle || "";
+ document.querySelector("#nt_message").value = s.noticeMessage || "";
+ document.querySelector("#nt_btnText").value = s.noticeButtonText || "";
+ document.querySelector("#nt_link").value = s.noticeLink || "";
+ updateNoticePreview();
+}
+function updateNoticePreview(){
+ const type = document.querySelector("#nt_type").value;
+ const title = document.querySelector("#nt_title").value.trim();
+ const msg = document.querySelector("#nt_message").value.trim();
+ const btn = document.querySelector("#nt_btnText").value.trim();
+ const link = document.querySelector("#nt_link").value.trim();
+ const box = document.querySelector("#nt_preview");
+ box.className = "ntPrev " + type;
+ box.innerHTML = "";
+ const mk = (cls, text)=>{ const d = document.createElement("div"); d.className = cls; d.textContent = text; return d; };
+ box.appendChild(mk("pi", {info:"📢", sale:"🎉", warning:"⚠️"}[type]));
+ box.appendChild(mk("pt", title || "Your title appears here"));
+ box.appendChild(mk("pm", msg || "Your message appears here."));
+ if(link){ box.appendChild(mk("pb", btn || "Learn more")); }
+ const on = document.querySelector("#nt_enabled").checked;
+ box.style.opacity = on ? "1" : ".55";
+}
+function noticeLinkOk(u){
+ if(!u) return true;
+ if(/^[a-z][a-z0-9+.-]*:/i.test(u)) return /^(https?|mailto|tel):/i.test(u);
+ return true;
+}
+async function postNotice(settings, btn, idleText, okMsg){
+ btn.disabled = true; btn.textContent = "Saving…";
+ try{
+  const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"updateSettings",key:ADMIN_KEY,settings})});
+  const data = await res.json();
+  if(!data.success) throw new Error(data.error||"failed");
+  toast(okMsg);
+  return true;
+ }catch(err){
+  toast("Couldn't save — check your connection and try again.");
+  return false;
+ }finally{
+  btn.disabled = false; btn.textContent = idleText;
+ }
+}
+async function saveNotice(){
+ const enabled = document.querySelector("#nt_enabled").checked;
+ const title = document.querySelector("#nt_title").value.trim();
+ const message = document.querySelector("#nt_message").value.trim();
+ const link = document.querySelector("#nt_link").value.trim();
+ if(enabled && !title && !message){ toast("Add a title or message first."); return; }
+ if(!noticeLinkOk(link)){ toast("Button link must start with https://, http://, mailto: or tel:"); return; }
+ await postNotice({
+  noticeEnabled: enabled ? "yes" : "no",
+  noticeType: document.querySelector("#nt_type").value,
+  noticeFrequency: document.querySelector("#nt_freq").value,
+  noticeTitle: title,
+  noticeMessage: message,
+  noticeButtonText: document.querySelector("#nt_btnText").value.trim(),
+  noticeLink: link,
+  noticeId: String(Date.now())
+ }, document.querySelector("#nt_saveBtn"), "Save notice", enabled ? "Notice saved — customers will see it now" : "Notice saved (currently turned off)");
+}
+async function turnOffNotice(){
+ const ok = await postNotice({noticeEnabled:"no"}, document.querySelector("#nt_offBtn"), "Turn off notice", "Notice turned off");
+ if(ok){ document.querySelector("#nt_enabled").checked = false; updateNoticePreview(); }
 }
 
 function openForm(id){
