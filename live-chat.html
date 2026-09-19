@@ -58,6 +58,12 @@ main{flex:1;display:flex;flex-direction:column;max-width:640px;width:100%;margin
 .chatBubble.failed .retryHint{color:#b5493e;opacity:1}
 .chatBubble.manageable{cursor:pointer}
 .chatImg{display:block;max-width:220px;max-height:220px;width:100%;object-fit:cover;border-radius:12px;cursor:zoom-in;margin-bottom:4px}
+/* Small ShopSlipper logo shown next to a bot-authored reply, so a
+   customer can tell an auto-reply apart from a real person typing.
+   Only added when sentBy==="ai" (see renderChatMessages) — a genuine
+   staff reply gets no avatar, same as before. */
+.msgLine{display:flex;align-items:flex-end;gap:6px;max-width:100%}
+.msgAvatar{width:22px;height:22px;border-radius:50%;object-fit:cover;background:#fff;border:1px solid var(--line);flex-shrink:0;margin-bottom:2px}
 /* Typing animation: shown as a staff-style bubble with three bouncing
    dots instead of text, while the backend says someone (staff or bot)
    is typing back. */
@@ -177,6 +183,7 @@ main{padding:0}
    a conversation started here is picked up if you ever open the site's
    chat badge, and vice versa. */
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwxKtGFQmHlwZmbfe-TKMDlzuI5KBFau8PDBkC5MYSyMA_ISe1SpC3lbBLfptHw-4l1/exec";
+const LOGO_URL = "https://raw.githubusercontent.com/ShopSlipper/ShopSlipper/main/shop_slipper_transparent.png";
 const POLL_MS = 5000;
 const TYPING_POLL_MS = 2500;
 const AI_BADGE_POLL_MS = 15000; // AI on/off doesn't need to be checked as often as messages/typing
@@ -375,6 +382,7 @@ function renderChatMessages(){
  }else{
   let html = chatMessages.map(m=>{
    const cls = m.from==='staff' ? 'staff' : 'me';
+   const isAiReply = m.from==='staff' && m.sentBy==='ai';
    const key = msgKey(m);
    // Only the customer's own, successfully-sent text/image messages can
    // be edited or deleted — not staff messages, and not ones still
@@ -406,7 +414,10 @@ function renderChatMessages(){
       <button type="button" onclick="startEditMessage('${escapeHtml(key)}')">Edit</button>
       <button type="button" class="danger" onclick="confirmDeleteMessage('${escapeHtml(key)}')">Delete</button>
      </div>` : ``;
-   return `<div class="msgRow ${cls}">${bubble}${actions}</div>`;
+   const bubbleLine = isAiReply
+    ? `<div class="msgLine"><img class="msgAvatar" src="${LOGO_URL}" alt="ShopSlipper AI">${bubble}</div>`
+    : bubble;
+   return `<div class="msgRow ${cls}">${bubbleLine}${actions}</div>`;
   }).join("");
   if(isStaffTypingNow){
    // Only the bot's own typing window gets the shimmer/glow treatment —
