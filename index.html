@@ -371,6 +371,25 @@ footer .logo span{color:#c8f0d6}
 .reviewsEmpty{color:var(--muted);font-size:13px}
 .dealQtyRow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
 .dealQtyRow .pdQty{margin-bottom:0}
+
+/* ---- Site notice popup (controlled from admin → Notice) ---- */
+.noticeModal{position:fixed;inset:0;background:rgba(10,18,16,.55);z-index:90;display:none;place-items:center;padding:18px;backdrop-filter:blur(3px)}
+.noticeModal.open{display:grid;animation:noticeFade .25s var(--ease)}
+.noticeBox{position:relative;width:min(440px,100%);background:#fff;border-radius:22px;box-shadow:var(--shadow-lg);padding:30px 26px 24px;text-align:center;border-top:6px solid var(--gold);animation:noticePop .35s var(--ease)}
+.noticeBox.sale{border-top-color:var(--amber)}
+.noticeBox.warning{border-top-color:var(--danger)}
+.noticeIcon{font-size:34px;line-height:1;margin-bottom:10px}
+.noticeTitle{font-size:20px;font-weight:800;letter-spacing:-.3px;margin-bottom:8px}
+.noticeText{font-size:14px;color:var(--muted);white-space:pre-line;overflow-wrap:anywhere;max-height:50vh;overflow:auto}
+.noticeActions{display:flex;flex-direction:column;gap:8px;margin-top:20px}
+.noticeBtn{display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;border-radius:999px;background:var(--gold);color:#fff;font-weight:700;font-size:14px}
+.noticeBox.sale .noticeBtn{background:var(--amber)}
+.noticeBox.warning .noticeBtn{background:var(--danger)}
+.noticeDismiss{background:transparent;color:var(--muted);font-size:13px;font-weight:600;padding:8px}
+.noticeX{position:absolute;right:12px;top:14px;width:34px;height:34px;border-radius:50%;background:var(--soft);color:var(--text);font-size:15px;display:grid;place-items:center}
+@keyframes noticeFade{from{opacity:0}to{opacity:1}}
+@keyframes noticePop{from{opacity:0;transform:translateY(14px) scale(.96)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.noticeModal.open,.noticeBox{animation:none}}
 </style>
 </head>
 <body>
@@ -681,13 +700,48 @@ footer .logo span{color:#c8f0d6}
  💬<span class="chatFabBadge" id="chatFabBadge">0</span>
 </a>
 
+<!-- Site notice popup — filled in by showSiteNotice() from admin settings -->
+<div class="noticeModal" id="noticeModal" onclick="if(event.target===this)closeSiteNotice()">
+ <div class="noticeBox" id="noticeBox" role="dialog" aria-modal="true" aria-labelledby="noticeTitleOut">
+  <button class="noticeX" type="button" aria-label="Close notice" onclick="closeSiteNotice()">✕</button>
+  <div class="noticeIcon" id="noticeIconOut" aria-hidden="true">📢</div>
+  <div class="noticeTitle" id="noticeTitleOut"></div>
+  <div class="noticeText" id="noticeTextOut"></div>
+  <div class="noticeActions">
+   <a class="noticeBtn" id="noticeBtnOut" href="#" style="display:none" onclick="closeSiteNotice()"></a>
+   <button class="noticeDismiss" type="button" onclick="closeSiteNotice()">Close</button>
+  </div>
+ </div>
+</div>
+
 <script>
 /* ================== CONFIG — set this to your Apps Script Web App URL ================== */
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzKHLu21Y5oJeM7KQ5dcI3mTXpNnZlDRoTn19nCuqZ7SNb73S6cj9QaTY2Sd-QHTFoE/exec"; // ends in /exec
 /* ========================================================================================= */
 
+/* ================== Local cache (stale-while-revalidate) ==================
+   Products, deal products and site settings are saved in localStorage
+   after every successful load. On the next visit the page paints from
+   that copy instantly, then fetches fresh data in the background and
+   only re-renders if something actually changed. The site notice popup
+   is deliberately NOT shown from cache — only from fresh settings — so
+   a notice you switch off never flashes on returning visitors.
+========================================================================== */
+const CACHE_NS = "ss-cache-v1-" + SCRIPT_URL.slice(-16,-5) + "-";
+const CACHE_MAX_AGE = 7*24*60*60*1000; // ignore copies older than 7 days
+function cacheGet(key){
+ try{
+  const o = JSON.parse(localStorage.getItem(CACHE_NS+key)||"null");
+  if(o && Date.now()-o.t <= CACHE_MAX_AGE) return o.d;
+ }catch(err){}
+ return null;
+}
+function cacheSet(key, data){
+ try{ localStorage.setItem(CACHE_NS+key, JSON.stringify({t:Date.now(), d:data})); }catch(err){ /* storage full/blocked — just skip caching */ }
+}
+
 let products = [], dealProducts = [], cart = JSON.parse(localStorage.getItem("shopslipper-cart")||"[]");
-let category="All", page=1, imageMatch=null, productsLoaded=false, dealProductsLoaded=false;
+let category="All", page=1, imageMatch=null, productsLoaded=false, dealProductsLoaded=false, productsFresh=false;
 const FIRST_PAGE_SIZE = 16;
 const OTHER_PAGE_SIZE = 28;
 
@@ -838,18 +892,40 @@ function renderNewArrivals(){
  document.querySelector("#newArrivalsRail").innerHTML = items.slice(0,10).map(cardHTML).join("");
 }
 
+// Paint instantly from the saved copy (if any). `productsLoaded` is set
+// so renderProducts() runs; `productsFresh` stays false until the real
+// network response arrives.
+function hydrateFromCache(){
+ const p = cacheGet("products"), d = cacheGet("dealProducts");
+ if(Array.isArray(d)){ dealProducts = d; dealProductsLoaded = true; }
+ if(Array.isArray(p)){
+  products = p; productsLoaded = true;
+  categories(); renderProducts(); renderNewArrivals();
+ }
+ if(Array.isArray(p) || Array.isArray(d)) updateCart();
+}
+
 async function loadProducts(){
  try{
   const res = await fetch(`${SCRIPT_URL}?action=products`);
   const data = await res.json();
-  products = data.products || [];
+  if(!Array.isArray(data.products)) throw new Error("bad products payload");
+  const hadCache = productsLoaded;
+  const changed = JSON.stringify(data.products) !== JSON.stringify(products);
+  products = data.products;
+  cacheSet("products", products);
+  productsLoaded = true; productsFresh = true;
+  if(!hadCache || changed){ categories();renderProducts();renderNewArrivals(); }
+  return true;
  }catch(err){
+  if(productsLoaded) return false; // keep showing the saved copy if the network fails
   document.querySelector("#products").removeAttribute("aria-busy");
   document.querySelector("#products").innerHTML = `<div class="loadingMsg">Couldn't load products. Check SCRIPT_URL is set correctly in index.html.</div>`;
   products = [];
+  productsLoaded = true;
+  categories();renderProducts();renderNewArrivals();
+  return false;
  }
- productsLoaded = true;
- categories();renderProducts();renderNewArrivals();
 }
 
 // Deal-only products: a completely separate list (own sheet on the
@@ -859,21 +935,30 @@ async function loadDealProducts(){
  try{
   const res = await fetch(`${SCRIPT_URL}?action=dealProducts`);
   const data = await res.json();
-  dealProducts = data.dealProducts || [];
+  if(!Array.isArray(data.dealProducts)) throw new Error("bad deal payload");
+  dealProducts = data.dealProducts;
+  cacheSet("dealProducts", dealProducts);
+  dealProductsLoaded = true;
+  return true;
  }catch(err){
-  dealProducts = [];
+  if(!dealProductsLoaded){ dealProducts = []; dealProductsLoaded = true; }
+  return false;
  }
- dealProductsLoaded = true;
 }
 
 // Loads both product lists in parallel, then does the cart-cleanup
 // pass once (so a deal-item cart entry isn't wrongly stripped just
-// because dealProducts hadn't finished loading yet).
+// because dealProducts hadn't finished loading yet). The cleanup only
+// runs when BOTH lists came back fresh — a failed/offline request no
+// longer empties the customer's cart.
 async function initProductsAndCart(){
- await Promise.all([loadProducts(), loadDealProducts()]);
- const beforeCount = cart.length;
- cart = cart.filter(i => !!findProductAnywhere(i.id));
- if(cart.length !== beforeCount) save();
+ hydrateFromCache();
+ const [okP, okD] = await Promise.all([loadProducts(), loadDealProducts()]);
+ if(okP && okD){
+  const beforeCount = cart.length;
+  cart = cart.filter(i => !!findProductAnywhere(i.id));
+  if(cart.length !== beforeCount) save();
+ }
  updateCart();
 }
 
@@ -1983,14 +2068,36 @@ let chatUnread = 0, chatPollStarted = false;
 /* Starting a chat, sending messages, and the message thread now live on
    chat.html — the chat button above just links straight there. This page
    only polls quietly for an unread count, shown as a badge on the button. */
+/* Polling is deliberately gentle, because every poll is a call to
+   Apps Script: it only runs while the tab is visible, starts at 30 s,
+   backs off to 2 min when nothing new arrives, never overlaps itself,
+   and resets + checks straight away when the customer comes back to
+   the tab. */
+const CHAT_POLL_BASE = 30000, CHAT_POLL_MAX = 120000;
+let chatPollTimer = null, chatPollDelay = CHAT_POLL_BASE, chatQuietPolls = 0, chatPollBusy = false, chatLastPoll = 0;
+function scheduleChatPoll(delay){
+ clearTimeout(chatPollTimer);
+ chatPollTimer = null;
+ if(document.hidden) return; // resumes from the visibilitychange handler
+ chatPollTimer = setTimeout(async ()=>{
+  await fetchChatMessages();
+  scheduleChatPoll(chatPollDelay);
+ }, delay);
+}
 function startChatPolling(){
  if(chatPollStarted) return;
  chatPollStarted = true;
- fetchChatMessages();
- setInterval(fetchChatMessages, 8000);
+ document.addEventListener("visibilitychange", ()=>{
+  if(document.hidden){ clearTimeout(chatPollTimer); chatPollTimer = null; return; }
+  chatPollDelay = CHAT_POLL_BASE; chatQuietPolls = 0;
+  scheduleChatPoll(Date.now()-chatLastPoll > 10000 ? 0 : 3000);
+ });
+ scheduleChatPoll(0);
 }
 async function fetchChatMessages(){
- if(!chatSessionId) return;
+ if(!chatSessionId || chatPollBusy || navigator.onLine === false) return;
+ chatPollBusy = true;
+ chatLastPoll = Date.now();
  try{
   const res = await fetch(`${SCRIPT_URL}?action=chatMessages&sessionId=${encodeURIComponent(chatSessionId)}`);
   const data = await res.json();
@@ -1998,9 +2105,15 @@ async function fetchChatMessages(){
    const prevCount = chatMessages.length;
    chatMessages = data.messages;
    localStorage.setItem("shopslipper-chat-msgs", JSON.stringify(chatMessages));
-   if(chatMessages.length > prevCount){ chatUnread += (chatMessages.length - prevCount); updateChatFabBadge(); }
+   if(chatMessages.length > prevCount){
+    chatUnread += (chatMessages.length - prevCount); updateChatFabBadge();
+    chatQuietPolls = 0; chatPollDelay = CHAT_POLL_BASE;
+   }else if(++chatQuietPolls >= 5){
+    chatPollDelay = Math.min(chatPollDelay*2, CHAT_POLL_MAX);
+   }
   }
  }catch(err){ /* backend not reachable yet — ignore, will retry on next poll */ }
+ finally{ chatPollBusy = false; }
 }
 function updateChatFabBadge(){
  const b = document.querySelector("#chatFabBadge");
@@ -2009,24 +2122,96 @@ function updateChatFabBadge(){
 }
 if(chatSessionId) startChatPolling();
 
+
+/* ================== Site notice popup ==================
+   Controlled from admin → Notice. Settings keys read from the
+   same ?action=settings payload as the banner (no extra request):
+   noticeEnabled, noticeType (info|sale|warning), noticeTitle,
+   noticeMessage, noticeButtonText, noticeLink, noticeFrequency
+   (every|session|once) and noticeId (changes on every admin save,
+   so a re-saved notice shows again to people who dismissed it).
+=========================================================== */
+function noticeIsOn(v){ return v===true || v===1 || ["true","1","yes","on"].includes(String(v).toLowerCase()); }
+function safeNoticeLink(u){
+ u = String(u||"").trim();
+ if(!u) return "";
+ if(/^[a-z][a-z0-9+.-]*:/i.test(u)) return /^(https?|mailto|tel):/i.test(u) ? u : "";
+ return u;
+}
+function showSiteNotice(s){
+ const modal = document.querySelector("#noticeModal");
+ if(!modal || !noticeIsOn(s.noticeEnabled)) return;
+ const title = String(s.noticeTitle||"").trim();
+ const msg = String(s.noticeMessage||"").trim();
+ if(!title && !msg) return;
+ const id = String(s.noticeId||"0");
+ const freq = ["every","session","once"].includes(s.noticeFrequency) ? s.noticeFrequency : "once";
+ try{
+  if(freq==="once" && localStorage.getItem("ss-notice-seen")===id) return;
+  if(freq==="session" && sessionStorage.getItem("ss-notice-seen")===id) return;
+ }catch(err){}
+ const type = ["info","sale","warning"].includes(s.noticeType) ? s.noticeType : "info";
+ document.querySelector("#noticeBox").className = "noticeBox " + type;
+ document.querySelector("#noticeIconOut").textContent = {info:"📢", sale:"🎉", warning:"⚠️"}[type];
+ document.querySelector("#noticeTitleOut").textContent = title;
+ document.querySelector("#noticeTitleOut").style.display = title ? "block" : "none";
+ document.querySelector("#noticeTextOut").textContent = msg;
+ const btn = document.querySelector("#noticeBtnOut");
+ const link = safeNoticeLink(s.noticeLink);
+ if(link){
+  btn.href = link;
+  btn.textContent = String(s.noticeButtonText||"").trim() || "Learn more";
+  btn.style.display = "inline-flex";
+  if(/^https?:/i.test(link) && new URL(link, location.href).origin !== location.origin){ btn.target="_blank"; btn.rel="noopener"; }
+ }else btn.style.display = "none";
+ setTimeout(()=>{
+  modal.classList.add("open");
+  document.body.style.overflow = "hidden";
+  modal.querySelector(".noticeDismiss").focus();
+  try{
+   if(freq==="once") localStorage.setItem("ss-notice-seen", id);
+   if(freq==="session") sessionStorage.setItem("ss-notice-seen", id);
+  }catch(err){}
+ }, 600);
+}
+function closeSiteNotice(){
+ document.querySelector("#noticeModal").classList.remove("open");
+ document.body.style.overflow = "";
+}
+document.addEventListener("keydown", e=>{
+ if(e.key==="Escape" && document.querySelector("#noticeModal")?.classList.contains("open")) closeSiteNotice();
+});
+
 let siteSettings = {}; // last-loaded ?action=settings payload — read by midBannerHTML()
+const BANNER_FALLBACK = "https://placehold.co/1600x500/eef6f2/182220?text=Your+Banner+Here";
+function applySiteSettings(settings){
+ siteSettings = settings;
+ document.querySelector("#heroBannerImg").src = settings.bannerImage || BANNER_FALLBACK;
+ document.querySelector("#heroBanner").href = settings.bannerLink || "#shop";
+ applyDeliverySettings(settings);
+ renderDeal(settings);
+ // Settings can arrive after the first product render (loadBanner and
+ // loadProducts fire in parallel below), so re-render once we have
+ // them, in case the in-grid promo tile needs to appear.
+ renderProducts();
+}
 async function loadBanner(){
- const fallbackImg = "https://placehold.co/1600x500/eef6f2/182220?text=Your+Banner+Here";
+ // 1) paint instantly from the last saved settings (never the notice)
+ const cached = cacheGet("settings");
+ if(cached && typeof cached === "object"){ try{ applySiteSettings(cached); }catch(err){} }
+ // 2) refresh in the background
  try{
   const res = await fetch(`${SCRIPT_URL}?action=settings`);
   const data = await res.json();
-  const settings = data.settings || {};
-  siteSettings = settings;
-  document.querySelector("#heroBannerImg").src = settings.bannerImage || fallbackImg;
-  document.querySelector("#heroBanner").href = settings.bannerLink || "#shop";
-  applyDeliverySettings(settings);
-  renderDeal(settings);
-  // Settings can arrive after the first product render (loadBanner and
-  // loadProducts fire in parallel below), so re-render once we have
-  // them, in case the in-grid promo tile needs to appear.
-  renderProducts();
+  if(!data || typeof data.settings !== "object" || data.settings === null) throw new Error("bad settings payload");
+  const settings = data.settings;
+  cacheSet("settings", settings);
+  if(!cached || JSON.stringify(cached) !== JSON.stringify(settings)) applySiteSettings(settings);
+  else siteSettings = settings;
+  try{ showSiteNotice(settings); }catch(err){}
  }catch(err){
-  document.querySelector("#heroBannerImg").src = fallbackImg;
+  if(cached) return; // keep the saved copy if the network fails
+  document.querySelector("#heroBannerImg").src = BANNER_FALLBACK;
   document.querySelector("#heroBanner").href = "#shop";
  }
 }
@@ -2075,10 +2260,9 @@ loadSiteReviews();
  if(!productParam) return;
  const id = Number(productParam);
  const waitForProducts = setInterval(()=>{
-  if(productsLoaded){
-   clearInterval(waitForProducts);
-   if(products.some(p=>p.id===id)) openProduct(id);
-  }
+  if(!productsLoaded) return;
+  if(products.some(p=>p.id===id)){ clearInterval(waitForProducts); openProduct(id); }
+  else if(productsFresh){ clearInterval(waitForProducts); } // not in the saved copy AND not in the fresh list
  }, 150);
 })();
 </script>
