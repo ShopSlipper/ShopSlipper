@@ -679,7 +679,8 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzKHLu21Y5oJeM7KQ5dc
 const RETURNS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyMFhu8-cWFuYG9deEVL3bHrs6HWBcaZcWyxjyqQRm8k5Cu7wMM8a_9K7s2JLy6_7j_/exec"; // Return Order Mastersheet backend
 const ORDERS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHNkrQJ5p3rHNjNtf7x4nbOTk3i90T8Iat_fXgScIUxidzdPcNda_UU3yWMxt9AYJ7/exec"; // Order Mastersheet backend
 const CHAT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwxKtGFQmHlwZmbfe-TKMDlzuI5KBFau8PDBkC5MYSyMA_ISe1SpC3lbBLfptHw-4l1/exec"; // Chat Mastersheet backend  
-const ADMIN_KEY  = "shopslipper2026";              // must match ADMIN_KEY in Code.gs
+// Key is typed at login (never stored in this file); kept in this tab only.
+let ADMIN_KEY = sessionStorage.getItem("ss-admin-key") || "";
 /* =============================================
  Honest note: ADMIN_KEY is a shared client-side
  password, not real authentication — anyone who
@@ -763,14 +764,22 @@ function renderReturnsFilterChips(){
  }).join("");
 }
 
-function tryLogin(){
- const val = document.querySelector("#gatePass").value;
- if(val === ADMIN_KEY){
+async function tryLogin(){
+ const val = document.querySelector("#gatePass").value.trim();
+ const err = document.querySelector("#gateErr");
+ try{
+  // The server decides whether the key is right.
+  const res = await fetch(`${SCRIPT_URL}?action=allReviews&key=${encodeURIComponent(val)}`);
+  const data = await res.json();
+  if(data.error){ err.textContent = "Incorrect password. Try again."; err.style.display="block"; return; }
+  ADMIN_KEY = val;
+  sessionStorage.setItem("ss-admin-key", val);
   sessionStorage.setItem("ss-admin-ok","1");
-  document.querySelector("#gateErr").style.display="none";
+  document.querySelector("#gatePass").value = "";
+  err.style.display="none";
   unlockApp();
- }else{
-  document.querySelector("#gateErr").style.display="block";
+ }catch(e){
+  err.textContent = "Couldn't reach the server. Try again."; err.style.display="block";
  }
 }
 function unlockApp(){
@@ -781,9 +790,10 @@ function unlockApp(){
 }
 function logout(){
  sessionStorage.removeItem("ss-admin-ok");
+ sessionStorage.removeItem("ss-admin-key");
  location.reload();
 }
-if(sessionStorage.getItem("ss-admin-ok")==="1"){
+if(sessionStorage.getItem("ss-admin-ok")==="1" && ADMIN_KEY){
  unlockApp();
 }
 
