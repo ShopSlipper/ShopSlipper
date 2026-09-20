@@ -642,7 +642,7 @@ footer .logo span{color:#c8f0d6}
 <div class="modal" id="returnsModal" role="dialog" aria-modal="true" aria-label="Start a return" onclick="if(event.target===this)closeReturns()">
  <div class="modalBox">
   <div class="modalHead"><h2>Start a return</h2><button class="close" onclick="closeReturns()">×</button></div>
-  <p style="color:var(--muted);font-size:13px;margin-bottom:10px">Enter the order ID from your confirmation and a few details — we'll be in touch to arrange pickup.</p>
+  <p style="color:var(--muted);font-size:13px;margin-bottom:10px">Enter the order ID from your confirmation and a few details — we'll be in touch to arrange pickup. Use the same phone number or email you ordered with, so we can verify your order.</p>
   <a href="return-policy.html" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:var(--soft);color:var(--gold);font-weight:700;font-size:12.5px;padding:9px 14px;border-radius:999px;margin-bottom:18px">Read our full return policy →</a>
   <form id="returnForm" onsubmit="submitReturn(event)">
    <div class="formGrid">
@@ -1013,7 +1013,7 @@ function cardHTML(p){
  const outOfStock = !productHasAnyStock(p);
  return `<a href="/product/${p.id}" class="product ${outOfStock?'outOfStock':''}" onclick="event.preventDefault();openProduct(${p.id})">
   <div class="productImg">
-   <img src="${p.image}" alt="${escapeHtml(p.name)}" loading="lazy" onerror="this.style.display='none'">
+   <img src="${escapeHtml(p.image)}" alt="${escapeHtml(p.name)}" loading="lazy" onerror="this.style.display='none'">
    ${outOfStock?`<span class="outBadge">${TEXT.outOfStock}</span>`:(p.new?'<span class="bestBadge">BEST</span>':'')}
    ${(!outOfStock && discount>0)?`<span class="sale" style="left:auto;right:12px">${discount}% OFF</span>`:''}
   </div>
@@ -1186,9 +1186,9 @@ function renderProductDetail(){
  const colorBlock = swatches.length > 1
   ? `<div class="pdBlock"><label>Color</label><div class="pdColorRow">${swatches.map((v,i)=>{
       const colorOut = sizes.length ? sizes.every(s=>isCombinationOut(p,i,s)) : isCombinationOut(p,i,null);
-      return `<button class="pdSwatch ${i===pdVariantIdx?'active':''} ${colorOut?'swatchOut':''}" style="background:${v.color||'#ccc'}" title="${escapeHtml(v.colorName||'')}${colorOut?' — '+TEXT.outOfStock:''}" onclick="pdPickVariant(${i})"></button>`;
+      return `<button class="pdSwatch ${i===pdVariantIdx?'active':''} ${colorOut?'swatchOut':''}" style="background:${escapeHtml(v.color||'#ccc')}" title="${escapeHtml(v.colorName||'')}${colorOut?' — '+TEXT.outOfStock:''}" onclick="pdPickVariant(${i})"></button>`;
      }).join("")}</div>${current.colorName?`<div class="pdColorLabel">${escapeHtml(current.colorName)}</div>`:""}</div>`
-  : `<div class="pdBlock"><label>Color</label><div class="pdColor"><span class="pdColorDot" style="background:${p.color||'#ccc'}"></span><span>${escapeHtml(p.color||"")}</span></div></div>`;
+  : `<div class="pdBlock"><label>Color</label><div class="pdColor"><span class="pdColorDot" style="background:${escapeHtml(p.color||'#ccc')}"></span><span>${escapeHtml(p.color||"")}</span></div></div>`;
  const curQty = stockQtyFor(p, pdVariantIdx, pdSize);
  const combinationOut = sizes.length ? (pdSize ? isCombinationOut(p, pdVariantIdx, pdSize) : true) : isCombinationOut(p, pdVariantIdx, null);
  let stockMsgHtml = "";
@@ -1201,11 +1201,11 @@ function renderProductDetail(){
    <div class="pdSuggest">
     <div class="eyebrow">You might also like</div>
     <h3>Suggested for you</h3>
-    <div class="pdSuggestGrid">${suggestions.map(s=>`<article class="product" onclick="openProduct(${s.id})"><div class="productImg"><img src="${s.image}" alt="${escapeHtml(s.name)}" loading="lazy" onerror="this.style.display='none'"></div><div class="productInfo"><h3>${escapeHtml(s.name)}</h3><p>${escapeHtml(s.category)}</p><span class="price">${money(s.price)}</span></div></article>`).join("")}</div>
+    <div class="pdSuggestGrid">${suggestions.map(s=>`<article class="product" onclick="openProduct(${s.id})"><div class="productImg"><img src="${escapeHtml(s.image)}" alt="${escapeHtml(s.name)}" loading="lazy" onerror="this.style.display='none'"></div><div class="productInfo"><h3>${escapeHtml(s.name)}</h3><p>${escapeHtml(s.category)}</p><span class="price">${money(s.price)}</span></div></article>`).join("")}</div>
    </div>` : "";
  document.querySelector("#productModalContent").innerHTML = `
   <div class="pdWrap">
-   <div class="pdImg"><img src="${shownImage}" alt="${escapeHtml(p.name)}" onerror="this.style.display='none'" onclick="openZoom(this.src)"><button class="zoomBtn" onclick="event.stopPropagation();openZoom('${shownImage}')" aria-label="Zoom photo" title="Zoom in">🔍</button></div>
+   <div class="pdImg"><img src="${escapeHtml(shownImage)}" alt="${escapeHtml(p.name)}" onerror="this.style.display='none'" onclick="openZoom(this.src)"><button class="zoomBtn" onclick="event.stopPropagation();openZoom('${shownImage}')" aria-label="Zoom photo" title="Zoom in">🔍</button></div>
    <div class="pdInfo">
     <div class="eyebrow">
      <span>${escapeHtml(p.category||"")}</span>
@@ -1218,7 +1218,7 @@ function renderProductDetail(){
     ${colorBlock}
     ${sizes.length?`<div class="pdBlock"><label>Size</label><div class="sizeRow">${sizes.map(s=>{
        const sOut = isCombinationOut(p, pdVariantIdx, s);
-       return `<button class="sizeBtn ${s===pdSize?'active':''} ${sOut?'sizeOut':''}" ${sOut?'disabled':''} onclick="pdPickSize('${escapeHtml(s)}')">${escapeHtml(s)}</button>`;
+       return `<button class="sizeBtn ${s===pdSize?'active':''} ${sOut?'sizeOut':''}" ${sOut?'disabled':''} onclick="pdPickSize(${jsArg(s)})">${escapeHtml(s)}</button>`;
       }).join("")}</div></div>`:""}
     ${stockMsgHtml}
     <div class="pdBlock">
@@ -1264,8 +1264,8 @@ function midBannerHTML(){
  if(!siteSettings.midBannerImage) return "";
  const link = siteSettings.midBannerLink || "#shop";
  const text = siteSettings.midBannerText || "";
- return `<a class="midBanner" href="${escapeHtml(link)}">
-  <img src="${siteSettings.midBannerImage}" alt="Promotion" loading="lazy" onerror="this.style.display='none'">
+ return `<a class="midBanner" href="${escapeHtml(safeNoticeLink(link) || '#shop')}">
+  <img src="${escapeHtml(siteSettings.midBannerImage)}" alt="Promotion" loading="lazy" onerror="this.style.display='none'">
   ${text?`<span class="midBannerText">${escapeHtml(text)}</span>`:""}
  </a>`;
 }
@@ -1345,7 +1345,7 @@ function updateCart(){
   /* FIX: escape the quote characters JSON.stringify adds, so they don't
      terminate the double-quoted onclick="" attribute they're placed in. */
   const sizeArg=i.size?JSON.stringify(i.size).replace(/"/g,"&quot;"):null, colorArg=i.color?JSON.stringify(i.color).replace(/"/g,"&quot;"):null;
-  return `<div class="cartItem"><img src="${img}" alt="" onerror="this.style.display='none'"><div><h4>${escapeHtml(p.name)}${meta?` <small style="color:var(--muted)">(${escapeHtml(meta)})</small>`:""}</h4><small>${money(p.price)}</small><div class="qty"><button onclick="changeQty(${p.id},${sizeArg},${colorArg},-1)">−</button><b>${i.qty}</b><button onclick="changeQty(${p.id},${sizeArg},${colorArg},1)">+</button></div><button class="remove" onclick="removeItem(${p.id},${sizeArg},${colorArg})">Remove</button></div><b>${money(p.price*i.qty)}</b></div>`;
+  return `<div class="cartItem"><img src="${escapeHtml(img)}" alt="" onerror="this.style.display='none'"><div><h4>${escapeHtml(p.name)}${meta?` <small style="color:var(--muted)">(${escapeHtml(meta)})</small>`:""}</h4><small>${money(p.price)}</small><div class="qty"><button onclick="changeQty(${p.id},${sizeArg},${colorArg},-1)">−</button><b>${i.qty}</b><button onclick="changeQty(${p.id},${sizeArg},${colorArg},1)">+</button></div><button class="remove" onclick="removeItem(${p.id},${sizeArg},${colorArg})">Remove</button></div><b>${money(p.price*i.qty)}</b></div>`;
  }).join("");
  const sub=cart.reduce((s,i)=>{const p=findProductAnywhere(i.id);return p?s+p.price*i.qty:s},0);
  const deliveryFee = computeDeliveryFee(sub);
@@ -1403,10 +1403,8 @@ function openCheckout(){
 }
 function closeCheckout(){document.querySelector("#checkout").classList.remove("open")}
 
-function generateOrderId(){
- const digits = Math.floor(100000 + Math.random()*900000);
- return `SS${digits}NP`;
-}
+// NOTE: order IDs are generated by the server (unpredictable + unique). The browser
+// no longer makes one up.
 
 async function placeOrder(e){
  e.preventDefault();
@@ -1429,9 +1427,7 @@ async function placeOrder(e){
  }
  const sub=cart.reduce((s,i)=>{const p=findProductAnywhere(i.id);return p?s+p.price*i.qty:s},0);
  const delivery = computeDeliveryFee(sub);
- const orderId = generateOrderId();
  const order = {
-  orderId,
   name: form.get("name"), phone: form.get("phone"), email: form.get("email"), address: form.get("address"),
   city: form.get("city"), payment: form.get("payment"),
   items: cart.map(i=>{const p=findProductAnywhere(i.id);return {id:i.id,name:p?p.name:"", size:i.size||"", color:i.color||"", qty:i.qty, price:p?p.price:0};}),
@@ -1457,12 +1453,12 @@ async function placeOrder(e){
     toast("Sorry, some items just sold out and were removed from your cart");
     return;
    }
-   throw new Error(data.error || "failed");
+   const se = new Error(data.error || "failed"); se.isServer = !!data.error; throw se;
   }
   cart=[];save();closeCheckout();e.target.reset();
-  openOrderSuccess(data.orderId || orderId);
+  openOrderSuccess(data.orderId || "");
  }catch(err){
-  toast("Couldn't place order — please try again.");
+  toast(err && err.isServer ? err.message : "Couldn't place order — please try again.");
  }finally{
   btn.disabled = false; btn.textContent = "Place order";
  }
@@ -1492,8 +1488,10 @@ async function submitReturn(e){
  const ret = {
   orderId: (form.get("orderId")||"").toUpperCase().trim(),
   name: form.get("name"), phone: form.get("phone"), email: form.get("email"),
-  address: form.get("address"),
-  reason: form.get("reason"), details: form.get("details")
+  reason: form.get("reason"),
+  // The server has no separate pickup-address field, so it travels with the details
+  // (previously it was sent but silently dropped).
+  details: [ (form.get("address")||"").trim() ? "Pickup address: " + String(form.get("address")).trim().slice(0,500) : "", (form.get("details")||"").trim() ].filter(Boolean).join(" | ")
  };
  btn.disabled = true; btn.textContent = "Submitting…";
  try{
@@ -1502,17 +1500,17 @@ async function submitReturn(e){
    body: JSON.stringify({ action: "placeReturn", return: ret })
   });
   const data = await res.json();
-  if(!data.success) throw new Error(data.error || "failed");
+  if(!data.success){ const se = new Error(data.error || "failed"); se.isServer = !!data.error; throw se; }
   closeReturns();e.target.reset();
   openReturnSuccess(data.returnId);
  }catch(err){
-  toast("Couldn't submit return — please try again.");
+  toast(err && err.isServer ? err.message : "Couldn't submit return — please try again.");
  }finally{
   btn.disabled = false; btn.textContent = "Submit return request";
  }
 }
 
-let toastTimer;function toast(t){const e=document.querySelector("#toast");e.textContent=t;e.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>e.classList.remove("show"),1800)}
+let toastTimer;function toast(t){const e=document.querySelector("#toast");e.textContent=t;e.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>e.classList.remove("show"),Math.max(1800,Math.min(6000,String(t).length*70)))}
 
 /* ================== Customer accounts ==================
    Optional — customers can keep checking out as a guest without
@@ -1571,7 +1569,7 @@ function renderAccountModal(){
    <form id="acctForm" onsubmit="submitReset(event)">
     <div class="formGrid">
      <div class="field full"><label>6-digit code</label><input required name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="123456"></div>
-     <div class="field full"><label>New password</label><input required type="password" name="newPassword" minlength="6" placeholder="At least 6 characters"></div>
+     <div class="field full"><label>New password</label><input required type="password" name="newPassword" minlength="8" maxlength="128" placeholder="At least 8 characters"></div>
     </div>
     <button class="btn" id="acctSubmitBtn" style="width:100%;margin-top:5px">Reset password</button>
    </form>
@@ -1589,7 +1587,7 @@ function renderAccountModal(){
      ${isLogin?"":'<div class="field full"><label>Full name</label><input required name="name" placeholder="Your name"></div>'}
      <div class="field full"><label>Email</label><input required type="email" name="email" placeholder="you@example.com"></div>
      ${isLogin?"":'<div class="field full"><label>Phone (optional)</label><input name="phone" placeholder="98XXXXXXXX"></div>'}
-     <div class="field full"><label>Password</label><input required type="password" name="password" minlength="6" placeholder="At least 6 characters"></div>
+     <div class="field full"><label>Password</label><input required type="password" name="password" minlength="8" maxlength="128" placeholder="At least 8 characters"></div>
     </div>
     <button class="btn" id="acctSubmitBtn" style="width:100%;margin-top:5px">${isLogin?"Log in":"Create account"}</button>
    </form>
@@ -1724,7 +1722,13 @@ async function loadMyOrders(){
 updateAccountBadge();
 
 
-function escapeHtml(s){ const d=document.createElement("div"); d.textContent=s||""; return d.innerHTML; }
+// Escapes quotes as well as & < > — this output is used inside HTML attributes
+// (alt=, title=, value=, href=), where an unescaped " or ' breaks out of the attribute.
+function escapeHtml(s){ const d=document.createElement("div"); d.textContent=(s==null?"":s); return d.innerHTML.replace(/"/g,"&quot;").replace(/'/g,"&#39;"); }
+// For values placed inside an inline onclick="fn(...)" attribute: a properly quoted
+// JS string, then HTML-escaped. (escapeHtml alone is NOT enough there, because the
+// browser decodes &#39; back to ' before the JavaScript runs.)
+function jsArg(v){ return JSON.stringify(String(v==null?"":v)).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"\\u003c"); }
 
 /* ================== Exclusive Deal of the Week — dedicated page ==================
    Clicking "Shop Now" on the deal card takes the customer to a real
@@ -1806,7 +1810,7 @@ function dealCardHTML(p){
     <button class="add cardAddBtn" ${combinationOut?'disabled':''} onclick="dealAddToCart(${p.id})">${combinationOut?TEXT.outOfStock:TEXT.addToCart}</button>`;
  return `<div class="product dealProductCard ${outOfStock?'outOfStock':''} ${expired?'dealEnded':''}" id="dealCard_${p.id}">
   <div class="productImg" ${clickAttr}>
-   <img src="${p.image}" alt="${escapeHtml(p.name)}" loading="lazy" onerror="this.style.display='none'">
+   <img src="${escapeHtml(p.image)}" alt="${escapeHtml(p.name)}" loading="lazy" onerror="this.style.display='none'">
    ${expired?'<span class="outBadge">Deal ended</span>':(outOfStock?`<span class="outBadge">${TEXT.outOfStock}</span>`:(p.new?'<span class="bestBadge">BEST</span>':''))}
    ${(!expired && !outOfStock && discount>0)?`<span class="sale" style="left:auto;right:12px">${discount}% OFF</span>`:''}
   </div>
@@ -2228,7 +2232,7 @@ const BANNER_FALLBACK = "https://placehold.co/1600x500/eef6f2/182220?text=Your+B
 function applySiteSettings(settings){
  siteSettings = settings;
  document.querySelector("#heroBannerImg").src = settings.bannerImage || BANNER_FALLBACK;
- document.querySelector("#heroBanner").href = settings.bannerLink || "#shop";
+ document.querySelector("#heroBanner").href = safeNoticeLink(settings.bannerLink) || "#shop";
  applyDeliverySettings(settings);
  renderDeal(settings);
  // Settings can arrive after the first product render (loadBanner and
