@@ -204,6 +204,19 @@ function escapeHtml(s){
  const d=document.createElement("div"); d.textContent=s||"";
  return d.innerHTML.replace(/"/g,"&quot;").replace(/'/g,"&#39;");
 }
+
+// For values placed inside an inline onclick="fn(...)" attribute: a properly quoted JS string,
+// then HTML-escaped. escapeHtml alone is NOT enough there — the browser decodes &#39; back to '
+// before the JavaScript runs, so a quote in the value could break out and run script.
+function jsArg(v){ return JSON.stringify(String(v==null?"":v)).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"\\u003c"); }
+// Chat photos are only ever our own Drive thumbnail links (or a local preview while uploading).
+// Anything else is dropped, so no arbitrary URL can be rendered into the page.
+function safeChatImg_(u){
+ u = String(u||"");
+ if(/^https:\/\/drive\.google\.com\/thumbnail\?id=[A-Za-z0-9_-]{10,80}&sz=w\d{2,4}$/.test(u)) return u;
+ if(/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+\/=]+$/.test(u) && u.length < 6000000) return u;
+ return "";
+}
 // Escapes message text (so it stays inert/safe), turns any http(s) URL
 // inside it into a real clickable <a>, and turns literal newlines into
 // <br> tags. The newline handling matters because the backend's auto-
@@ -381,7 +394,8 @@ function renderChatMessages(){
  if(!chatMessages.length && !isStaffTypingNow){
   el.innerHTML = `<div class="chatEmpty">Say hello! Our team will reply here shortly.</div>`;
  }else{
-  let html = chatMessages.map(m=>{
+  let html = chatMessages.map(m0=>{
+   const m = Object.assign({}, m0, { imageUrl: safeChatImg_(m0.imageUrl) });
    const cls = m.from==='staff' ? 'staff' : 'me';
    const isAiReply = m.from==='staff' && m.sentBy==='ai';
    const isStaffReply = m.from==='staff' && m.sentBy!=='ai';
@@ -404,23 +418,23 @@ function renderChatMessages(){
        ${m.imageUrl?`<img class="chatImg" src="${escapeHtml(m.imageUrl)}" alt="photo">`:``}
        <div class="editRow">
         <input id="editInput_${safeKey}" value="${escapeHtml(m.text||"")}">
-        <button type="button" onclick="saveEditedMessage('${safeKey}')">Save</button>
+        <button type="button" onclick="saveEditedMessage(${jsArg(key)})">Save</button>
         <button type="button" onclick="cancelEditMessage()">Cancel</button>
        </div>
       </div>
      </div>`;
    }
 
-   const imgPart = m.imageUrl ? `<img class="chatImg" src="${escapeHtml(m.imageUrl)}" onclick="openImageLightbox(event,'${escapeHtml(m.imageUrl)}')" alt="photo">` : ``;
+   const imgPart = m.imageUrl ? `<img class="chatImg" src="${escapeHtml(m.imageUrl)}" onclick="openImageLightbox(event,${jsArg(m.imageUrl)})" alt="photo">` : ``;
    const textPart = m.text ? `<span>${linkifyText(m.text)}</span>` : ``;
    const smallPart = m.failed ? `<small class="retryHint">Not sent — tap to retry</small>` : `<small>${m.time||""}${m.edited?" · edited":""}</small>`;
    let clickAttr = ``;
-   if(m.failed && m.pendingId) clickAttr = ` onclick="retryFailedMessage('${escapeHtml(m.pendingId)}')"`;
-   else if(canManage) clickAttr = ` onclick="toggleMessageActions(event,'${escapeHtml(key)}')"`;
+   if(m.failed && m.pendingId) clickAttr = ` onclick="retryFailedMessage(${jsArg(m.pendingId)})"`;
+   else if(canManage) clickAttr = ` onclick="toggleMessageActions(event,${jsArg(key)})"`;
    const bubble = `<div class="chatBubble ${cls}${m.imageUrl?' hasImg':''}${m.failed?' failed':''}${canManage?' manageable':''}"${clickAttr}>${tagPart}${imgPart}${textPart}${smallPart}</div>`;
    const actions = (canManage && activeMenuId===key) ? `<div class="msgActions" onclick="event.stopPropagation()">
-      <button type="button" onclick="startEditMessage('${escapeHtml(key)}')">Edit</button>
-      <button type="button" class="danger" onclick="confirmDeleteMessage('${escapeHtml(key)}')">Delete</button>
+      <button type="button" onclick="startEditMessage(${jsArg(key)})">Edit</button>
+      <button type="button" class="danger" onclick="confirmDeleteMessage(${jsArg(key)})">Delete</button>
      </div>` : ``;
    return `<div class="msgRow ${cls}">${bubble}${actions}</div>`;
   }).join("");
