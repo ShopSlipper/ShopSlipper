@@ -69,6 +69,9 @@ main{flex:1;min-height:0;display:flex}
 .convRow .phone{font-size:11.5px;color:var(--muted);margin-top:1px}
 .convRow .typingLabel{font-size:11px;color:var(--gold);font-style:italic;margin-top:1px}
 .unreadTag{padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700;background:var(--danger);color:#fff;flex-shrink:0}
+.convRight{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.convRow .convDel{width:26px;height:26px;font-size:12px;background:transparent}
+.convRow .convDel:hover{background:var(--danger);color:#fff} 
 
 .threadPanel{flex:1;min-width:0;background:var(--card);display:flex;flex-direction:column;min-height:0}
 .threadEmpty{flex:1;display:grid;place-items:center;color:var(--muted);font-size:13.5px;text-align:center;padding:20px}
@@ -817,7 +820,7 @@ function renderChatSessions(){
     <div class="name">${escapeHtml(c.name)||"Anonymous visitor"}${botOverrides[c.sessionId]==="on"?`<span class="aiTag on" title="AI is ON for this chat only">🤖 AI</span>`:(botOverrides[c.sessionId]==="off"?`<span class="aiTag off" title="AI is OFF for this chat only">🤖 off</span>`:``)}</div>
     ${typingNow ? `<div class="typingLabel">Typing…</div>` : (c.phone ? `<div class="phone">${escapeHtml(c.phone)}</div>` : ``)}
    </div>
-   ${c.unread>0 ? `<span class="unreadTag">${c.unread}</span>` : ``}
+   <div class="convRight">${c.unread>0 ? `<span class="unreadTag">${c.unread}</span>` : ``}<button type="button" class="iconBtn convDel" title="Delete this chat" onclick="event.stopPropagation();deleteChatSession(${jsArg(c.sessionId)})">🗑</button></div>
   </div>`;
  }).join("");
 }
@@ -985,6 +988,20 @@ function closeChatThread(){
  renderChatSessions();
  loadChatSessions();
 }
+
+async function deleteChatSession(sessionId){
+ if(!confirm("Delete this whole conversation? The customer's chat window will be cleared too.")) return;
+ try{
+  const res = await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"deleteChatSession",key:ADMIN_KEY,sessionId})});
+  const data = await res.json();
+  if(data.error) throw new Error(data.error);
+  chatSessions = chatSessions.filter(c=>c.sessionId!==sessionId);
+  if(activeChatSessionId===sessionId) closeChatThread(); else renderChatSessions();
+  toast("Conversation deleted");
+ }catch(err){
+  toast("Couldn't delete — " + (err.message || "please try again."));
+ }
+}  
 async function sendStaffReply(e){
  e.preventDefault();
  const input = document.querySelector("#chatReplyInput");
