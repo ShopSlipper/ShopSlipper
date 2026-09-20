@@ -181,11 +181,13 @@ table.kbTable td{padding:10px 6px;border-bottom:1px solid var(--line);vertical-a
 <body>
 
 <!-- ============================================================
- PASSWORD: change ADMIN_KEY in the <script> below to match
- ADMIN_KEY in Code.gs (same value used in admin.html) — the
- backend only knows one key, so this page and the main admin
- page must use the same one. Simple client-side gate, not real
- security: anyone who reads this file's source can see it.
+ LOGIN: the staff key is NOT stored in this file any more. Staff type
+ the CHAT_KEY (set in the chat script's "Security Setup" menu) at the
+ login screen; the server checks it, and it is kept only in this
+ browser tab's sessionStorage until logout. Previously the key was
+ hardcoded here — anyone who opened the page source could read it.
+ Use the CHAT_KEY here, not the ADMIN_KEY (the admin key also unlocks
+ the orders/returns sheets and should never be typed into this page).
 ============================================================= -->
 
 <div id="gate">
@@ -316,7 +318,9 @@ table.kbTable td{padding:10px 6px;border-bottom:1px solid var(--line);vertical-a
  Must match SCRIPT_URL and ADMIN_KEY in admin.html / Code.gs.
 =============================================== */
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwxKtGFQmHlwZmbfe-TKMDlzuI5KBFau8PDBkC5MYSyMA_ISe1SpC3lbBLfptHw-4l1/exec";
-const ADMIN_KEY  = "shopslipper2026";
+// Staff key: entered at login, never written in this file. (Variable keeps its
+// old name so every API call below is unchanged.)
+let ADMIN_KEY = sessionStorage.getItem("ss-chat-key") || "";
 const LOGO_URL   = "https://raw.githubusercontent.com/ShopSlipper/ShopSlipper/main/shop_slipper_transparent.png";
 
 // Defined this early on purpose: toast() gets called from error handlers
@@ -351,25 +355,47 @@ let currentThreadMessages = [];  // last messages fetched for the open thread
 let editingMessageId = null;     // messageId currently shown as an inline edit row
 let threadUnseenCount = 0;       // messages that arrived while staff scrolled up
 
-function tryLogin(){
- const val = document.querySelector("#gatePass").value;
- if(val === ADMIN_KEY){
+let loginBusy = false;
+async function tryLogin(){
+ if(loginBusy) return;
+ const val = document.querySelector("#gatePass").value.trim();
+ const err = document.querySelector("#gateErr");
+ if(!val){ err.textContent = "Enter the staff password."; err.style.display="block"; return; }
+ loginBusy = true;
+ try{
+  // The server is the only thing that decides whether the key is right.
+  const res = await fetch(`${SCRIPT_URL}?action=chatSessions&key=${encodeURIComponent(val)}`);
+  const data = await res.json();
+  if(data.error){
+   err.textContent = data.error === "Unauthorized" ? "Incorrect password. Try again." : "Login failed: " + data.error;
+   err.style.display = "block";
+   return;
+  }
+  ADMIN_KEY = val;
+  sessionStorage.setItem("ss-chat-key", val);
   sessionStorage.setItem("ss-chat-ok","1");
+  document.querySelector("#gatePass").value = "";
+  err.style.display = "none";
   document.querySelector("#gate").style.display="none";
   document.querySelector("#app").style.display="flex";
   loadChatSessions();
   loadTypingStatus();
   loadBotStatus();
   loadBotOverrides();
- }else{
-  document.querySelector("#gateErr").style.display="block";
+  renderNotes();
+ }catch(e){
+  err.textContent = "Couldn't reach the server. Check your connection and try again.";
+  err.style.display = "block";
+ }finally{
+  loginBusy = false;
  }
 }
 function logout(){
  sessionStorage.removeItem("ss-chat-ok");
+ sessionStorage.removeItem("ss-chat-key");
  location.reload();
 }
-if(sessionStorage.getItem("ss-chat-ok")==="1"){
+if(sessionStorage.getItem("ss-chat-ok")==="1" && ADMIN_KEY){
  document.querySelector("#gate").style.display="none";
  document.querySelector("#app").style.display="flex";
  loadChatSessions();
@@ -382,6 +408,19 @@ if(sessionStorage.getItem("ss-chat-ok")==="1"){
 function escapeHtml(s){
  const d=document.createElement("div"); d.textContent=s||"";
  return d.innerHTML.replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+}
+
+// For values placed inside an inline onclick="fn(...)" attribute: a properly quoted JS string,
+// then HTML-escaped. escapeHtml alone is NOT enough there — the browser decodes &#39; back to '
+// before the JavaScript runs, so a quote in the value could break out and run script.
+function jsArg(v){ return JSON.stringify(String(v==null?"":v)).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"\\u003c"); }
+// Chat photos are only ever our own Drive thumbnail links (or a local preview while uploading).
+// Anything else is dropped, so no arbitrary URL can be rendered into the page.
+function safeChatImg_(u){
+ u = String(u||"");
+ if(/^https:\/\/drive\.google\.com\/thumbnail\?id=[A-Za-z0-9_-]{10,80}&sz=w\d{2,4}$/.test(u)) return u;
+ if(/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+\/=]+$/.test(u) && u.length < 6000000) return u;
+ return "";
 }
 // Escapes message text and turns literal newlines into <br>. Needed
 // because the backend's auto-reply bot now sends multi-line, numbered
@@ -645,10 +684,10 @@ function renderNotes(){
   <div class="noteCard">
    <div class="noteText">${escapeHtml(n.text)}</div>
    <div class="noteActions">
-    <button type="button" onclick="copyNote('${n.id}')">Copy</button>
-    <button type="button" onclick="insertNote('${n.id}')">Insert</button>
-    <button type="button" onclick="editNote('${n.id}')">Edit</button>
-    <button type="button" class="danger" onclick="deleteNote('${n.id}')">Delete</button>
+    <button type="button" onclick="copyNote(${jsArg(n.id)})">Copy</button>
+    <button type="button" onclick="insertNote(${jsArg(n.id)})">Insert</button>
+    <button type="button" onclick="editNote(${jsArg(n.id)})">Edit</button>
+    <button type="button" class="danger" onclick="deleteNote(${jsArg(n.id)})">Delete</button>
    </div>
   </div>`).join("") : `<div class="emptyMsg" style="padding:20px 6px">No notes yet.</div>`;
 }
@@ -722,6 +761,7 @@ async function loadChatSessions(){
  try{
   const res = await fetch(`${SCRIPT_URL}?action=chatSessions&key=${encodeURIComponent(ADMIN_KEY)}`);
   const data = await res.json();
+  if(data.error === "Unauthorized"){ logout(); return; }   // key was rotated or is no longer valid
   if(data.error) throw new Error(data.error);
   chatSessions = data.sessions || [];
   document.querySelector("#sourceNote").innerHTML = `Connected — <b>${chatSessions.length}</b> conversations.`;
@@ -733,7 +773,7 @@ async function loadChatSessions(){
  }
 }
 let pollTick = 0;
-setInterval(()=>{ if(sessionStorage.getItem("ss-chat-ok")==="1"){ if(++pollTick % 3 === 0){ loadBotOverrides(); loadBotStatus(); } loadChatSessions(); loadTypingStatus(); if(activeChatSessionId) loadChatThread(activeChatSessionId); } }, 5000);
+setInterval(()=>{ if(sessionStorage.getItem("ss-chat-ok")==="1" && ADMIN_KEY){ if(++pollTick % 3 === 0){ loadBotOverrides(); loadBotStatus(); } loadChatSessions(); loadTypingStatus(); if(activeChatSessionId) loadChatThread(activeChatSessionId); } }, 5000);
 
 async function loadTypingStatus(){
  try{
@@ -772,7 +812,7 @@ function renderChatSessions(){
  rows.innerHTML = chatSessions.map(c=>{
   const typingNow = currentTypingSessions.some(t=>t.sessionId===c.sessionId);
   return `
-  <div class="convRow${c.sessionId===activeChatSessionId?' active':''}" onclick="openChatThread('${c.sessionId}')">
+  <div class="convRow${c.sessionId===activeChatSessionId?' active':''}" onclick="openChatThread(${jsArg(c.sessionId)})">
    <div>
     <div class="name">${escapeHtml(c.name)||"Anonymous visitor"}${botOverrides[c.sessionId]==="on"?`<span class="aiTag on" title="AI is ON for this chat only">🤖 AI</span>`:(botOverrides[c.sessionId]==="off"?`<span class="aiTag off" title="AI is OFF for this chat only">🤖 off</span>`:``)}</div>
     ${typingNow ? `<div class="typingLabel">Typing…</div>` : (c.phone ? `<div class="phone">${escapeHtml(c.phone)}</div>` : ``)}
@@ -864,7 +904,8 @@ function renderChatThreadMessages(){
  const wasNearBottom = isNearBottom(el);
  const msgs = currentThreadMessages;
  el.innerHTML = msgs.length
-  ? msgs.map(m=>{
+  ? msgs.map(m0=>{
+     const m = Object.assign({}, m0, { imageUrl: safeChatImg_(m0.imageUrl) });
      const key = m.messageId || null;
      const isStaffOwn = m.from === 'staff';
      const canEdit = isStaffOwn && !!key; // staff can edit their own sent messages, not the customer's words
@@ -874,15 +915,15 @@ function renderChatThreadMessages(){
         ${m.imageUrl?`<img class="chatImg" src="${escapeHtml(m.imageUrl)}" alt="photo">`:``}
         <div class="msgEditRow">
          <input id="editMsgInput_${safeKey}" value="${escapeHtml(m.text||"")}">
-         <button type="button" onclick="saveEditedStaffMessage('${safeKey}')">Save</button>
+         <button type="button" onclick="saveEditedStaffMessage(${jsArg(key)})">Save</button>
          <button type="button" onclick="cancelEditStaffMessage()">Cancel</button>
         </div>
        </div>`;
      }
-     const imgPart = m.imageUrl ? `<img class="chatImg" src="${escapeHtml(m.imageUrl)}" onclick="openImageLightbox('${escapeHtml(m.imageUrl)}')" alt="photo">` : ``;
+     const imgPart = m.imageUrl ? `<img class="chatImg" src="${escapeHtml(m.imageUrl)}" onclick="openImageLightbox(${jsArg(m.imageUrl)})" alt="photo">` : ``;
      const textPart = m.text ? `<span>${formatMsgText_(m.text)}</span>` : ``;
-     const delBtn = m.messageId ? `<button type="button" class="msgDelBtn" title="Hide this message" onclick="deleteMessage('${m.messageId}')">✕</button>` : ``;
-     const editBtn = canEdit ? `<button type="button" class="msgEditBtn" title="Edit" onclick="startEditStaffMessage('${escapeHtml(m.messageId)}')">✎</button>` : ``;
+     const delBtn = m.messageId ? `<button type="button" class="msgDelBtn" title="Hide this message" onclick="deleteMessage(${jsArg(m.messageId)})">✕</button>` : ``;
+     const editBtn = canEdit ? `<button type="button" class="msgEditBtn" title="Edit" onclick="startEditStaffMessage(${jsArg(m.messageId)})">✎</button>` : ``;
      const isAi = m.from === 'staff' && m.sentBy === 'ai';
      const tag = isAi
       ? `<div class="senderTag aiTagRow"><img src="${LOGO_URL}" alt="ShopSlipper AI"><span>AI</span></div>`
