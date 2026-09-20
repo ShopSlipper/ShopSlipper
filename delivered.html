@@ -240,8 +240,10 @@ select.statusSelect[data-status="Out for delivery"]{background-color:#f3e8fb;col
      <input type="text" id="searchInput" placeholder="Search orders…" oninput="applyFilters()">
     </div>
    </div>
-   <div class="filterRow" id="filterRow">
+    <div class="filterRow" id="filterRow">
     <button class="chip active" data-s="Out for delivery">Out for delivery</button>
+    <button class="chip" data-s="Delivered">Delivered</button>
+    <button class="chip" data-s="Cancelled">Cancelled</button>
     <button class="chip" data-s="">All</button>
    </div>
    <div class="orderList" id="orderList"></div>
