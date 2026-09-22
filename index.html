@@ -432,7 +432,7 @@ footer .logo span{color:#c8f0d6}
    <p>Minimal, considered slippers made for everyday life easy on your feet, easy on your style.</p>
   </div>
   <a class="bannerLink" id="heroBanner" href="#shop">
-   <img id="heroBannerImg" src="" alt="Promotion">
+   <img id="heroBannerImg" src="" alt="">
   </a>
  </div>
 </section>
@@ -1265,7 +1265,7 @@ function midBannerHTML(){
  const link = siteSettings.midBannerLink || "#shop";
  const text = siteSettings.midBannerText || "";
  return `<a class="midBanner" href="${escapeHtml(safeNoticeLink(link) || '#shop')}">
-  <img src="${escapeHtml(siteSettings.midBannerImage)}" alt="Promotion" loading="lazy" onerror="this.style.display='none'">
+  <img src="${escapeHtml(siteSettings.midBannerImage)}" alt="" loading="lazy" onerror="this.style.display='none'">
   ${text?`<span class="midBannerText">${escapeHtml(text)}</span>`:""}
  </a>`;
 }
